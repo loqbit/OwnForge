@@ -2,4 +2,5 @@ go 1.25.5
 
 use (
 	./services/notes
+	./services/user-platform
 )

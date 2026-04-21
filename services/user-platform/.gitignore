@@ -1,0 +1,64 @@
+# macOS
+.DS_Store
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Logs and runtime files
+*.log
+app.log
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+
+# Local binaries
+user_service
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+
+# Docker/local data
+pg_data/
+redis_data/
+
+# Monitoring/runtime volumes
+grafana_data/
+loki_data/
+prometheus_data/
+
+# Vendor (keep if you do not vendor deps)
+vendor/
+
+# Frontend (view)
+view/node_modules/
+view/dist/
+view/dist-ssr/
+view/coverage/
+view/.eslintcache
+view/*.tsbuildinfo
+view/.env.local
+view/.env.development.local
+view/.env.test.local
+view/.env.production.local
+
+# Frontend package manager caches
+.pnpm-store/
+.npm/
+
+# Frontend tooling caches
+view/.vite/
+view/.cache/
+
+# Architecture review
+user_platform_architecture_review.md

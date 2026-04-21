@@ -1,0 +1,46 @@
+package infrastore
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
+	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
+	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
+)
+
+// EventOutboxStore 是 EventOutboxWriter 的 Ent 实现。
+type EventOutboxStore struct {
+	client *ent.Client
+}
+
+// NewEventOutboxStore 创建一个 EventOutboxWriter 实例。
+func NewEventOutboxStore(client *ent.Client) infrarepo.EventOutboxWriter {
+	return &EventOutboxStore{client: client}
+}
+
+func (s *EventOutboxStore) Append(ctx context.Context, record *infrarepo.OutboxRecord) error {
+	c := shared.EntClientFromCtx(ctx, s.client)
+
+	builder := c.EventOutbox.Create()
+
+	if record.AggregateType != "" {
+		builder.SetAggregatetype(record.AggregateType)
+	}
+	if record.AggregateID != "" {
+		builder.SetAggregateid(record.AggregateID)
+	}
+	if record.EventType != "" {
+		builder.SetType(record.EventType)
+	}
+	builder.SetPayload(json.RawMessage(record.Payload))
+	if len(record.Headers) > 0 {
+		builder.SetHeaders(json.RawMessage(record.Headers))
+	}
+	if !record.CreatedAt.IsZero() {
+		builder.SetCreatedAt(record.CreatedAt)
+	}
+
+	_, err := builder.Save(ctx)
+	return err
+}
