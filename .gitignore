@@ -1,0 +1,28 @@
+# Go
+*.exe
+*.test
+*.prof
+vendor/
+
+# Node
+node_modules/
+dist/
+.next/
+
+# Env
+.env
+.env.local
+*.env
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Build
+bin/
+build/
+*.log
+
+# Claude Code personal settings
+.claude/settings.local.json
