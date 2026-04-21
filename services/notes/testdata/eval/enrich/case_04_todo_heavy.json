@@ -1,0 +1,22 @@
+{
+  "name": "case_04_todo_heavy",
+  "input": {
+    "title": "本周 GoNote AI 模块收尾清单",
+    "content": "距离发布还有 5 天，盘点剩余工作。\n\n后端：\n- [ ] ent schema 加 ai_call_log、ai_usage_daily、snippet_ai_metadata 改字段\n- [ ] EnrichService 加 JSON repair 和 trace 落库\n- [ ] 分布式锁防并发 worker 重复调 LLM\n- [ ] ai-eval golden set 5 个 case\n\n前端：\n- [ ] 笔记详情页展示 AI 摘要和建议标签\n- [ ] Settings 加 AI 开关\n\n运维：\n- [ ] Grafana 加 AI 面板（tokens/成本/延迟）\n- [ ] Redis Stream 消费积压告警"
+  },
+  "expect": {
+    "tags": {
+      "count_range": [3, 10],
+      "must_include_any_of": [
+        ["AI", "ai", "GoNote", "gonote"]
+      ]
+    },
+    "todos": {
+      "min_count": 6
+    },
+    "summary": {
+      "max_chars": 100,
+      "must_mention_any": ["AI", "发布", "收尾", "清单"]
+    }
+  }
+}

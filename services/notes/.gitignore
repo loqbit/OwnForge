@@ -1,0 +1,20 @@
+# 环境变量 & 敏感配置
+.env
+*.log
+app.log
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Go
+tmp/
+bin/
+
+# Frontend
+view/node_modules/
+view/dist/
+view/.eslintcache

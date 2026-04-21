@@ -1,0 +1,75 @@
+# NOTE: Legacy compose inherited from old go-note repo.
+# Will be superseded by the top-level docker-compose.yml in Phase 2.
+# All hardcoded credentials have been replaced with ${VAR} references;
+# supply them via .env (see .env.example).
+services:
+  go-note:
+    container_name: go-note
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    volumes:
+      - ./configs:/app/configs:ro
+    environment:
+      - APP_ENV=development
+      - SERVER_PORT=8080
+      - GRPC_SERVER_PORT=9093
+      - ID_GENERATOR_ADDR=id-generator:50059
+      - DATABASE_DRIVER=postgres
+      - DATABASE_SOURCE=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@global-postgres:5432/${POSTGRES_DB}?sslmode=disable
+      - DATABASE_AUTO_MIGRATE=true
+      - REDIS_ADDR=global-redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - USER_PLATFORM_ADDR=user-grpc:9091
+      - OTEL_JAEGER_ENDPOINT=global-jaeger:4318
+      - OTEL_SERVICE_NAME=go-note
+      - MINIO_ENDPOINT=global-minio:9000
+      - MINIO_PUBLIC_ENDPOINT=localhost:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=go-note-uploads
+      - MINIO_USE_SSL=false
+      - METRICS_PORT=9094
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - go-net
+    restart: unless-stopped
+
+  ai-worker:
+    container_name: go-note-ai-worker
+    build:
+      context: .
+      dockerfile: Dockerfile.ai-worker
+    environment:
+      - APP_ENV=development
+      - DATABASE_DRIVER=postgres
+      - DATABASE_SOURCE=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@global-postgres:5432/${POSTGRES_DB}?sslmode=disable
+      - DATABASE_AUTO_MIGRATE=false
+      - REDIS_ADDR=global-redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ID_GENERATOR_ADDR=id-generator:50059
+      # LLM: loaded from host .env; never hardcoded.
+      - AI_PROVIDER=${AI_PROVIDER}
+      - AI_BASE_URL=${AI_BASE_URL}
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_ENRICH_MODEL=${AI_ENRICH_MODEL}
+      - AI_REPORT_MODEL=${AI_REPORT_MODEL:-}
+      - AI_MAX_TOKENS=${AI_MAX_TOKENS:-1024}
+      - AI_WORKER_COUNT=${AI_WORKER_COUNT:-4}
+      - AI_MIN_CONTENT_LEN=${AI_MIN_CONTENT_LEN:-50}
+    depends_on:
+      go-note:
+        condition: service_healthy
+    networks:
+      - go-net
+    restart: unless-stopped
+
+networks:
+  go-net:
+    name: go-net
+    external: true

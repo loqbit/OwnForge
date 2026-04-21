@@ -1,0 +1,24 @@
+{
+  "name": "case_01_meeting",
+  "input": {
+    "title": "周会纪要 2026-04-15",
+    "content": "本周讨论 Q2 路线图。决定下周上线 AI 增值模块，包含标签、摘要、TODO 三件套。\n\n行动项：\n- 小王负责周五前出技术方案\n- 小李盯进度，每日同步\n- 小张负责压测报告，下周一前交付\n\n风险：若 LLM 服务商延迟高，需准备本地 Ollama fallback。"
+  },
+  "expect": {
+    "tags": {
+      "count_range": [3, 8],
+      "must_include_any_of": [
+        ["会议", "周会", "纪要"]
+      ],
+      "must_not_include": ["代码片段", "bug"]
+    },
+    "todos": {
+      "min_count": 3,
+      "must_mention_any": ["方案", "小王", "小李", "压测"]
+    },
+    "summary": {
+      "max_chars": 100,
+      "must_mention_any": ["Q2", "路线图", "AI"]
+    }
+  }
+}

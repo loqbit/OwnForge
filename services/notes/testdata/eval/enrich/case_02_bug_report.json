@@ -1,0 +1,23 @@
+{
+  "name": "case_02_bug_report",
+  "input": {
+    "title": "线上 snippet 保存偶现 500",
+    "content": "现象：用户保存 snippet 时，约 5% 请求返回 500 Internal Server Error。日志显示 pgx 连接池打满。\n\n复现：连续并发 50 次 POST /api/v1/snippets。\n\n怀疑点：\n1. 连接池默认 10 太小\n2. Upsert 长事务占用连接\n3. AI worker 和主服务共用连接池\n\nFIXME: 先把 max_conns 调到 30 止血，再排查事务长度。\nTODO: 给 AI worker 独立连接池。"
+  },
+  "expect": {
+    "tags": {
+      "count_range": [3, 8],
+      "must_include_any_of": [
+        ["bug", "故障", "问题", "排查"]
+      ]
+    },
+    "todos": {
+      "min_count": 2,
+      "must_mention_any": ["max_conns", "连接池", "worker"]
+    },
+    "summary": {
+      "max_chars": 100,
+      "must_mention_any": ["500", "连接池", "pgx"]
+    }
+  }
+}

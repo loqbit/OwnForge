@@ -1,0 +1,20 @@
+{
+  "name": "case_05_english_blog",
+  "input": {
+    "title": "Why I moved from Pub/Sub to Redis Streams",
+    "content": "We started with Redis Pub/Sub for async enrichment. Worked fine — until our AI worker crashed and we lost 3 hours of events. Pub/Sub has no persistence; offline subscribers miss messages forever.\n\nRedis Streams fixes this:\n- XADD appends to a log; data lives until you XTRIM it\n- Consumer groups track per-consumer offsets (XREADGROUP)\n- XACK explicitly commits; unacked messages come back on reconnect\n\nMigration was small: swap Publish/Subscribe bodies, keep our interface unchanged. Worth it."
+  },
+  "expect": {
+    "tags": {
+      "count_range": [3, 8],
+      "must_include_any_of": [
+        ["redis", "Redis"],
+        ["stream", "streams", "pub/sub", "pubsub", "消息队列"]
+      ]
+    },
+    "summary": {
+      "max_chars": 120,
+      "must_mention_any": ["Redis", "Stream", "Pub/Sub", "pub/sub"]
+    }
+  }
+}

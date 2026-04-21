@@ -1,0 +1,23 @@
+{
+  "name": "case_03_code_snippet",
+  "input": {
+    "title": "Go 里优雅实现 context 超时兜底",
+    "content": "在调用外部 API 时，经常需要在用户 ctx 基础上再套一层超时，避免下游无响应拖垮自己。\n\n```go\nfunc callWithTimeout(ctx context.Context, d time.Duration) error {\n    cctx, cancel := context.WithTimeout(ctx, d)\n    defer cancel()\n    return downstream.Do(cctx)\n}\n```\n\n注意点：\n1. cancel 必须 defer，否则 goroutine 泄漏\n2. 父 ctx 如果已取消，子 ctx 立刻也是取消状态\n3. 超时优先级：子 < 父（取更严格的那个）\n\n没有待办。"
+  },
+  "expect": {
+    "tags": {
+      "count_range": [3, 8],
+      "must_include_any_of": [
+        ["go", "golang", "context"]
+      ],
+      "must_not_include": ["会议", "周报"]
+    },
+    "todos": {
+      "max_count": 0
+    },
+    "summary": {
+      "max_chars": 100,
+      "must_mention_any": ["context", "超时", "timeout"]
+    }
+  }
+}
