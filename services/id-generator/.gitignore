@@ -1,0 +1,24 @@
+# Go 核心忽略
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# 项目编译产物
+bin/
+
+# IDE 和操作系统缓存
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# 包含敏感信息的文件
+.env
+.env.*
+!.env.example

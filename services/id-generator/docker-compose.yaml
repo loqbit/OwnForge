@@ -1,0 +1,28 @@
+services:
+  id-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: id-generator
+    restart: unless-stopped
+    ports:
+      - "50059:50059"
+    env_file:
+      - .env
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      SERVER_PORT: ${SERVER_PORT:-50059}
+      SERVER_MODE: ${SERVER_MODE:-debug}
+      SNOWFLAKE_NODE_ID: ${SNOWFLAKE_NODE_ID:-1}
+    networks:
+      - go-net
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  go-net:
+    external: true
