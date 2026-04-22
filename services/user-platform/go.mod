@@ -8,23 +8,7 @@ go 1.25.5
 // genproto/googleapis/{rpc,api} modules used by modern grpc/grpc-gateway.
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20260420184626-e10c466a9529
 
-replace (
-	github.com/ownforge/ownforge/pkg/conf => ../../pkg/conf
-	github.com/ownforge/ownforge/pkg/crypto => ../../pkg/crypto
-	github.com/ownforge/ownforge/pkg/errs => ../../pkg/errs
-	github.com/ownforge/ownforge/pkg/health => ../../pkg/health
-	github.com/ownforge/ownforge/pkg/id => ../../pkg/id
-	github.com/ownforge/ownforge/pkg/logger => ../../pkg/logger
-	github.com/ownforge/ownforge/pkg/metrics => ../../pkg/metrics
-	github.com/ownforge/ownforge/pkg/mq => ../../pkg/mq
-	github.com/ownforge/ownforge/pkg/otel => ../../pkg/otel
-	github.com/ownforge/ownforge/pkg/postgres => ../../pkg/postgres
-	github.com/ownforge/ownforge/pkg/probe => ../../pkg/probe
-	github.com/ownforge/ownforge/pkg/proto => ../../pkg/proto
-	github.com/ownforge/ownforge/pkg/ratelimiter => ../../pkg/ratelimiter
-	github.com/ownforge/ownforge/pkg/redis => ../../pkg/redis
-	github.com/ownforge/ownforge/pkg/trace => ../../pkg/trace
-)
+replace github.com/ownforge/ownforge/pkg => ../../pkg
 
 require (
 	entgo.io/ent v0.14.6
@@ -35,13 +19,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/ownforge/ownforge/pkg/conf v0.2.1
-	github.com/ownforge/ownforge/pkg/id v0.0.0
-	github.com/ownforge/ownforge/pkg/metrics v0.3.1
-	github.com/ownforge/ownforge/pkg/mq v0.2.0
-	github.com/ownforge/ownforge/pkg/postgres v0.2.0
-	github.com/ownforge/ownforge/pkg/probe v0.1.2
-	github.com/ownforge/ownforge/pkg/proto v1.3.1
+	github.com/ownforge/ownforge/pkg v0.0.0
 	github.com/redis/go-redis/v9 v9.18.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.67.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.67.0
@@ -64,7 +42,6 @@ require (
 	github.com/lib/pq v1.12.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/ownforge/ownforge/pkg/health v0.2.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
@@ -122,13 +99,6 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/ownforge/ownforge/pkg/crypto v0.1.0
-	github.com/ownforge/ownforge/pkg/errs v0.1.2
-	github.com/ownforge/ownforge/pkg/logger v0.4.1
-	github.com/ownforge/ownforge/pkg/otel v0.2.0
-	github.com/ownforge/ownforge/pkg/ratelimiter v0.2.0
-	github.com/ownforge/ownforge/pkg/redis v0.2.1
-	github.com/ownforge/ownforge/pkg/trace v0.1.0
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.59.0 // indirect
