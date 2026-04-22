@@ -111,6 +111,6 @@ If you know which agent you are, follow these preferences:
 
 ## 9. When in doubt
 
-1. Read `docs/OwnForge_执行计划书_v1.md` for current phase.
+1. Read `docs/ARCHITECTURE.md` for current phase.
 2. Prefer editing existing files over creating new ones.
 3. Ask the user rather than guessing.
