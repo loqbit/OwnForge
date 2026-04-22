@@ -1,0 +1,200 @@
+# Top-level compose for OwnForge (Phase 2).
+# Spins up: infra (Postgres, Redis, Jaeger, MinIO) + core services
+# (notes, user-platform http+grpc, gateway). The AI worker is gated
+# behind the "ai" profile since it requires an LLM API key.
+#
+# Usage:
+#   cp .env.example .env   # fill in secrets
+#   docker compose up -d
+#   docker compose --profile ai up -d   # include ai-worker
+
+name: ownforge
+
+x-common-env: &common-env
+  APP_ENV: ${APP_ENV:-development}
+  OTEL_JAEGER_ENDPOINT: jaeger:4318
+
+services:
+  # ─── Infrastructure ───────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ownforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?must set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-ownforge}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [ownforge]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?must set REDIS_PASSWORD in .env}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [ownforge]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"  # UI
+    networks: [ownforge]
+
+  minio:
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?must set MINIO_ACCESS_KEY in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?must set MINIO_SECRET_KEY in .env}
+    ports:
+      - "9000:9000"   # S3 API (public endpoint for presigned URLs)
+      - "9001:9001"   # console
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [ownforge]
+
+  # ─── Core services ────────────────────────────────────────────────
+  user-grpc:
+    build:
+      context: ./services/user-platform
+      dockerfile: Dockerfile.grpc
+    environment:
+      <<: *common-env
+      GRPC_SERVER_PORT: 9091
+      DATABASE_DRIVER: postgres
+      DATABASE_SOURCE: postgres://${POSTGRES_USER:-ownforge}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ownforge}?sslmode=disable
+      DATABASE_AUTO_MIGRATE: "false"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?must set JWT_SECRET in .env}
+      OTEL_SERVICE_NAME: user-platform-grpc
+      METRICS_PORT: 9092
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [ownforge]
+    restart: unless-stopped
+
+  user-http:
+    build:
+      context: ./services/user-platform
+      dockerfile: Dockerfile.http
+    environment:
+      <<: *common-env
+      SERVER_PORT: 8081
+      DATABASE_DRIVER: postgres
+      DATABASE_SOURCE: postgres://${POSTGRES_USER:-ownforge}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ownforge}?sslmode=disable
+      DATABASE_AUTO_MIGRATE: "true"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      OTEL_SERVICE_NAME: user-platform-http
+      METRICS_PORT: 9092
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [ownforge]
+    restart: unless-stopped
+
+  notes:
+    build:
+      context: ./services/notes
+      dockerfile: Dockerfile
+    environment:
+      <<: *common-env
+      SERVER_PORT: 8080
+      GRPC_SERVER_PORT: 9093
+      DATABASE_DRIVER: postgres
+      DATABASE_SOURCE: postgres://${POSTGRES_USER:-ownforge}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ownforge}?sslmode=disable
+      DATABASE_AUTO_MIGRATE: "true"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      USER_PLATFORM_ADDR: user-grpc:9091
+      OTEL_SERVICE_NAME: notes
+      MINIO_ENDPOINT: minio:9000
+      MINIO_PUBLIC_ENDPOINT: localhost:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-ownforge-notes}
+      MINIO_USE_SSL: "false"
+      METRICS_PORT: 9094
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+      user-grpc: { condition: service_started }
+    networks: [ownforge]
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "${GATEWAY_PORT:-8000}:8000"
+    environment:
+      <<: *common-env
+      ROUTES_USER_PLATFORM: http://user-http:8081
+      ROUTES_USER_PLATFORM_GRPC: user-grpc:9091
+      ROUTES_GO_NOTE: http://notes:8080
+      ROUTES_GO_NOTE_GRPC: notes:9093
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    depends_on:
+      - user-http
+      - notes
+    networks: [ownforge]
+    restart: unless-stopped
+
+  ai-worker:
+    profiles: ["ai"]
+    build:
+      context: ./services/notes
+      dockerfile: Dockerfile.ai-worker
+    environment:
+      <<: *common-env
+      DATABASE_DRIVER: postgres
+      DATABASE_SOURCE: postgres://${POSTGRES_USER:-ownforge}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ownforge}?sslmode=disable
+      DATABASE_AUTO_MIGRATE: "false"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      AI_PROVIDER: ${AI_PROVIDER}
+      AI_BASE_URL: ${AI_BASE_URL}
+      AI_API_KEY: ${AI_API_KEY}
+      AI_ENRICH_MODEL: ${AI_ENRICH_MODEL}
+      AI_REPORT_MODEL: ${AI_REPORT_MODEL:-}
+      AI_MAX_TOKENS: ${AI_MAX_TOKENS:-1024}
+      AI_WORKER_COUNT: ${AI_WORKER_COUNT:-4}
+      AI_MIN_CONTENT_LEN: ${AI_MIN_CONTENT_LEN:-50}
+    depends_on:
+      notes: { condition: service_healthy }
+    networks: [ownforge]
+    restart: unless-stopped
+
+networks:
+  ownforge:
+    name: ownforge
+
+volumes:
+  pg-data:
+  minio-data:
