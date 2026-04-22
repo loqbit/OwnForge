@@ -1,8 +1,8 @@
-# common/redis — Redis 客户端初始化
+# common/redis — Redis Client Initialization
 
-统一的 Redis 客户端创建，内置连接池和日志。
+Unified Redis client creation with a built-in connection pool and logging.
 
-## 用法
+## Usage
 
 ```go
 import commonRedis "github.com/ownforge/ownforge/pkg/redis"
@@ -14,15 +14,15 @@ redisClient := commonRedis.Init(commonRedis.Config{
 }, log)
 defer redisClient.Close()
 
-// 返回标准 *redis.Client，直接使用 go-redis API
+// Returns a standard `*redis.Client` and uses the go-redis API directly
 redisClient.Set(ctx, "key", "value", time.Minute)
 val, err := redisClient.Get(ctx, "key").Result()
 ```
 
-## Config 字段
+## Config Field
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Description |
 |------|------|------|
-| `Addr` | string | Redis 地址，如 `"localhost:6379"` |
-| `Password` | string | 密码 |
-| `DB` | int | 数据库编号 |
+| `Addr` | string | Redis Address, for example `"localhost:6379"` |
+| `Password` | string | Password |
+| `DB` | int | Database number |

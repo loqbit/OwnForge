@@ -12,22 +12,22 @@ import (
 	"go.uber.org/zap"
 )
 
-// Config 通用 Postgres 连接配置
+// Config is the common Postgres connection configuration.
 type Config struct {
 	Driver      string `mapstructure:"driver"`
 	Source      string `mapstructure:"source"`
 	AutoMigrate bool   `mapstructure:"auto_migrate"`
 }
 
-// PoolConfig 连接池参数（所有字段均提供合理默认值，各服务可按需覆盖）
+// PoolConfig contains pool parameters with sensible defaults that services can override as needed.
 type PoolConfig struct {
-	MaxOpenConns    int           // 最大打开连接数（PG 默认 max_connections=100，单服务建议 ≤25）
-	MaxIdleConns    int           // 最大空闲连接数（避免频繁建连的开销）
-	ConnMaxLifetime time.Duration // 连接最大存活时间（防止被 PG 踢掉的僵尸连接）
-	ConnMaxIdleTime time.Duration // 空闲连接回收时间（释放长时间不用的连接）
+	MaxOpenConns    int           // maximum open connections (Postgres defaults max_connections to 100; a single service should usually stay <=25)
+	MaxIdleConns    int           // maximum idle connections (to avoid frequent reconnect overhead)
+	ConnMaxLifetime time.Duration // maximum connection lifetime (to avoid zombie connections dropped by Postgres)
+	ConnMaxIdleTime time.Duration // idle connection cleanup time (to release long-unused connections)
 }
 
-// DefaultPoolConfig 返回生产级默认连接池配置
+// DefaultPoolConfig returns production-grade default connection-pool settings
 func DefaultPoolConfig() PoolConfig {
 	return PoolConfig{
 		MaxOpenConns:    25,
@@ -37,34 +37,34 @@ func DefaultPoolConfig() PoolConfig {
 	}
 }
 
-// Init 初始化带 OTel 追踪和连接池的 *sql.DB
+// Init initializes a *sql.DB with OTel tracing and pool settings.
 //
-// 设计决策：返回 error 而非 log.Fatal，将「连接失败时是降级还是退出」的决策权交给调用方。
-// 例如 go-chat 在 DB 不可用时会降级为内存仓储，而 user-platform 则需要直接退出。
+// Design decision: return an error instead of calling log.Fatal so the caller can decide whether to degrade or exit on connection failure.
+// For example, go-chat may fall back to in-memory storage when the DB is unavailable, while user-platform should exit directly.
 func Init(cfg Config, pool PoolConfig, log *zap.Logger) (*sql.DB, error) {
 	db, err := otelsql.Open(cfg.Driver, cfg.Source,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("打开数据库连接失败: %w", err)
+		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
-	// 连接池配置
+	// Connection pool settings
 	db.SetMaxOpenConns(pool.MaxOpenConns)
 	db.SetMaxIdleConns(pool.MaxIdleConns)
 	db.SetConnMaxLifetime(pool.ConnMaxLifetime)
 	db.SetConnMaxIdleTime(pool.ConnMaxIdleTime)
 
-	// 连接验证
+	// connection verification
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
 		_ = db.Close()
-		return nil, fmt.Errorf("数据库连接验证失败: %w", err)
+		return nil, fmt.Errorf("database connection verification failed: %w", err)
 	}
 
-	log.Info("成功连接到 PostgreSQL",
+	log.Info("connected to PostgreSQL successfully",
 		zap.Int("max_open_conns", pool.MaxOpenConns),
 		zap.Int("max_idle_conns", pool.MaxIdleConns),
 		zap.Duration("conn_max_lifetime", pool.ConnMaxLifetime),

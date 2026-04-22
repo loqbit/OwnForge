@@ -1,8 +1,8 @@
-# Debezium Outbox Connector 约定
+# Debezium Outbox Connector Conventions
 
-`common/mq/cdc` 约定服务统一采用 Outbox + CDC 模式接入 Kafka。
+`common/mq/cdc` defines the convention that services integrate with Kafka through the Outbox + CDC pattern.
 
-推荐的 Outbox 表字段如下：
+The recommended Outbox table fields are:
 
 ```text
 id
@@ -14,28 +14,28 @@ headers
 created_at
 ```
 
-字段用途：
+Field meanings:
 
-- `id`: 事件唯一标识
-- `aggregatetype`: 聚合类型，例如 `user`、`paste`
-- `aggregateid`: 聚合根 ID，用于分区键或局部有序语义
-- `type`: 领域事件类型，例如 `user.registered`
-- `payload`: JSON 事件体
-- `headers`: 可选 JSON 头信息
-- `created_at`: 事件产生时间
+- `id`: unique event identifier
+- `aggregatetype`: aggregate type, for example `user`、`paste`
+- `aggregateid`: aggregate root ID used as a partition key or for local ordering semantics
+- `type`: domain event type, for example `user.registered`
+- `payload`: JSON event payload
+- `headers`: optional JSON headers
+- `created_at`: event creation time
 
-服务侧职责：
+Service responsibilities:
 
-1. 在业务事务内写业务表
-2. 在同一事务内向 Outbox 表追加一条记录
+1. Write business tables inside the business transaction
+2. Append an Outbox row within the same transaction
 
-CDC 职责：
+CDC responsibilities:
 
-1. 监听 Outbox 表
-2. 使用 Debezium Outbox Event Router 将记录转成 Kafka 消息
-3. 按统一 Topic/Key 约定投递到消息总线
+1. Listen to the Outbox table
+2. Use Debezium Outbox Event Router to convert rows into Kafka messages
+3. Deliver them to the message bus following the unified Topic/Key convention
 
-推荐同时显式配置：
+It is recommended to configure the following explicitly as well:
 
 ```json
 "transforms.outbox.route.by.field": "type",
@@ -43,12 +43,12 @@ CDC 职责：
 "transforms.outbox.table.expand.json.payload": "true"
 ```
 
-这样最终业务 Topic 会直接等于 Outbox 中的 `type` 值，例如：
+This makes the final business topic equal the `type` value in the Outbox row, for example:
 
 - `type = user.registered`
 - Topic = `user.registered`
-- Kafka value = JSON 对象，而不是 base64 或普通字符串
+- Kafka value = JSON object，rather than base64 or a plain string
 
-否则 Debezium 可能会使用默认前缀，生成类似 `outbox.event.user.registered` 的 Topic。
+Otherwise Debezium may use a default prefix and generate topics such as `outbox.event.user.registered`.
 
-这份约定的目标是让服务只关心“追加事件”，而不是自管 Relay、轮询和重试。
+The goal of this convention is to let services care only about appending events, rather than managing relays, polling, and retries themselves.

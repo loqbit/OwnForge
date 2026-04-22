@@ -1,10 +1,10 @@
-# common/logger — 结构化日志
+# common/logger — Structured Logging
 
-基于 Uber Zap 的统一日志库，自动集成 OpenTelemetry TraceID。
+A unified logging library based on Uber Zap with automatic OpenTelemetry TraceID integration.
 
-## 核心 API
+## Core API
 
-### 创建 Logger
+### Create a Logger
 
 ```go
 import "github.com/ownforge/ownforge/pkg/logger"
@@ -13,25 +13,25 @@ log := logger.NewLogger("my-service")
 defer log.Sync()
 ```
 
-- 开发环境（`APP_ENV != production`）：彩色 Console 格式
-- 生产环境：JSON 格式，方便 Loki 解析
+- Development (`APP_ENV != production`): colored Console format
+- Production: JSON format, easy for Loki to parse
 
-### 带 TraceID 的日志
-
-```go
-// 自动从 context 提取 OTel trace_id 和 span_id
-logger.Ctx(ctx, log).Info("创建用户成功", zap.String("user_id", uid))
-// 输出: {"level":"INFO", "message":"创建用户成功", "trace_id":"abc123...", "user_id":"u-001"}
-```
-
-### Gin 中间件
+### Logs with TraceID
 
 ```go
-r.Use(logger.GinLogger(log))        // 记录每个 HTTP 请求（方法、路径、耗时、TraceID）
-r.Use(logger.GinRecovery(log, true)) // 捕获 panic，打印堆栈
+// Automatically extract OTel trace_id and span_id from context
+logger.Ctx(ctx, log).Info("user created successfully", zap.String("user_id", uid))
+// Output: {"level":"INFO", "message":"user created successfully", "trace_id":"abc123...", "user_id":"u-001"}
 ```
 
-### gRPC 拦截器
+### Gin Middleware
+
+```go
+r.Use(logger.GinLogger(log))        // Record every HTTP request (method, path, latency, TraceID)
+r.Use(logger.GinRecovery(log, true)) // Capture panics and print the stack trace
+```
+
+### gRPC Interceptors
 
 ```go
 grpc.NewServer(

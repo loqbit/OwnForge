@@ -3,20 +3,20 @@ package cdc
 import "github.com/ownforge/ownforge/pkg/mq/outbox"
 
 const (
-	// DefaultConnectorClass 是 Postgres Debezium Connector 的类名。
+	// DefaultConnectorClass is the class name of the Postgres Debezium connector.
 	DefaultConnectorClass = "io.debezium.connector.postgresql.PostgresConnector"
 
-	// DefaultRouterTransform 是 Debezium Outbox Event Router 的转换器名称。
+	// DefaultRouterTransform is the transform name of the Debezium Outbox Event Router.
 	DefaultRouterTransform = "outbox"
 
-	// DefaultRouterClass 是 Debezium Outbox Event Router 的实现类名。
+	// DefaultRouterClass is the implementation class name of the Debezium Outbox Event Router.
 	DefaultRouterClass = "io.debezium.transforms.outbox.EventRouter"
 )
 
-// Config 描述公共的 Debezium Outbox 集成约定。
-// 它不是完整的连接器配置，而是服务侧需要稳定依赖的核心字段映射。
+// Config describes the shared Debezium Outbox integration conventions.
+// It is not a full connector configuration; it defines the core field mappings that services depend on stably.
 //
-// 也就是说，这里更像“服务与 CDC 的契约”，而不是最终部署时直接提交给 Connect 的全部 JSON。
+// In other words, this is more of a service-to-CDC contract than the final JSON submitted to Connect during deployment.
 type Config struct {
 	TableName           string
 	IDColumn            string
@@ -28,8 +28,8 @@ type Config struct {
 	TimestampColumn     string
 }
 
-// DefaultConfig 返回推荐的 Outbox + Debezium 字段约定。
-// 业务服务如果遵循这套命名，后续接 Connector 时会更顺滑。
+// DefaultConfig returns the recommended Outbox + Debezium field conventions.
+// If business services follow these names, connector integration will be smoother later.
 func DefaultConfig() Config {
 	return Config{
 		TableName:           outbox.DefaultTableName,

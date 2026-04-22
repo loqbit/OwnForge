@@ -1,8 +1,8 @@
-# common/conf — 统一配置加载
+# common/conf — Unified Config Loading
 
-提供微服务间共享的通用配置类型和统一的 Viper 配置加载函数。
+Provides shared config types across microservices and a unified Viper config loader.
 
-## 公共类型
+## Shared Types
 
 ```go
 type DatabaseConfig struct { Driver, Source string; AutoMigrate bool }
@@ -12,9 +12,9 @@ type ServerConfig   struct { Port string }
 type IDGeneratorConfig struct { Addr string }
 ```
 
-## 用法
+## Usage
 
-各服务通过**嵌入**公共类型组合自己的 Config：
+Each service composes its Config by **embedding** shared types:
 
 ```go
 // go-note/internal/platform/config/config.go
@@ -24,7 +24,7 @@ type Config struct {
     OTel        conf.OTelConfig        `mapstructure:"otel"`
     Server      conf.ServerConfig      `mapstructure:"server"`
     IDGenerator conf.IDGeneratorConfig `mapstructure:"id_generator"`
-    // 服务专有配置
+    // service-specific configuration
     MyFeature   MyFeatureConfig        `mapstructure:"my_feature"`
 }
 
@@ -35,8 +35,8 @@ func LoadConfig() *Config {
 }
 ```
 
-## 设计原则
+## Design Principles
 
-- ✅ 只抽取**完全重复**的配置类型
-- ✅ 服务专有配置（JWT / Kafka / Chat）仍由各服务自行定义
-- ✅ 支持 YAML 配置文件 + 环境变量覆盖
+- ✅ Only extract config types that are **fully duplicated**
+- ✅ service-specific configuration（JWT / Kafka / Chat）is still defined by each service
+- ✅ Supports YAML config files plus environment-variable overrides

@@ -1,15 +1,15 @@
-# common/health — 健康检查端点
+# common/health — Health Check Endpoints
 
-提供 `/healthz`（存活探针）和 `/readyz`（就绪探针），遵循 K8s 探针规范。
+Provides `/healthz` (liveness) and `/readyz` (readiness) following K8s probe conventions.
 
-> **注意**：业务服务通常不需要直接使用此包，请使用 `common/probe` 包来一行注册所有运维端点。
+> **Note**: Business services usually do not need to use this package directly. Use `common/probe` to register all operational endpoints in one line.
 
-## 设计理念
+## Design Philosophy
 
-- `/healthz` — 进程存活即返回 200，**不检查**数据库/Redis
-- `/readyz` — 所有依赖就绪才返回 200，否则 503 + 明细
+- `/healthz` — Returns 200 as long as the process is alive and does **not** check the database or Redis
+- `/readyz` — Returns 200 only when all dependencies are ready; otherwise 503 plus details
 
-## 直接使用（低层 API）
+## Direct Use (Low-Level API)
 
 ```go
 import "github.com/ownforge/ownforge/pkg/health"
@@ -22,12 +22,12 @@ checker.AddCheck("redis", func(ctx context.Context) error {
     return rdb.Ping(ctx).Err()
 })
 
-// Gin 引擎
+// Gin engine
 checker.Register(r)
 
-// 标准库 http.ServeMux（gRPC 旁路端口）
+// Standard-library `http.ServeMux` (gRPC sidecar port)
 checker.RegisterHTTP(mux)
 
-// 非 HTTP 场景（gRPC Health / 后台巡检）
+// Non-HTTP scenarios (gRPC Health / background checks)
 allHealthy, results := checker.Evaluate(ctx)
 ```

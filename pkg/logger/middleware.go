@@ -13,24 +13,24 @@ import (
 	"go.uber.org/zap"
 )
 
-// GinLogger 返回一个记录 HTTP 请求信息的 Gin 中间件。
-// 自动从 context 中提取 OTel TraceID 注入到每条请求日志中。
+// GinLogger returns a Gin middleware that records HTTP request information.。
+// Automatically extract the OTel TraceID from context and inject it into every request log.
 //
-// 使用方式（在 router.go 或 main.go 中）：
+// Usage (in router.go or main.go):
 //
 //	r.Use(logger.GinLogger(log))
 func GinLogger(log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 将 logger 存储到 gin.Context 中，供下游 handler（如 response.Error）使用
+		// Store the logger in gin.Context so downstream handlers such as response.Error can use it.
 		c.Set("logger", log)
 
 		start := time.Now()
 		path := c.Request.URL.Path
 		query := c.Request.URL.RawQuery
 
-		c.Next() // 执行后续逻辑
+		c.Next() // execute downstream logic
 
-		// Docker 健康检查很频繁，过滤掉避免刷屏
+		// Docker health checks are frequent, so filter them out to avoid spam.
 		if path == "/health" || path == "/metrics" {
 			return
 		}
@@ -38,7 +38,7 @@ func GinLogger(log *zap.Logger) gin.HandlerFunc {
 		cost := time.Since(start)
 		status := c.Writer.Status()
 
-		// 从 context 提取 TraceID，自动附加到日志
+		// Extract the TraceID from context and attach it to logs automatically.
 		reqLog := Ctx(c.Request.Context(), log)
 
 		fields := []zap.Field{
@@ -55,18 +55,18 @@ func GinLogger(log *zap.Logger) gin.HandlerFunc {
 		}
 
 		if status >= 500 {
-			reqLog.Error("服务器内部错误", fields...)
+			reqLog.Error("internal server error", fields...)
 		} else if status >= 400 {
-			reqLog.Warn("请求异常", fields...)
+			reqLog.Warn("request error", fields...)
 		} else {
-			reqLog.Info("请求", fields...)
+			reqLog.Info("request", fields...)
 		}
 	}
 }
 
-// GinRecovery 捕获 panic 并使用 zap 记录堆栈信息，防止服务崩溃。
+// GinRecovery catches panics and records the stacktrace with zap to prevent service crashes.
 //
-// 使用方式：
+// Usage:
 //
 //	r.Use(logger.GinRecovery(log, true))
 func GinRecovery(log *zap.Logger, stack bool) gin.HandlerFunc {
@@ -85,7 +85,7 @@ func GinRecovery(log *zap.Logger, stack bool) gin.HandlerFunc {
 
 				httpRequest, _ := httputil.DumpRequest(c.Request, false)
 
-				// 从 context 提取 TraceID
+				// extract TraceID from context
 				reqLog := Ctx(c.Request.Context(), log)
 
 				if brokenPipe {

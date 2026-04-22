@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"github.com/ownforge/ownforge/pkg/trace"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-// 创建一个新的 Logger 实例
-// serviceName 用于标识日志来源的服务名称
+// Create a new Logger instance
+// serviceName identifies the service that produces the logs
 func NewLogger(serviceName string) *zap.Logger {
 	config := zapcore.EncoderConfig{
 		TimeKey:       "timestamp",
@@ -25,7 +25,7 @@ func NewLogger(serviceName string) *zap.Logger {
 		EncodeCaller: zapcore.ShortCallerEncoder,
 	}
 
-	// 开发环境使用Debug级别，生产环境使用Info级别
+	// Use Debug in development and Info in production
 	level := zapcore.InfoLevel
 	env := os.Getenv("APP_ENV")
 	if env == "" {
@@ -34,11 +34,11 @@ func NewLogger(serviceName string) *zap.Logger {
 
 	if env == "dev" || env == "development" {
 		level = zapcore.DebugLevel
-		// 开发环境加点颜色高亮，方便人眼阅读
+		// Use colored highlighting in development for easier reading
 		config.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	}
 
-	// 选择编码器：容器环境用 JSON，本地用 Console
+	// Choose the encoder: JSON in container environments, Console locally
 	isContainer := env == "production" || env == "prod" || env == "container"
 	var encoder zapcore.Encoder
 	if isContainer {
@@ -47,7 +47,7 @@ func NewLogger(serviceName string) *zap.Logger {
 		encoder = zapcore.NewConsoleEncoder(config)
 	}
 
-	// 判断日志输出方式
+	// Decide how logs should be written
 	var writeSyncer zapcore.WriteSyncer
 	logFile := os.Getenv("LOG_FILE")
 
@@ -75,11 +75,11 @@ func NewLogger(serviceName string) *zap.Logger {
 		level,
 	)
 
-	// AddCaller添加调用者信息。去掉普通 Error 的 Stacktrace 避免输出一堆 github.com 的堆栈信息
+	// AddCaller includes caller information. Ordinary Error stacktraces are disabled to avoid noisy github.com stacks.
 	logger := zap.New(core,
 		zap.AddCaller(),
 		zap.AddCallerSkip(0),
-		zap.AddStacktrace(zapcore.DPanicLevel), // 仅在 Panic 时打印堆栈
+		zap.AddStacktrace(zapcore.DPanicLevel), // print stack traces only on Panic
 	)
 
 	logger = logger.With(zap.String("service", serviceName))
@@ -87,18 +87,18 @@ func NewLogger(serviceName string) *zap.Logger {
 	return logger
 }
 
-// Ctx 从 context 中提取 OpenTelemetry 的 TraceID 和 SpanID，返回一个自动携带这些字段的子 Logger。
-// 子 Logger 是轻量级的（只多了一个指针 + 几个字段），不会影响全局 Logger。
+// Ctx extracts the OpenTelemetry TraceID and SpanID from context and returns a child logger that carries them automatically.
+// The child logger is lightweight and does not affect the global logger.
 //
-// 使用方式：
+// Usage:
 //
-//	logger.Ctx(ctx, log).Info("创建用户成功", zap.String("user_id", uid))
+//	logger.Ctx(ctx, log).Info("create user successfully", zap.String("user_id", uid))
 //
-// 输出效果：
+// Output:
 //
-//	{"level":"INFO", "message":"创建用户成功", "trace_id":"abc123...", "span_id":"def456...", "user_id":"u-001"}
+//	{"level":"INFO", "message":"create user successfully", "trace_id":"abc123...", "span_id":"def456...", "user_id":"u-001"}
 func Ctx(ctx context.Context, log *zap.Logger) *zap.Logger {
-	// 优先从 OTel Span 中获取（标准方式）
+	// Prefer extracting from the OTel span first (the standard approach)
 	span := oteltrace.SpanFromContext(ctx)
 	if span.SpanContext().IsValid() {
 		return log.With(
@@ -107,7 +107,7 @@ func Ctx(ctx context.Context, log *zap.Logger) *zap.Logger {
 		)
 	}
 
-	// 降级：从我们自定义的 context key 中取（兼容没有 OTel 的场景）
+	// Fallback: read from our custom context key to support scenarios without OTel
 	traceID := trace.FromContext(ctx)
 	if traceID != "" {
 		return log.With(zap.String("trace_id", traceID))

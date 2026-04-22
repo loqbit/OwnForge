@@ -1,15 +1,15 @@
-// Package health 提供标准化的健康检查端点。
+// Package health provides standardized health-check endpoints.
 //
-// 设计遵循 Kubernetes 探针规范：
-//   - /healthz (Liveness)  — 进程存活即返回 200，用于检测死锁或不可恢复的状态
-//   - /readyz  (Readiness) — 所有依赖就绪才返回 200，用于判断是否可以接收流量
+// The design follows Kubernetes probe conventions:
+//   - /healthz (Liveness)  — returns 200 as long as the process is alive, used to detect deadlocks or unrecoverable states
+//   - /readyz  (Readiness) — returns 200 only when all dependencies are ready, used to determine whether the service can receive traffic
 //
-// 用法：
+// Usage:
 //
 //	checker := health.NewChecker()
 //	checker.AddCheck("postgres", func(ctx context.Context) error { return db.PingContext(ctx) })
 //	checker.AddCheck("redis", func(ctx context.Context) error { return rdb.Ping(ctx).Err() })
-//	checker.Register(r) // r 是 *gin.Engine
+//	checker.Register(r) // r is *gin.Engine
 package health
 
 import (
@@ -23,70 +23,70 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CheckFunc 是单个依赖的健康检查函数，返回 nil 表示健康。
+// CheckFunc is the health-check function for a single dependency; returning nil means healthy.
 type CheckFunc func(ctx context.Context) error
 
-// Checker 管理一组依赖检查项，提供 /healthz 和 /readyz 端点。
+// Checker manages a set of dependency checks and provides /healthz and /readyz endpoints.
 type Checker struct {
 	mu     sync.RWMutex
 	checks map[string]CheckFunc
 }
 
-// NewChecker 创建一个新的健康检查器。
+// NewChecker creates a new health checker.
 func NewChecker() *Checker {
 	return &Checker{
 		checks: make(map[string]CheckFunc),
 	}
 }
 
-// AddCheck 注册一个命名的依赖检查项。
-// name 用于在响应中标识具体哪个依赖不健康。
+// AddCheck registers a named dependency check.
+// name identifies which dependency is unhealthy in the response.
 func (c *Checker) AddCheck(name string, fn CheckFunc) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.checks[name] = fn
 }
 
-// Register 将 /healthz 和 /readyz 路由注册到 Gin 引擎上。
-// 这两个端点注册在 metrics 和业务中间件之前，避免被限流或鉴权拦截。
+// Register adds /healthz and /readyz routes to the Gin engine.
+// These endpoints are registered before metrics and business middleware to avoid rate limiting or auth interception.
 func (c *Checker) Register(r *gin.Engine) {
 	r.GET("/healthz", c.liveness)
 	r.GET("/readyz", c.readiness)
 }
 
-// RegisterHTTP 将 /healthz 和 /readyz 注册到标准库 http.ServeMux。
-// 适用于纯 gRPC 进程旁路启动一个轻量 HTTP 管理端口的场景。
+// RegisterHTTP adds /healthz and /readyz to the standard-library http.ServeMux.
+// This is suitable for pure gRPC processes that expose a lightweight sidecar HTTP admin port.
 func (c *Checker) RegisterHTTP(mux *http.ServeMux) {
 	mux.HandleFunc("/healthz", c.livenessHTTP)
 	mux.HandleFunc("/readyz", c.readinessHTTP)
 }
 
-// liveness 存活探针：进程在跑就返回 200。
-// K8s 用这个判断是否需要重启容器。
+// liveness is the liveness probe: it returns 200 as long as the process is running.
+// K8s uses this to determine whether the container should be restarted.
 func (c *Checker) liveness(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "alive"})
 }
 
-// readiness 就绪探针：逐一检查所有依赖，全部通过才返回 200。
-// K8s 用这个判断是否把流量路由到该 Pod。
+// readiness is the readiness probe: it checks all dependencies one by one and returns 200 only when all pass.
+// K8s uses this to decide whether traffic should be routed to the Pod.
 func (c *Checker) readiness(ctx *gin.Context) {
 	status, body := c.readinessPayload(ctx.Request.Context())
 	ctx.JSON(status, body)
 }
 
-// livenessHTTP 是标准库 http 版本的存活探针。
+// livenessHTTP is the standard-library HTTP version of the liveness probe.
 func (c *Checker) livenessHTTP(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "alive"})
 }
 
-// readinessHTTP 是标准库 http 版本的就绪探针。
+// readinessHTTP is the standard-library HTTP version of the readiness probe.
 func (c *Checker) readinessHTTP(w http.ResponseWriter, r *http.Request) {
 	status, body := c.readinessPayload(r.Context())
 	writeJSON(w, status, body)
 }
 
-// Evaluate 执行所有检查项，返回整体是否健康以及逐项结果。
-// 这个方法适合给 gRPC 原生健康检查、后台巡检等非 HTTP 场景复用。
+// Evaluate runs all checks and returns the overall health result plus per-check results.
+// This method is suitable for reuse in non-HTTP scenarios such as native gRPC health checks and background inspections.
 func (c *Checker) Evaluate(parent context.Context) (bool, map[string]string) {
 	checks := c.snapshotChecks()
 
@@ -108,7 +108,7 @@ func (c *Checker) Evaluate(parent context.Context) (bool, map[string]string) {
 	return allHealthy, results
 }
 
-// readinessPayload 统一执行所有检查项，生成 readiness 响应体。
+// readinessPayload runs all checks and builds the readiness response payload.
 func (c *Checker) readinessPayload(parent context.Context) (int, map[string]any) {
 	allHealthy, results := c.Evaluate(parent)
 

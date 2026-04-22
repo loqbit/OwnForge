@@ -49,4 +49,3 @@ require (
 )
 
 replace github.com/ownforge/ownforge/pkg/trace => ../trace
-

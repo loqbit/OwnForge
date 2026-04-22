@@ -1,20 +1,20 @@
-# common/trace — 请求链路 ID
+# common/trace — Request Trace ID
 
-轻量级 TraceID 生成与 Context 传递工具。
+A lightweight tool for TraceID generation and context propagation.
 
-> **注意**：此包用于自定义 TraceID 场景。大多数情况下使用 `common/otel` 的 OpenTelemetry 自动追踪即可。
+> **Note**: This package is for custom TraceID scenarios. In most cases, `common/otel` automatic OpenTelemetry tracing is enough.
 
-## 用法
+## Usage
 
 ```go
 import "github.com/ownforge/ownforge/pkg/trace"
 
-// 生成新的 TraceID
+// Generate a new TraceID
 traceID := trace.NewTraceID()
 
-// 存入 Context
+// Store in context
 ctx = trace.IntoContext(ctx, traceID)
 
-// 从 Context 提取
+// Extract from context
 id := trace.FromContext(ctx)
 ```

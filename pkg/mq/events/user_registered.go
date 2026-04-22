@@ -1,11 +1,11 @@
-// 事件定义层
-// producer 和 consumer 之间的 契约。
-// 两边都 import 这个包，保证序列化/反序列化一致
+// Event definition layer
+// The contract between producers and consumers.
+// Both sides import this package to keep serialization and deserialization consistent.
 package events
 
 const UserRegisteredVersion = "v1"
 
-// UserRegistered 事件结构体
+// UserRegistered event struct
 type UserRegistered struct {
 	Version   string `json:"version"`
 	EventType string `json:"event_type"`

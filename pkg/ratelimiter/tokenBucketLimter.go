@@ -22,30 +22,30 @@ func NewTokenBucketLimiter(cli *redis.Client, logger *zap.Logger) Limiter {
 
 var tokenBucketScript = redis.NewScript(`
 	local key = KEYS[1]
-	local capacity = tonumber(ARGV[1])    -- 桶容量
-	local rate = tonumber(ARGV[2])        -- 每毫秒补充多少令牌
+	local capacity = tonumber(ARGV[1])    -- bucket capacity
+	local rate = tonumber(ARGV[2])        -- tokens refilled per millisecond
 	local now = tonumber(ARGV[3])
-	local ttl = tonumber(ARGV[4])         -- key 的过期时间(毫秒)
-	-- 1. 读取桶的当前状态
+	local ttl = tonumber(ARGV[4])         -- key expiration time (milliseconds)
+	-- 1. read the current bucket state
 	local bucket = redis.call('HMGET', key, 'tokens', 'last_refill')
 	local tokens = tonumber(bucket[1])
 	local last_refill = tonumber(bucket[2])
-	-- 2. 如果桶不存在（首次请求），初始化为满桶
+	-- 2. if the bucket does not exist (first request), initialize it as full
 	if tokens == nil then
 		tokens = capacity
 		last_refill = now
 	end
-	-- 3. 计算应该补充多少令牌（懒补充核心）
+	-- 3. compute how many tokens should be refilled (lazy refill core logic)
 	local elapsed = now - last_refill
 	local new_tokens = math.min(capacity, tokens + elapsed * rate)
-	-- 4. 尝试消耗一个令牌
+	-- 4. try to consume one token
 	if new_tokens >= 1 then
 		new_tokens = new_tokens - 1
 		redis.call('HSET', key, 'tokens', new_tokens, 'last_refill', now)
 		redis.call('PEXPIRE', key, ttl)
 		return 1
 	else
-		-- 没有令牌了，但也要更新状态（防止下次重复计算 elapsed）
+		-- when no tokens remain, still update the state to avoid recomputing elapsed time next time
 		redis.call('HSET', key, 'tokens', new_tokens, 'last_refill', now)
 		redis.call('PEXPIRE', key, ttl)
 		return 0
@@ -53,24 +53,24 @@ var tokenBucketScript = redis.NewScript(`
 `)
 
 func (r *tokenBucketLimiter) Allow(ctx context.Context, key string, limit int, window time.Duration) error {
-	// 1. 计算 capacity = limit
+	// 1. compute capacity = limit
 	capacity := float64(limit)
-	// 2. 计算 rate = float64(limit) / float64(window.Milliseconds())
+	// 2. compute rate = float64(limit) / float64(window.Milliseconds())
 	rate := capacity / float64(window.Milliseconds())
-	// 3. now = 当前毫秒时间戳
+	// 3. now = current millisecond timestamp
 	now := time.Now().UnixNano() / int64(time.Millisecond)
-	// 4. ttl = window.Milliseconds()（闲置超过整个窗口就过期清理）
+	// 4. ttl = window.Milliseconds() (expire and clean up after one full idle window)
 	ttl := window.Milliseconds()
-	// 5. 执行 Lua 脚本
+	// 5. execute the Lua script
 	result, err := tokenBucketScript.Run(ctx, r.cli, []string{key}, capacity, rate, now, ttl).Int64()
-	// 6. 检查返回值，0 返回 ErrRateLimitExceeded
+	// 6. check the return value; 0 means ErrRateLimitExceeded
 	if err != nil {
-		// 生产环境建议：如果 Redis 暂时挂了，根据业务重要程度决定是放行还是拦截
-		r.logger.Error("限流器(Redis)执行异常, 请求已被降级放行", zap.String("key", key), zap.Error(err))
+		// Production guidance: if Redis is temporarily unavailable, decide whether to fail open or fail closed based on business criticality.
+		r.logger.Error("rate limiter (Redis) failed; request downgraded to fail-open", zap.String("key", key), zap.Error(err))
 		return nil
 	}
 	if result == 0 {
-		r.logger.Warn("触发安全防刷限流", zap.String("key", key))
+		r.logger.Warn("anti-abuse rate limit triggered", zap.String("key", key))
 		return ErrRateLimitExceeded
 	}
 	return nil

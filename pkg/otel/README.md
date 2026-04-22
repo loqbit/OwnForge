@@ -1,37 +1,37 @@
-# common/otel — OpenTelemetry 链路追踪
+# common/otel — OpenTelemetry Tracing
 
-一行初始化 OpenTelemetry 分布式追踪，导出到 Jaeger。
+Initialize OpenTelemetry distributed tracing in one line and export it to Jaeger.
 
-## 用法
+## Usage
 
 ```go
 import "github.com/ownforge/ownforge/pkg/otel"
 
 shutdown, err := otel.InitTracer("api-gateway", "localhost:4318")
 if err != nil {
-    log.Fatal("初始化 OpenTelemetry 失败", zap.Error(err))
+    log.Fatal("failed to initialize OpenTelemetry", zap.Error(err))
 }
-defer shutdown(context.Background()) // flush 未发送的 Span
+defer shutdown(context.Background()) // flush unsent spans
 ```
 
-## 参数说明
+## ParameterDescription
 
-| 参数 | 说明 | 示例 |
+| Parameter | Description | Example |
 |------|------|------|
-| `serviceName` | 服务名，显示在 Jaeger UI | `"api-gateway"` |
-| `jaegerEndpoint` | Jaeger OTLP 接收器地址（不带协议） | `"localhost:4318"` |
+| `serviceName` | Service name shown in the Jaeger UI | `"api-gateway"` |
+| `jaegerEndpoint` | Jaeger OTLP collector address without protocol | `"localhost:4318"` |
 
-## 配合使用
+## Works With
 
 ```go
-// Gin 中间件：自动给每个 HTTP 请求打 Span
+// Gin middleware: automatically create spans for each HTTP request
 r.Use(otelgin.Middleware("api-gateway"))
 
-// gRPC 拦截器：自动给每个 RPC 调用打 Span
+// gRPC interceptors: automatically create spans for each RPC call
 grpc.NewServer(
     grpc.StatsHandler(otelgrpc.NewServerHandler()),
 )
 
-// 日志关联：logger.Ctx 自动提取 TraceID
-logger.Ctx(ctx, log).Info("处理完成")
+// Log correlation: `logger.Ctx` automatically extracts the TraceID
+logger.Ctx(ctx, log).Info("processing complete")
 ```

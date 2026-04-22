@@ -4,31 +4,31 @@ import (
 	"context"
 	"sync"
 
-	"github.com/ownforge/ownforge/pkg/mq/bus"
 	"github.com/nats-io/nats.go"
+	"github.com/ownforge/ownforge/pkg/mq/bus"
 )
 
-// Subscriber 是基于 NATS Core 的 bus.Subscriber 实现。
-// 纯内存 Pub/Sub，不持久化。适用于在线实时场景。
-// 支持 Queue Group 做多实例负载均衡。
+// Subscriber is the Core NATS implementation of bus.Subscriber.
+// It is pure in-memory Pub/Sub with no persistence, suitable for online real-time scenarios.
+// It supports Queue Groups for multi-instance load balancing.
 type Subscriber struct {
 	conn    *nats.Conn
 	subject string
-	queue   string // 为空则为普通订阅，非空则为 Queue Group 订阅
+	queue   string // empty means a normal subscription; non-empty means a Queue Group subscription
 
 	mu  sync.Mutex
 	sub *nats.Subscription
 }
 
-// NewSubscriber 创建 Core NATS 订阅者。
-// subject 支持 NATS 通配符：* 匹配单级，> 匹配多级。
+// NewSubscriber creates a Core NATS subscriber.
+// subject supports NATS wildcards: * matches one level, > matches multiple levels.
 //
-// 示例：
+// Example:
 //
-//	// 订阅所有聊天室消息
+//	// subscribe to all chat-room messages
 //	sub := NewSubscriber(conn, "chat.room.>")
 //
-//	// 带 Queue Group 的负载均衡订阅
+//	// load-balanced subscription with a Queue Group
 //	sub := NewSubscriber(conn, "task.>", WithQueue("workers"))
 func NewSubscriber(conn *nats.Conn, subject string, opts ...Option) *Subscriber {
 	s := &Subscriber{
@@ -41,13 +41,13 @@ func NewSubscriber(conn *nats.Conn, subject string, opts ...Option) *Subscriber 
 	return s
 }
 
-// Start 开始订阅消息，阻塞直到 ctx 取消。
-// 每条消息会被转换为 bus.Message 后交给 handler 处理。
-// Core NATS 没有 ACK 机制，handler 返回的 error 仅用于日志/监控。
+// Start begins subscribing to messages and blocks until ctx is canceled.
+// Each message is converted to bus.Message before being passed to the handler.
+// Core NATS has no ACK mechanism, so handler errors are only for logging and monitoring.
 func (s *Subscriber) Start(ctx context.Context, handler bus.Handler) error {
 	msgHandler := func(m *nats.Msg) {
 		msg := coreToMessage(m)
-		// Core NATS 没有 ack/nack，handler 的 error 由上层自行处理
+		// Core NATS has no ack/nack, so handler errors are handled by upper layers.
 		_ = handler.Handle(ctx, msg)
 	}
 
@@ -68,10 +68,10 @@ func (s *Subscriber) Start(ctx context.Context, handler bus.Handler) error {
 	s.sub = sub
 	s.mu.Unlock()
 
-	// 阻塞等待取消信号
+	// block until a cancellation signal arrives
 	<-ctx.Done()
 
-	// 优雅退出：Drain 会处理完已接收的消息后再取消订阅
+	// Graceful exit: Drain finishes already received messages before unsubscribing.
 	return sub.Drain()
 }
 
@@ -84,7 +84,7 @@ func (s *Subscriber) Close() error {
 	return nil
 }
 
-// coreToMessage 将 NATS Core 消息转换为 bus.Message。
+// coreToMessage converts a Core NATS message into bus.Message.
 func coreToMessage(m *nats.Msg) *bus.Message {
 	headers := make(map[string][]byte, len(m.Header))
 	for k, vals := range m.Header {
@@ -93,7 +93,7 @@ func coreToMessage(m *nats.Msg) *bus.Message {
 		}
 	}
 
-	// 从 Header 中提取 Key（如果有）
+	// extract Key from the header if present
 	key := ""
 	if v := m.Header.Get(HeaderKey); v != "" {
 		key = v

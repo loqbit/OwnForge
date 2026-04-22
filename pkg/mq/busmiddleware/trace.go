@@ -10,10 +10,10 @@ import (
 
 const defaultOutboxHeadersKey = "x-outbox-headers"
 
-// WithTrace 会尝试从消息头中提取 trace_id，并重新注入到 ctx。
-// 默认支持：
-// 1. 直接从 HeaderTraceID 读取，如 x-trace-id
-// 2. 从 Debezium Outbox 的 x-outbox-headers JSON 中读取
+// WithTrace tries to extract trace_id from message headers and inject it back into ctx.
+// Supported by default:
+// 1. reading HeaderTraceID directly, such as x-trace-id
+// 2. reading from the x-outbox-headers JSON produced by Debezium Outbox
 func WithTrace() Middleware {
 	return func(next bus.Handler) bus.Handler {
 		return bus.HandlerFunc(func(ctx context.Context, msg *bus.Message) error {

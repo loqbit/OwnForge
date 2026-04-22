@@ -7,13 +7,13 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-// Publisher 是基于 Kafka 的 bus.Publisher 实现。
-// 内部使用 kafka.Writer 发送消息，支持自动按 Key 分 Partition。
+// Publisher is the Kafka-based implementation of bus.Publisher.
+// Internally it uses kafka.Writer and supports partitioning by key automatically.
 type Publisher struct {
 	writer *kafka.Writer
 }
 
-// NewPublisher 创建 Kafka 发布者。
+// NewPublisher creates a Kafka publisher.
 func NewPublisher(brokers []string) *Publisher {
 	w := &kafka.Writer{
 		Addr:                   kafka.TCP(brokers...),
@@ -23,8 +23,8 @@ func NewPublisher(brokers []string) *Publisher {
 	return &Publisher{writer: w}
 }
 
-// Publish 将 bus.Message 发送到 Kafka。
-// msg.Topic 映射为 Kafka Topic，msg.Key 用于 Partition 路由。
+// Publish sends a bus.Message to Kafka.
+// msg.Topic maps to the Kafka topic, and msg.Key is used for partition routing.
 func (p *Publisher) Publish(ctx context.Context, msg *bus.Message) error {
 	headers := make([]kafka.Header, 0, len(msg.Headers))
 	for k, v := range msg.Headers {

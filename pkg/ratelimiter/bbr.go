@@ -9,27 +9,27 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 )
 
-// BBRLimiter 结构体
+// BBRLimiter struct
 type BBRLimiter struct {
-	// CPU 触发条件
-	cpuUsage     int64 // 当前 CPU 使用率（乘100存整数，避免浮点原子操作）
-	cpuThreshold int64 // CPU 触发阈值（默认 80，即 80%）
+	// CPU trigger conditions
+	cpuUsage     int64 // current CPU usage (stored as an integer multiplied by 100 to avoid atomic float operations)
+	cpuThreshold int64 // CPU threshold (default 80, meaning 80%)
 
-	inflight int64 // 当前正在处理的请求数（原子操作）
+	inflight int64 // current number of in-flight requests (atomic)
 
-	// 滑动窗口采样（存最近 N 个桶的 QPS 和 RT）
-	buckets   []bucket      // 环形缓冲区
-	bucketNum int           // 桶的数量（比如 100 个）
-	window    time.Duration // 整个采样窗口时长（比如 10 秒）
+	// sliding-window sampling that stores QPS and RT for the most recent N buckets
+	buckets   []bucket      // ring buffer
+	bucketNum int           // number of buckets (for example, 100)
+	window    time.Duration // total sampling window duration (for example, 10 seconds)
 
-	mu sync.Mutex // 保护 buckets 的写入
+	mu sync.Mutex // protect writes to buckets
 }
 
-// bucket 结构体（内部使用）
+// bucket struct (internal use)
 type bucket struct {
-	count   int64         // 这个时间片内完成了多少请求
-	rt      time.Duration // 这个时间片内的总 RT（用于求平均）
-	startAt time.Time     // 这个桶的起始时间
+	count   int64         // how many requests completed in this time slice
+	rt      time.Duration // total RT in this time slice, used to compute the average
+	startAt time.Time     // start time of this bucket
 }
 
 func NewBBRLimiter(bucketNum int, window time.Duration, cpuThreshold int64) *BBRLimiter {
@@ -43,11 +43,11 @@ func NewBBRLimiter(bucketNum int, window time.Duration, cpuThreshold int64) *BBR
 	return limiter
 }
 
-// 启动 CPU 采样器
+// start the CPU sampler
 func (b *BBRLimiter) startCPUSampler() {
 	go func() {
 		for {
-			// gopsutil: 250ms 采样间隔，false 表示取总体 CPU（不按核心拆分）
+			// gopsutil: 250ms sampling interval; false means overall CPU rather than per-core CPU
 			percents, err := cpu.Percent(250*time.Millisecond, false)
 			if err == nil && len(percents) > 0 {
 				atomic.StoreInt64(&b.cpuUsage, int64(percents[0]))
@@ -56,19 +56,19 @@ func (b *BBRLimiter) startCPUSampler() {
 	}()
 }
 
-// 获取当前CPU使用率
+// get current CPU usage
 func (b *BBRLimiter) CPUUsage() int64 { return atomic.LoadInt64(&b.cpuUsage) }
 
-// 增加正在处理的请求数
+// increase the number of in-flight requests
 func (b *BBRLimiter) IncrInflight() { atomic.AddInt64(&b.inflight, 1) }
 
-// 减少正在处理的请求数
+// decrease the number of in-flight requests
 func (b *BBRLimiter) DecrInflight() { atomic.AddInt64(&b.inflight, -1) }
 
-// 获取正在处理的请求数
+// get the number of in-flight requests
 func (b *BBRLimiter) Inflight() int64 { return atomic.LoadInt64(&b.inflight) }
 
-// 滑动窗口计算所有桶的最大QPS和最小RT
+// scan the sliding window to calculate the maximum QPS and minimum RT across all buckets
 func (b *BBRLimiter) MaxFlight() float64 {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -78,7 +78,7 @@ func (b *BBRLimiter) MaxFlight() float64 {
 	bucketDur := b.window / time.Duration(b.bucketNum)
 
 	for _, bucket := range b.buckets {
-		// 跳过过期桶和空桶
+		// skip expired buckets and empty buckets
 		if time.Since(bucket.startAt) > b.window || bucket.count == 0 {
 			continue
 		}
@@ -97,25 +97,25 @@ func (b *BBRLimiter) MaxFlight() float64 {
 	return maxQPS * (minRT / float64(time.Second))
 }
 
-// 获取当前桶的索引
+// get the current bucket index
 func (b *BBRLimiter) currentIndex() int {
-	// 计算每个桶的时间长度
+	// compute the duration of each bucket
 	bucketDur := b.window / time.Duration(b.bucketNum)
-	// 计算当前时间距离第一个桶的起始时间的毫秒数,除以每个桶的时间长度,得到当前桶的索引
+	// compute the milliseconds since the first bucket started and divide by bucket duration to get the current bucket index
 	return int(time.Now().UnixMilli()/bucketDur.Milliseconds()) % b.bucketNum
 }
 
-// 记录RT
+// record RT
 func (b *BBRLimiter) RecordRT(rt time.Duration) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	// 获取当前桶的索引
+	// get the current bucket index
 	idx := b.currentIndex()
-	// 获取当前桶
+	// get the current bucket
 	bucket := &b.buckets[idx]
 
-	// 如果这个桶已经过期了（属于上一轮），重置它
+	// if this bucket has expired from the previous cycle, reset it
 	if time.Since(bucket.startAt) > b.window {
 		bucket.count = 0
 		bucket.rt = 0
@@ -126,13 +126,13 @@ func (b *BBRLimiter) RecordRT(rt time.Duration) {
 	bucket.rt += rt
 }
 
-// 判断是否应该拒绝
+// determine whether the request should be rejected
 func (b *BBRLimiter) ShouldReject() bool {
-	// 第一关：CPU 低于阈值 → 直接放行，系统没压力
+	// First gate: if CPU is below the threshold, allow immediately because the system is not under pressure.
 	if b.CPUUsage() < b.cpuThreshold {
 		return false
 	}
-	// 第二关：CPU 高了，进行精确判断
+	// Second gate: if CPU is high, perform a more precise check.
 	maxFlight := b.MaxFlight()
 	return maxFlight > 0 && float64(b.Inflight()) > maxFlight
 }

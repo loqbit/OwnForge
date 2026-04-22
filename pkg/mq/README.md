@@ -1,61 +1,61 @@
-# common/mq — 统一消息队列抽象
+# common/mq — Unified Message Queue Abstraction
 
-基于接口的消息队列抽象层，支持 Kafka 和 NATS JetStream 双后端，外加 Outbox 模式保证最终一致性。
+An interface-based message-queue abstraction that supports both Kafka and NATS JetStream, plus the Outbox pattern for eventual consistency.
 
-## 架构
+## Architecture
 
 ```
 mq/
-├── bus/          # 核心接口 (Publisher / Subscriber / Handler)
-├── kafkabus/     # Kafka 实现
-├── natsbus/      # NATS JetStream 实现
-├── envelope/     # 标准事件信封
-├── events/       # 领域事件定义 (UserRegistered 等)
-├── topics/       # Topic 常量
-├── outbox/       # Outbox 模式（事务性消息发送）
-└── cdc/          # CDC (Change Data Capture) 配置
+├── bus/          # Core Interfaces (Publisher / Subscriber / Handler)
+├── kafkabus/     # Kafka implementation
+├── natsbus/      # NATS JetStream implementation
+├── envelope/     # standard event envelope
+├── events/       # domain event definitions (UserRegistered, etc.)
+├── topics/       # Topic Constant
+├── outbox/       # Outbox pattern (transactional message publishing)
+└── cdc/          # CDC (Change Data Capture) Configuration
 ```
 
-## 核心接口
+## Core Interfaces
 
 ```go
-// 发布消息
+// Publish messages
 type Publisher interface {
     Publish(ctx context.Context, msg *bus.Message) error
     Close() error
 }
 
-// 订阅消息
+// Subscribe to messages
 type Subscriber interface {
     Start(ctx context.Context, handler Handler) error
     Close() error
 }
 
-// 处理消息
+// Handle messages
 type Handler interface {
     Handle(ctx context.Context, msg *Message) error
 }
 ```
 
-## Kafka 用法
+## Kafka Usage
 
 ```go
 import "github.com/ownforge/ownforge/pkg/mq/kafkabus"
 
-// 发布
+// Publish
 pub := kafkabus.NewPublisher([]string{"kafka:9092"})
 defer pub.Close()
 pub.Publish(ctx, &bus.Message{Topic: "user.registered", Value: data})
 
-// 订阅
+// Subscribe
 sub := kafkabus.NewSubscriber([]string{"kafka:9092"}, "user.registered", "my-group")
 sub.Start(ctx, bus.HandlerFunc(func(ctx context.Context, msg *bus.Message) error {
-    // 处理消息
+    // Handle messages
     return nil
 }))
 ```
 
-## NATS JetStream 用法
+## NATS JetStream Usage
 
 ```go
 import "github.com/ownforge/ownforge/pkg/mq/natsbus"
@@ -64,13 +64,13 @@ pub := natsbus.NewJSPublisher(js)
 sub := natsbus.NewJSSubscriber(js, "STREAM", "subject.>")
 ```
 
-## Outbox 模式
+## Outbox Pattern
 
 ```go
 import "github.com/ownforge/ownforge/pkg/mq/outbox"
 
-// 在数据库事务中写入 Outbox 记录（保证原子性）
+// Write the Outbox record within the database transaction to guarantee atomicity
 record, _ := outbox.NewJSONRecord(id, "User", userID, "UserRegistered", payload, nil)
 writer.Write(ctx, tx, record)
-// CDC (Debezium) 自动将 Outbox 表变更推送到 Kafka
+// CDC (Debezium) automatically pushes Outbox table changes to Kafka
 ```

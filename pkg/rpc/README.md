@@ -1,22 +1,22 @@
-# common/rpc — gRPC 客户端工具
+# common/rpc — gRPC Client Utilities
 
-封装常用的 gRPC 客户端初始化，目前提供 ID Generator 客户端。
+Wraps common gRPC client initialization and currently provides an ID Generator client.
 
-## ID Generator 客户端
+## ID Generator Client
 
 ```go
 import "github.com/ownforge/ownforge/pkg/rpc"
 
-// 初始化全局客户端（通常在 main 中调用一次）
+// Initialize the global client, typically once in main
 if err := rpc.InitIDGenClient("id-generator:50052"); err != nil {
-    log.Fatal("初始化 ID 生成器失败", zap.Error(err))
+    log.Fatal("failed to initialize ID generator", zap.Error(err))
 }
 
-// 在业务代码中生成分布式唯一 ID
+// Generate distributed unique IDs in business code
 id, err := rpc.GenerateID(ctx)
 ```
 
-## 注意事项
+## Notes
 
-- `InitIDGenClient` 创建全局单例连接，进程生命周期内只需调用一次
-- `GenerateID` 是并发安全的，可在任意 goroutine 中调用
+- `InitIDGenClient` creates a global singleton connection and only needs to be called once per process
+- `GenerateID` is concurrency-safe and can be called from any goroutine

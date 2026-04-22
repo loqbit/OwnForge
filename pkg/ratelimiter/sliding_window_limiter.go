@@ -42,27 +42,27 @@ var slidingWindowScript = redis.NewScript(`
 	return 1
 `)
 
-// Allow 封装限流逻辑，供网关中间件调用
+// Allow encapsulates rate-limiting logic for gateway middleware.
 func (r *slidingWindowLimiter) Allow(ctx context.Context, key string, limit int, window time.Duration) error {
-	// 拼接唯一的限流 Key
+	// build the unique rate-limit key
 	key = fmt.Sprintf("rate_limit:%s", key)
 
-	// 获取当前时间的毫秒级时间戳
+	// get the current timestamp in milliseconds
 	now := time.Now().UnixNano() / int64(time.Millisecond)
 
-	// 生成唯一的请求 ID，确保 ZSet 里的 Member 不重复
+	// generate a unique request ID so the ZSet member stays unique
 	reqID := fmt.Sprintf("%d:%d", now, rand.Int63())
 
-	// 2. 执行 Lua 脚本 (go-redis 会自动处理 EVALSHA 优化)
+	// 2. execute the Lua script (go-redis automatically handles EVALSHA optimization)
 	result, err := slidingWindowScript.Run(ctx, r.cli, []string{key}, window.Milliseconds(), limit, now, reqID).Int64()
 	if err != nil {
-		// 生产环境建议：如果 Redis 暂时挂了，根据业务重要程度决定是放行还是拦截
-		r.logger.Error("限流器(Redis)执行异常, 请求已被降级放行", zap.String("key", key), zap.Error(err))
+		// Production guidance: if Redis is temporarily unavailable, decide whether to fail open or fail closed based on business criticality.
+		r.logger.Error("rate limiter (Redis) failed; request downgraded to fail-open", zap.String("key", key), zap.Error(err))
 		return nil
 	}
 
 	if result == 0 {
-		r.logger.Warn("触发安全防刷限流", zap.String("key", key))
+		r.logger.Warn("anti-abuse rate limit triggered", zap.String("key", key))
 		return ErrRateLimitExceeded
 	}
 

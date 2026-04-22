@@ -1,10 +1,10 @@
-# common/probe — 统一运维探针
+# common/probe — Unified Operational Probes
 
-一行代码注册 `/healthz`、`/readyz`、`/metrics`，消除模板代码。
+Register with one line of code `/healthz`、`/readyz`、`/metrics`，remove boilerplate。
 
-## 两种模式
+## Two Modes
 
-### 模式 1：挂载到 Gin 引擎（HTTP 服务）
+### Mode 1: Mount on a Gin Engine (HTTP Services)
 
 ```go
 import "github.com/ownforge/ownforge/pkg/probe"
@@ -17,10 +17,10 @@ probe.Register(r, log,
     }),
     probe.WithRedis(redisClient),
 )
-// 自动注册: /healthz, /readyz, /metrics + metrics 中间件
+// Automatically registers: /healthz, /readyz, /metrics + metrics middleware
 ```
 
-### 模式 2：独立管理端口（gRPC / 消费者服务）
+### Mode 2: Dedicated Admin Port (gRPC / Worker Services)
 
 ```go
 ctx, cancel := context.WithCancel(context.Background())
@@ -31,23 +31,23 @@ shutdown := probe.Serve(ctx, ":9094", log,
     probe.WithGRPCHealth(grpcHealthServer, "note.NoteService"),
 )
 defer shutdown()
-// 自动启动旁路 HTTP：/healthz, /readyz, /metrics
-// 自动同步检查结果到 gRPC 原生 Health
+// Automatically starts a sidecar HTTP server：/healthz, /readyz, /metrics
+// Automatically syncs check results to native gRPC Health
 ```
 
-## 可用 Options
+## Available Options
 
-| Option | 说明 |
+| Option | Description |
 |--------|------|
-| `WithCheck(name, fn)` | 自定义检查函数 |
-| `WithRedis(client)` | Redis ping 检查（nil 安全） |
-| `WithPinger(name, p)` | 任何实现 `PingContext` 的对象 |
-| `WithGRPCHealth(srv, services...)` | 同步到 gRPC Health 服务 |
-| `WithoutMetrics()` | 禁用 /metrics |
+| `WithCheck(name, fn)` | Custom check function |
+| `WithRedis(client)` | Redis ping check (nil-safe) |
+| `WithPinger(name, p)` | Any object implementing `PingContext` |
+| `WithGRPCHealth(srv, services...)` | Sync to the gRPC Health service |
+| `WithoutMetrics()` | Disable /metrics |
 
-## 优雅停机
+## Graceful Shutdown
 
 ```go
-// gRPC 服务停机时，标记所有服务为 NOT_SERVING
+// gRPC When the service shuts down, mark all services as NOT_SERVING
 probe.GRPCShutdown(healthServer, "user.UserService", "user.AuthService")
 ```

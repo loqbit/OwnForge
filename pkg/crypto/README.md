@@ -1,15 +1,15 @@
-# common/crypto — 密码哈希
+# common/crypto — Password Hashing
 
-基于 bcrypt 的密码加密与校验。
+Password hashing and verification based on bcrypt.
 
-## 用法
+## Usage
 
 ```go
 import "github.com/ownforge/ownforge/pkg/crypto"
 
-// 注册时：明文 → 哈希
+// At registration: plaintext -> hash
 hashed, err := crypto.HashPassword("my-secret-password")
 
-// 登录时：明文 vs 哈希
+// At login: plaintext vs hash
 ok := crypto.CheckPasswordHash("my-secret-password", hashed) // true
 ```

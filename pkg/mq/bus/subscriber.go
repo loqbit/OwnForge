@@ -2,14 +2,14 @@ package bus
 
 import "context"
 
-// Subscriber 定义统一的消息消费接口。
-// Start 会阻塞当前 goroutine，直到 ctx 被取消。
-// 每收到一条消息，会调用 handler.Handle 处理。
+// Subscriber defines a unified message consumption interface.
+// Start blocks the current goroutine until ctx is canceled.
+// For each received message, it calls handler.Handle.
 //
-// 具体实现负责：
-//   - 从底层 broker 拉取/接收消息
-//   - 转换为 bus.Message
-//   - 根据 handler 返回值决定 ack/nack
+// Concrete implementations are responsible for:
+//   - pulling or receiving messages from the underlying broker
+//   - converting them into bus.Message
+//   - deciding ack/nack based on the handler result
 type Subscriber interface {
 	Start(ctx context.Context, handler Handler) error
 	Close() error

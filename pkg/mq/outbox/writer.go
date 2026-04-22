@@ -2,12 +2,12 @@ package outbox
 
 import "context"
 
-// Writer 定义了服务在事务内追加 outbox 事件的统一接口。
-// 具体实现可以基于 Ent、GORM、sql.DB 或其他持久层。
+// Writer defines the unified interface for appending outbox events inside a transaction.
+// Concrete implementations can be built on Ent, GORM, sql.DB, or other persistence layers.
 //
-// 这个接口刻意保持得很小：
-// service 层只需要关心“追加一条事件”，不需要知道底层是旧 Relay、纯数据库落表，
-// 还是未来的 CDC 友好实现。
+// This interface is intentionally kept small:
+// the service layer only needs to care about appending an event, without knowing whether the backend uses an old relay, direct DB persistence,
+// or some future CDC-friendly implementation.
 type Writer interface {
 	Append(ctx context.Context, record *Record) error
 }

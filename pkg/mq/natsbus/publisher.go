@@ -3,24 +3,24 @@ package natsbus
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/pkg/mq/bus"
 	"github.com/nats-io/nats.go"
+	"github.com/ownforge/ownforge/pkg/mq/bus"
 )
 
-// Publisher 是基于 NATS Core 的 bus.Publisher 实现。
-// 消息发出即忘（fire-and-forget），不保证持久化。
-// 适用于实时通知、聊天消息路由、缓存失效广播等场景。
+// Publisher is the Core NATS implementation of bus.Publisher.
+// It is fire-and-forget and does not guarantee persistence.
+// It is suitable for real-time notifications, chat-message routing, cache-invalidation broadcasts, and similar scenarios.
 type Publisher struct {
 	conn *nats.Conn
 }
 
-// NewPublisher 创建 Core NATS 发布者。
+// NewPublisher creates a Core NATS publisher.
 func NewPublisher(conn *nats.Conn) *Publisher {
 	return &Publisher{conn: conn}
 }
 
-// Publish 将 bus.Message 发布到 NATS Subject。
-// msg.Topic 映射为 NATS Subject，msg.Key 和 msg.Headers 通过 NATS Header 传递。
+// Publish publishes a bus.Message to a NATS subject.
+// msg.Topic maps to the NATS subject, while msg.Key and msg.Headers are carried through NATS headers.
 func (p *Publisher) Publish(ctx context.Context, msg *bus.Message) error {
 	natsMsg := &nats.Msg{
 		Subject: msg.Topic,
@@ -28,12 +28,12 @@ func (p *Publisher) Publish(ctx context.Context, msg *bus.Message) error {
 		Header:  make(nats.Header),
 	}
 
-	// 把 bus.Message 的 Key 放到 NATS Header 里，保持和 Kafka 的语义一致
+	// Put bus.Message.Key into the NATS header to keep semantics aligned with Kafka.
 	if msg.Key != "" {
 		natsMsg.Header.Set(HeaderKey, msg.Key)
 	}
 
-	// 透传业务 Headers
+	// Pass through business headers.
 	for k, v := range msg.Headers {
 		natsMsg.Header.Set(k, string(v))
 	}
@@ -42,7 +42,7 @@ func (p *Publisher) Publish(ctx context.Context, msg *bus.Message) error {
 }
 
 func (p *Publisher) Close() error {
-	// Core NATS 的 conn 通常由调用方管理生命周期，这里不主动关闭。
-	// 如果需要刷新缓冲区，调用 Flush。
+	// The Core NATS connection lifecycle is usually managed by the caller, so it is not closed here.
+	// Call Flush if the buffer needs to be flushed.
 	return p.conn.Flush()
 }

@@ -8,14 +8,14 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-// Subscriber 是基于 Kafka 的 bus.Subscriber 实现。
-// 内部使用 kafka.Reader（Consumer Group 模式）拉取消息。
-// handler 返回 nil → 提交 Offset；返回 error → 不提交，下次重新消费。
+// Subscriber is the Kafka implementation of bus.Subscriber.
+// Internally it uses kafka.Reader in consumer-group mode to pull messages.
+// If handler returns nil, commit the offset; if it returns an error, do not commit and let it be consumed again later.
 type Subscriber struct {
 	reader *kafka.Reader
 }
 
-// NewSubscriber 创建 Kafka 订阅者。
+// NewSubscriber creates a Kafka subscriber.
 func NewSubscriber(brokers []string, topic, groupID string) *Subscriber {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: brokers,
@@ -25,14 +25,14 @@ func NewSubscriber(brokers []string, topic, groupID string) *Subscriber {
 	return &Subscriber{reader: r}
 }
 
-// Start 开始消费 Kafka 消息，阻塞直到 ctx 取消。
-// 逻辑从 email-message/internal/handler/consumer.go 提取而来。
+// Start begins consuming Kafka messages and blocks until ctx is canceled.
+// This logic was extracted from email-message/internal/handler/consumer.go.
 func (s *Subscriber) Start(ctx context.Context, handler bus.Handler) error {
 	for {
 		m, err := s.reader.FetchMessage(ctx)
 		if err != nil {
 			if ctx.Err() != nil {
-				return nil // 正常退出
+				return nil // normal exit
 			}
 			continue
 		}
@@ -40,10 +40,10 @@ func (s *Subscriber) Start(ctx context.Context, handler bus.Handler) error {
 		msg := kafkaToMessage(m)
 
 		if err := handler.Handle(ctx, msg); err != nil {
-			continue // 不提交 Offset，下次重新消费
+			continue // do not commit the offset so it can be consumed again later
 		}
 
-		// 处理成功，手动提交 Offset
+		// on success, commit the offset manually
 		_ = s.reader.CommitMessages(ctx, m)
 	}
 }
@@ -52,7 +52,7 @@ func (s *Subscriber) Close() error {
 	return s.reader.Close()
 }
 
-// kafkaToMessage 将 Kafka 消息转换为 bus.Message。
+// kafkaToMessage converts a Kafka message into bus.Message.
 func kafkaToMessage(m kafka.Message) *bus.Message {
 	headers := make(map[string][]byte, len(m.Headers))
 	for _, h := range m.Headers {

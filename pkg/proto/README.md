@@ -1,49 +1,49 @@
-# common/proto — gRPC Proto 定义
+# common/proto — gRPC Proto Definitions
 
-所有微服务共享的 Protocol Buffers 定义和生成的 Go 代码。
+Protocol Buffers definitions and generated Go code shared by all microservices.
 
-## 目录结构
+## Directory Structure
 
 ```
 proto/
-├── idgen/   # ID Generator 服务
+├── idgen/   # ID Generator Service
 │   ├── idgen.proto
 │   ├── idgen.pb.go
 │   └── idgen_grpc.pb.go
-├── auth/    # 认证服务
+├── auth/    # AuthenticationService
 │   ├── auth.proto
 │   ├── auth.pb.go
 │   └── auth_grpc.pb.go
-├── user/    # 用户服务
+├── user/    # user service
 │   ├── user.proto
 │   ├── user.pb.go
 │   └── user_grpc.pb.go
-└── note/    # 笔记服务
+└── note/    # note service
     ├── note.proto
     ├── note.pb.go
     └── note_grpc.pb.go
 ```
 
-## 服务定义
+## Service Definitions
 
-| 包 | 服务 | 说明 |
+| Package | Service | Description |
 |----|------|------|
-| `idgen` | `IDGeneratorService` | 分布式 ID 生成（雪花算法） |
-| `auth` | `AuthService` | 登录、Token 刷新、登出 |
-| `user` | `UserService` | 注册、个人资料管理 |
-| `note` | `NoteService` | 代码片段 CRUD、分组、标签 |
+| `idgen` | `IDGeneratorService` | Distributed ID generation (Snowflake) |
+| `auth` | `AuthService` | Login, token refresh, and logout |
+| `user` | `UserService` | Registration and profile management |
+| `note` | `NoteService` | Snippet CRUD, groups, and tags |
 
-## 用法
+## Usage
 
 ```go
 import pb "github.com/ownforge/ownforge/pkg/proto/idgen"
 
-// 客户端调用
+// Client Call
 resp, err := client.NextID(ctx, &pb.NextIDRequest{})
-fmt.Println(resp.Id) // 雪花算法 ID
+fmt.Println(resp.Id) // Snowflake ID
 ```
 
-## 重新生成
+## Regenerate
 
 ```bash
 protoc --go_out=. --go-grpc_out=. proto/idgen/idgen.proto

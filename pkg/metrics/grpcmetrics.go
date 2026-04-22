@@ -1,8 +1,8 @@
-// Package metrics 提供统一的 Prometheus 指标采集能力。
-// 本文件封装了 gRPC 服务端的拦截器（Interceptor），自动记录每个 RPC 调用的计数、延时和并发数。
+// Package metrics provides unified Prometheus metrics collection.
+// This file wraps gRPC server interceptors to automatically record RPC counts, latency, and concurrency.
 //
-// 因为 gRPC 服务本身不提供 HTTP 端点，所以额外提供了 ServeMetrics() 函数，
-// 在一个独立的 HTTP 端口上暴露 /metrics，供 Prometheus 来拉取。
+// Because gRPC services do not provide HTTP endpoints themselves, this file also provides ServeMetrics(),
+// which exposes /metrics on a separate HTTP port for Prometheus to scrape.
 package metrics
 
 import (
@@ -17,14 +17,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ==================== 指标定义 ====================
-// 与 ginmetrics.go 中的 HTTP 指标对应，这里定义了 gRPC 版本的三大指标。
-// 标签中的 method 是 gRPC 的 FullMethod，格式为 "/包名.服务名/方法名"
-// 标签中的 status 是 gRPC 状态码，如 "OK"、"NotFound"、"Internal"
+// ==================== Metric definitions ====================
+// These are the gRPC counterparts to the HTTP metrics in ginmetrics.go.
+// The method label is the gRPC FullMethod, in the format "/package.service/method".
+// The status label is the gRPC status code, such as "OK", "NotFound", or "Internal".
 
 var (
-	// grpcRequestTotal gRPC 请求总数计数器
-	// 每完成一个 RPC 调用就 +1，按 method 和 status code 分组
+	// grpcRequestTotal gRPC request total counter
+	// It increments by 1 for every completed RPC, grouped by method and status code.
 	grpcRequestTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "grpc",
 		Subsystem: "rpc",
@@ -32,8 +32,8 @@ var (
 		Help:      "Total number of gRPC requests.",
 	}, []string{"method", "status"})
 
-	// grpcRequestDuration gRPC 请求延时直方图
-	// 记录每次 RPC 调用的耗时，Prometheus 自动计算 P50/P95/P99
+	// grpcRequestDuration gRPC request latency histogram
+	// It records RPC latency so Prometheus can compute P50/P95/P99.
 	grpcRequestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "grpc",
 		Subsystem: "rpc",
@@ -42,7 +42,7 @@ var (
 		Buckets:   []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10},
 	}, []string{"method", "status"})
 
-	// grpcRequestInFlight 当前正在处理的 gRPC 请求数
+	// grpcRequestInFlight is the current number of in-flight gRPC requests
 	grpcRequestInFlight = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "grpc",
 		Subsystem: "rpc",
@@ -51,47 +51,47 @@ var (
 	}, []string{"method"})
 )
 
-// init 包初始化时向 Prometheus 全局注册表注册 gRPC 指标
+// The init function registers gRPC metrics with the global Prometheus registry.
 func init() {
 	prometheus.MustRegister(grpcRequestTotal, grpcRequestDuration, grpcRequestInFlight)
 }
 
-// GRPCMetricsInterceptor 返回一个 gRPC 一元拦截器（UnaryServerInterceptor）。
-// 拦截器就是 gRPC 版的"中间件"，在真正执行 RPC 方法前后插入逻辑。
+// GRPCMetricsInterceptor returns a gRPC unary interceptor.
+// An interceptor is the gRPC equivalent of middleware, inserting logic before and after the RPC method runs.
 //
-// 工作流程：
-//  1. RPC 请求进来 → InFlight +1
-//  2. handler(ctx, req) → 执行实际的 RPC 方法（如 GetUser、Login）
-//  3. RPC 完成 → InFlight -1，记录状态码和耗时
+// Flow:
+//  1. RPC Request arrives -> InFlight +1
+//  2. handler(ctx, req) -> execute the actual RPC method, such as GetUser or Login
+//  3. RPC completes -> InFlight -1, then record status code and latency
 //
-// 使用方式（在 grpc main.go 中）：
+// Usage (in grpc main.go):
 //
 //	s := grpc.NewServer(
 //	    grpc.ChainUnaryInterceptor(
-//	        metrics.GRPCMetricsInterceptor(),  // 放在拦截器链的第一个
+//	        metrics.GRPCMetricsInterceptor(),  // place it first in the interceptor chain
 //	        interceptor.RecoveryInterceptor(log),
 //	        ...
 //	    ),
 //	)
 func GRPCMetricsInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		// 并发数 +1（请求开始）
+		// Increment in-flight count at request start
 		grpcRequestInFlight.WithLabelValues(info.FullMethod).Inc()
-		// defer 保证请求结束后 -1
+		// defer guarantees it is decremented when the request ends
 		defer grpcRequestInFlight.WithLabelValues(info.FullMethod).Dec()
 
 		start := time.Now()
 
-		// 调用实际的 gRPC handler（业务逻辑）
+		// Call the actual gRPC handler (business logic)
 		resp, err := handler(ctx, req)
 
-		// 从 error 中提取 gRPC 状态码（OK / NotFound / Internal 等）
+		// Extract the gRPC status code from the error (OK / NotFound / Internal, etc.).
 		code := status.Code(err).String()
 		dur := time.Since(start).Seconds()
 
-		// 记录请求计数和延时，尝试注入 TraceID Exemplar
+		// Record request counts and latency, and try to inject a TraceID exemplar.
 		grpcRequestTotal.WithLabelValues(info.FullMethod, code).Inc()
-		
+
 		observer := grpcRequestDuration.WithLabelValues(info.FullMethod, code)
 		span := trace.SpanFromContext(ctx)
 		if span.SpanContext().IsValid() {
@@ -108,16 +108,16 @@ func GRPCMetricsInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-// ServeMetrics 在指定地址启动一个独立的 HTTP 服务器，仅暴露 /metrics 端点。
+// ServeMetrics starts a standalone HTTP server at the given address and exposes only /metrics.
 //
-// 为什么需要这个？
-// gRPC 服务运行在纯 TCP 协议上，没有 HTTP 路由的概念，
-// 但 Prometheus 必须通过 HTTP GET /metrics 来拉取指标。
-// 所以我们额外起一个轻量 HTTP server，专门给 Prometheus 用。
+// Why is this needed?
+// gRPC services run over raw TCP and do not have HTTP routing,
+// but Prometheus must scrape metrics through HTTP GET /metrics.
+// So we start an extra lightweight HTTP server specifically for Prometheus.
 //
-// 使用方式（在 grpc main.go 中，用 goroutine 启动）：
+// Usage (start it in grpc main.go using a goroutine):
 //
-//	go metrics.ServeMetrics(":9092")  // 在 9092 端口暴露指标
+//	go metrics.ServeMetrics(":9092")  // expose metrics on port 9092
 func ServeMetrics(addr string) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())

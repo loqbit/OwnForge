@@ -1,18 +1,18 @@
-// Package probe 提供统一的运维探针端点注册能力。
+// Package probe provides unified registration for operational probe endpoints.
 //
-// 封装了 /healthz（存活探针）、/readyz（就绪探针）和 /metrics（Prometheus 指标）,
-// 使每个微服务只需一行代码即可完成全部运维端点的注册，消除重复模板代码。
+// It wraps /healthz (liveness), /readyz (readiness), and /metrics (Prometheus metrics),
+// so each microservice can register all operational endpoints with a single line of code and avoid boilerplate.
 //
-// 提供两种使用模式：
+// It supports two usage modes:
 //
-// 模式 1 — 挂载到已有 Gin 引擎（适用于 HTTP 服务）：
+// Mode 1: mount on an existing Gin engine (for HTTP services):
 //
 //	probe.Register(r, log,
 //	    probe.WithRedis(redisClient),
 //	    probe.WithEntDB("postgres", entClient),
 //	)
 //
-// 模式 2 — 启动独立管理端口（适用于 gRPC / 纯消费者服务）：
+// Mode 2: start a dedicated admin port (for gRPC or pure consumer services):
 //
 //	shutdown := probe.Serve(ctx, ":9094", log,
 //	    probe.WithRedis(redisClient),
@@ -36,13 +36,13 @@ import (
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 )
 
-// Pinger 是一个能执行连接存活探测的接口。
-// *sql.DB 直接满足此接口。
+// Pinger is an interface that performs connection liveness checks.
+// *sql.DB satisfies this interface directly.
 type Pinger interface {
 	PingContext(ctx context.Context) error
 }
 
-// Option 是配置探针的函数选项。
+// Option is a functional option for probe configuration.
 type Option func(*probeConfig)
 
 type probeConfig struct {
@@ -61,14 +61,14 @@ func defaultConfig() *probeConfig {
 
 // ── Functional Options ──────────────────────────────────────────────
 
-// WithCheck 注册一个自定义的命名健康检查项。
+// WithCheck registers a custom named health check.
 func WithCheck(name string, fn health.CheckFunc) Option {
 	return func(c *probeConfig) {
 		c.checks[name] = fn
 	}
 }
 
-// WithRedis 注册 Redis 连接存活检查。
+// WithRedis registers a Redis liveness check.
 func WithRedis(rdb *redis.Client) Option {
 	return func(c *probeConfig) {
 		if rdb != nil {
@@ -79,8 +79,8 @@ func WithRedis(rdb *redis.Client) Option {
 	}
 }
 
-// WithPinger 注册数据库连接检查。
-// name 用于标识数据库实例（如 "postgres"），pinger 是任何实现了 PingContext 的对象（*sql.DB 等）。
+// WithPinger registers a database connection check.
+// name identifies the database instance (for example, "postgres"), and pinger can be any object that implements PingContext (such as *sql.DB).
 func WithPinger(name string, p Pinger) Option {
 	return func(c *probeConfig) {
 		if p != nil {
@@ -91,8 +91,8 @@ func WithPinger(name string, p Pinger) Option {
 	}
 }
 
-// WithGRPCHealth 将健康检查结果同步到 gRPC 原生 Health 服务。
-// services 是需要注册的 gRPC 服务名（如 "note.NoteService"）。
+// WithGRPCHealth syncs health-check results to the native gRPC Health service.
+// services are the gRPC service names to register (for example, "note.NoteService").
 func WithGRPCHealth(srv *grpchealth.Server, services ...string) Option {
 	return func(c *probeConfig) {
 		c.grpcHealth = srv
@@ -100,19 +100,19 @@ func WithGRPCHealth(srv *grpchealth.Server, services ...string) Option {
 	}
 }
 
-// WithoutMetrics 禁用 /metrics 端点注册（默认开启）。
+// WithoutMetrics disables /metrics endpoint registration (enabled by default).
 func WithoutMetrics() Option {
 	return func(c *probeConfig) {
 		c.enableMetrics = false
 	}
 }
 
-// ── 模式 1：Register — 挂载到 Gin 引擎 ─────────────────────────────
+// ── Mode 1: Register - mount on a Gin engine ─────────────────────────────
 
-// Register 将 /healthz、/readyz 和 /metrics 注册到已有的 Gin 引擎上。
-// 应在所有业务中间件之前调用，避免被限流或鉴权拦截。
+// Register adds /healthz, /readyz, and /metrics to an existing Gin engine.
+// Call it before all business middleware to avoid rate limiting or auth interception.
 //
-// 使用示例：
+// Example:
 //
 //	r := gin.New()
 //	probe.Register(r, log,
@@ -136,21 +136,21 @@ func Register(r *gin.Engine, log *zap.Logger, opts ...Option) {
 		r.Use(metrics.GinMetrics())
 	}
 
-	log.Info("probe 端点已注册到 Gin",
+	log.Info("probe endpoints registered on Gin",
 		zap.Int("checks", len(cfg.checks)),
 		zap.Bool("metrics", cfg.enableMetrics),
 	)
 }
 
-// ── 模式 2：Serve — 独立管理端口 ────────────────────────────────────
+// ── Mode 2: Serve - dedicated admin port ────────────────────────────────────
 
-// Serve 启动一个独立的 HTTP 管理端口，暴露 /healthz、/readyz 和 /metrics。
-// 适用于纯 gRPC 服务、Kafka 消费者等没有 HTTP 引擎的进程。
+// Serve starts a dedicated HTTP admin port exposing /healthz, /readyz, and /metrics.
+// This is suitable for pure gRPC services, Kafka consumers, and other processes without an HTTP engine.
 //
-// 返回一个 shutdown 函数，调用者应在退出时调用以优雅关闭管理端口。
-// ctx 被取消时管理服务器也会自动关闭。
+// It returns a shutdown function that callers should invoke on exit to gracefully close the admin port.
+// The admin server also shuts down automatically when ctx is canceled.
 //
-// 使用示例：
+// Example:
 //
 //	shutdown := probe.Serve(ctx, ":9094", log,
 //	    probe.WithRedis(redisClient),
@@ -169,7 +169,7 @@ func Serve(ctx context.Context, addr string, log *zap.Logger, opts ...Option) fu
 		checker.AddCheck(name, fn)
 	}
 
-	// 如果配置了 gRPC Health，启动后台同步协程
+	// If gRPC Health is configured, start a background sync goroutine.
 	if cfg.grpcHealth != nil {
 		startHealthSync(checker, cfg.grpcHealth, cfg.grpcServices, log)
 	}
@@ -183,17 +183,17 @@ func Serve(ctx context.Context, addr string, log *zap.Logger, opts ...Option) fu
 	srv := &http.Server{Addr: addr, Handler: mux}
 
 	go func() {
-		log.Info("probe 管理端口已启动",
+		log.Info("probe admin port started",
 			zap.String("addr", addr),
 			zap.Int("checks", len(cfg.checks)),
 			zap.Strings("endpoints", []string{"/healthz", "/readyz", "/metrics"}),
 		)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Error("probe 管理端口异常", zap.Error(err))
+			log.Error("probe admin port error", zap.Error(err))
 		}
 	}()
 
-	// 监听 ctx 取消，自动关闭
+	// Watch ctx cancellation and close automatically.
 	go func() {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -201,18 +201,18 @@ func Serve(ctx context.Context, addr string, log *zap.Logger, opts ...Option) fu
 		_ = srv.Shutdown(shutdownCtx)
 	}()
 
-	// 返回手动 shutdown 函数
+	// Return a manual shutdown function.
 	return func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(shutdownCtx); err != nil {
-			log.Error("probe 管理端口关闭失败", zap.Error(err))
+			log.Error("failed to shut down probe admin port", zap.Error(err))
 		}
 	}
 }
 
-// GRPCShutdown 设置所有已注册的 gRPC Health 服务为 NOT_SERVING。
-// 应在 gRPC 优雅停机时调用。
+// GRPCShutdown sets all registered gRPC Health services to NOT_SERVING.
+// Call it during graceful gRPC shutdown.
 func GRPCShutdown(srv *grpchealth.Server, services ...string) {
 	srv.SetServingStatus("", healthgrpc.HealthCheckResponse_NOT_SERVING)
 	for _, svc := range services {
@@ -220,9 +220,9 @@ func GRPCShutdown(srv *grpchealth.Server, services ...string) {
 	}
 }
 
-// ── 内部实现 ──────────────────────────────────────────────────────
+// ── Internal implementation ──────────────────────────────────────────────────────
 
-// startHealthSync 将 common/health 的检查结果周期性同步到 gRPC 原生 Health 服务。
+// startHealthSync periodically syncs common/health results to the native gRPC Health service.
 func startHealthSync(checker *health.Checker, srv *grpchealth.Server, services []string, log *zap.Logger) {
 	var lastStatus healthgrpc.HealthCheckResponse_ServingStatus
 	var initialized bool
@@ -246,11 +246,11 @@ func startHealthSync(checker *health.Checker, srv *grpchealth.Server, services [
 		initialized = true
 
 		if allHealthy {
-			log.Debug("gRPC health 状态已更新", zap.String("status", status.String()))
+			log.Debug("gRPC health status updated", zap.String("status", status.String()))
 			return
 		}
 
-		log.Warn("gRPC health 状态已更新",
+		log.Warn("gRPC health status updated",
 			zap.String("status", status.String()),
 			zap.Any("checks", results),
 		)

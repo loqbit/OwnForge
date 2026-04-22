@@ -1,31 +1,31 @@
-# common/metrics — Prometheus 指标采集
+# common/metrics — Prometheus Metrics Collection
 
-统一的 Prometheus 指标中间件，自动记录请求计数、延时和并发数。
+Unified Prometheus metrics middleware that automatically records request counts, latency, and concurrency.
 
-> **注意**：业务服务通常不需要直接注册 `/metrics` 端点，`common/probe` 已经自动处理。
+> **Note**: Business services usually do not need to register `/metrics` directly; `common/probe` already handles it automatically.
 
-## 采集的指标
+## Collected Metrics
 
-| 指标名 | 类型 | 说明 |
+| Metric Name | Type | Description |
 |--------|------|------|
-| `gin_http_http_requests_total` | Counter | 请求总数（按 method/path/status 分组） |
-| `gin_http_http_request_duration_seconds` | Histogram | 请求延时分布（P50/P95/P99） |
-| `gin_http_http_requests_in_flight` | Gauge | 当前并发请求数 |
-| `grpc_requests_total` | Counter | gRPC 调用计数 |
-| `grpc_request_duration_seconds` | Histogram | gRPC 调用延时 |
-| `grpc_requests_in_flight` | Gauge | gRPC 并发数 |
+| `gin_http_http_requests_total` | Counter | Total request count grouped by method/path/status |
+| `gin_http_http_request_duration_seconds` | Histogram | Request latency distribution (P50/P95/P99) |
+| `gin_http_http_requests_in_flight` | Gauge | Current in-flight request count |
+| `grpc_requests_total` | Counter | gRPC Call count |
+| `grpc_request_duration_seconds` | Histogram | gRPC Call latency |
+| `grpc_requests_in_flight` | Gauge | gRPC In-flight count |
 
-## 用法
+## Usage
 
-### Gin HTTP（已被 probe 包内置调用）
+### Gin HTTP (already built into the probe package)
 
 ```go
-// probe.Register 内部会自动调用这两行，无需手动注册
+// probe.Register internally calls these two lines automatically, so no manual registration is needed
 r.GET("/metrics", metrics.GinMetricsHandler())
 r.Use(metrics.GinMetrics())
 ```
 
-### gRPC 拦截器
+### gRPC Interceptors
 
 ```go
 grpc.NewServer(
@@ -33,7 +33,7 @@ grpc.NewServer(
 )
 ```
 
-## 特性
+## Features
 
-- 自动跳过 `/metrics` 端点自身，避免采集请求污染业务指标
-- 支持 Exemplar：每条延时指标自动关联 OTel TraceID，在 Grafana 中点击即可跳转 Jaeger
+- Automatically skips the `/metrics` endpoint itself so scrape requests do not pollute business metrics
+- Supports exemplars: each latency metric is automatically linked to an OTel TraceID, so clicking it in Grafana can jump to Jaeger

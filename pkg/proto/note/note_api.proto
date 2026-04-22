@@ -7,7 +7,7 @@ package note;
 import "google/api/annotations.proto";
 
 service NoteService {
-    // ── 核心片段 CRUD ──
+    // ── core snippet CRUD ──
 
     rpc ListSnippets (ListSnippetsRequest) returns (ListSnippetsResponse) {
         option (google.api.http) = {
@@ -60,8 +60,8 @@ service NoteService {
         };
     }
 
-    // MoveSnippet 将片段移动到目标分组并设置排序权重。
-    // group_id 省略时表示收集箱（未分组）；sort_order 省略时服务端自动追加到目标分组末尾。
+    // MoveSnippet Move the snippet to the target group and set the sort order.
+    // If group_id is omitted, the snippet is moved to the inbox (ungrouped); if sort_order is omitted, the server appends it to the end of the target group.
     rpc MoveSnippet (MoveSnippetRequest) returns (SnippetResponse) {
         option (google.api.http) = {
             put: "/api/v1/notes/snippets/{snippet_id}/move"
@@ -75,7 +75,7 @@ service NoteService {
         };
     }
 
-    // 公开片段 — 不加 http 注解，保留手写 handler（无需鉴权）
+    // Public snippets - no http annotation; keep a handwritten handler (no auth required)
     rpc GetPublicSnippet (GetPublicSnippetRequest) returns (SnippetResponse);
 
     rpc FavoriteSnippet (FavoriteSnippetRequest) returns (FavoriteSnippetResponse) {
@@ -104,7 +104,7 @@ service NoteService {
         };
     }
 
-    // ── 工作区列表 ──
+    // ── workspace lists ──
 
     rpc ListRecentSnippets (ListSnippetsRequest) returns (ListSnippetsResponse) {
         option (google.api.http) = {
@@ -124,7 +124,7 @@ service NoteService {
         };
     }
 
-    // ── 分组 ──
+    // ── groups ──
 
     rpc ListGroups (ListGroupsRequest) returns (ListGroupsResponse) {
         option (google.api.http) = {
@@ -158,7 +158,7 @@ service NoteService {
         };
     }
 
-    // ── 标签 ──
+    // ── tags ──
 
     rpc ListTags (ListTagsRequest) returns (ListTagsResponse) {
         option (google.api.http) = {
@@ -186,7 +186,7 @@ service NoteService {
         };
     }
 
-    // ── 模板 ──
+    // ── templates ──
 
     rpc ListTemplates (ListTemplatesRequest) returns (ListTemplatesResponse) {
         option (google.api.http) = {
@@ -220,7 +220,7 @@ service NoteService {
         };
     }
 
-    // ── 分享 ──
+    // ── shares ──
 
     rpc CreateShare (CreateShareRequest) returns (ShareResponse) {
         option (google.api.http) = {
@@ -241,7 +241,7 @@ service NoteService {
         };
     }
 
-    // 公开分享 — 不加 http 注解，保留手写 handler（无需鉴权）
+    // Public shares - no http annotation; keep a handwritten handler (no auth required)
     rpc GetPublicShareByToken (GetPublicShareByTokenRequest) returns (PublicShareResponse);
 
     // ── Upload ──
@@ -260,17 +260,17 @@ service NoteService {
         };
     }
 
-    // 文件上传（兼容旧链路）— 不加 http 注解，保留手写 handler（二进制流）
+    // File upload (legacy-compatible) - no http annotation; keep a handwritten handler (binary stream)
     rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
 }
 
-// ── 已有请求与响应 ──
+// ── existing requests and responses ──
 
 message CreateSnippetRequest {
     string title = 1;
     string content = 2;
     string language = 3;
-    optional int64 group_id = 4; // 可选的所属分组
+    optional int64 group_id = 4; // optional owning group
 }
 
 message GetSnippetRequest {
@@ -282,15 +282,15 @@ message GetSnippetAIMetadataRequest {
 }
 
 message ListSnippetsRequest {
-    optional int64 group_id = 1;  // 按分组筛选
-    optional int64 tag_id = 2;    // 按标签筛选
-    string keyword = 3;           // 模糊搜索标题
-    int32 limit = 4;              // 每页条数，默认 20，最大 100
-    string cursor = 5;            // 游标分页（上一页返回的 next_cursor）
-    string sort_by = 6;           // "updated_at" | "created_at" | "title" | "manual"，默认 "updated_at"
-    string type = 7;              // 按类型筛选：code / note / file / ""(全部)
-    string status = 8;            // 状态筛选：""(默认，只看 active), "active", "trashed"
-    bool only_favorites = 9;      // 是否仅显示收藏的
+    optional int64 group_id = 1;  // filter by groups
+    optional int64 tag_id = 2;    // filter by tags
+    string keyword = 3;           // fuzzy-search title
+    int32 limit = 4;              // page size, default 20, maximum 100
+    string cursor = 5;            // cursor pagination (next_cursor returned by the previous page)
+    string sort_by = 6;           // "updated_at" | "created_at" | "title" | "manual", defaults to "updated_at"
+    string type = 7;              // filter by type: code / note / file / "" (all)
+    string status = 8;            // status filter: "" (default, active only), "active", "trashed"
+    bool only_favorites = 9;      // whether to show only favorites
 }
 
 message UpdateSnippetRequest {
@@ -314,18 +314,18 @@ message SnippetResponse {
     string created_at = 11;
     string updated_at = 12;
     repeated int64 tag_ids = 13;
-    int32 sort_order = 14; // 在所属分组内的排序权重，值越小越靠前
+    int32 sort_order = 14; // sort order within the owning group; smaller values appear first
     bool is_favorite = 15;
     string deleted_at = 16;
 }
 
 message ListSnippetsResponse {
     repeated SnippetResponse snippets = 1;
-    string next_cursor = 2;  // 空字符串 = 没有下一页
+    string next_cursor = 2;  // empty string means there is no next page
     bool has_more = 3;
 }
 
-// ── 扩展请求与响应 ──
+// ── extended requests and responses ──
 
 message DeleteSnippetRequest {
     int64 snippet_id = 1;
@@ -348,16 +348,16 @@ message SetSnippetTagsRequest {
 
 message SetSnippetTagsResponse {}
 
-// MoveSnippetRequest 移动片段到指定分组并可选地设置排序权重。
-// group_id 不传表示移动到收集箱（未分组）。
-// sort_order 不传表示追加到目标分组末尾（由服务端计算 max+1）。
+// MoveSnippetRequest Move a snippet to a target group and optionally set its sort order.
+// Omitting group_id moves the snippet to the inbox (ungrouped).
+// Omitting sort_order appends the snippet to the end of the target group (computed by the server as max+1).
 message MoveSnippetRequest {
     int64 snippet_id = 1;
     optional int64 group_id = 2;
     optional int32 sort_order = 3;
 }
 
-// SearchSnippetsRequest 结构化搜索请求（重设计）
+// SearchSnippetsRequest structured search request (redesigned)
 message SearchSnippetsRequest {
     string keyword = 1;
     string language = 2;
@@ -488,7 +488,7 @@ message TemplateResponse {
     string updated_at = 10;
 }
 message ListTemplatesRequest {
-    string category = 1;  // 按分类过滤，空字符串 = 全部
+    string category = 1;  // filter by category; an empty string means all
 }
 message ListTemplatesResponse {
     repeated TemplateResponse templates = 1;
@@ -605,7 +605,7 @@ message UploadFileResponse {
     string id = 1;
     string filename = 2;
     int64 size = 3;
-    string url = 4;           // 文件访问 URL
-    string mime_type = 5;     // MIME 类型
-    string thumbnail_url = 6; // 缩略图 URL（图片类型）
+    string url = 4;           // file access URL
+    string mime_type = 5;     // MIME type
+    string thumbnail_url = 6; // thumbnail URL (for image types)
 }

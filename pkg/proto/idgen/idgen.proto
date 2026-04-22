@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package idgen;
 
-// 统一指向 common 模块的包路径
+// Use the shared common module package path
 option go_package = "github.com/ownforge/ownforge/pkg/proto/idgen";
 
 service IDGenerator {

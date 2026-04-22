@@ -12,7 +12,7 @@ import (
 
 var idgenClient pb.IDGeneratorClient
 
-// InitIDGenClient 初始化全局的 ID Generator gRPC 客户端
+// InitIDGenClient initializes the global ID Generator gRPC client.
 func InitIDGenClient(targetAddr string) error {
 	conn, err := grpc.NewClient(
 		targetAddr,
@@ -20,7 +20,7 @@ func InitIDGenClient(targetAddr string) error {
 		grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin": {}}]}`),
 	)
 	if err != nil {
-		return fmt.Errorf("无法连接到发号器服务 %s: %w", targetAddr, err)
+		return fmt.Errorf("failed to connect to the ID generator service %s: %w", targetAddr, err)
 	}
 
 	idgenClient = pb.NewIDGeneratorClient(conn)
@@ -28,15 +28,15 @@ func InitIDGenClient(targetAddr string) error {
 	return nil
 }
 
-// GenerateID 向远端服务请求获取下一个雪花算法 ID
+// GenerateID requests the next Snowflake ID from the remote service.
 func GenerateID(ctx context.Context) (int64, error) {
 	if idgenClient == nil {
-		return 0, fmt.Errorf("ID Generator Client 未初始化")
+		return 0, fmt.Errorf("ID Generator client is not initialized")
 	}
 
 	resp, err := idgenClient.NextID(ctx, &pb.NextIDRequest{})
 	if err != nil {
-		return 0, fmt.Errorf("RPC 调用发号器失败: %w", err)
+		return 0, fmt.Errorf("failed to call the ID generator via RPC: %w", err)
 	}
 
 	return resp.Id, nil

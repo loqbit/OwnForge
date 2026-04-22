@@ -1,8 +1,8 @@
-# common/postgres — PostgreSQL 连接初始化
+# common/postgres — PostgreSQL connection initialization
 
-带 OTel 追踪和连接池的 `*sql.DB` 初始化。
+Initialize `*sql.DB` with OTel tracing and connection pooling.
 
-## 用法
+## Usage
 
 ```go
 import "github.com/ownforge/ownforge/pkg/postgres"
@@ -12,27 +12,27 @@ db, err := postgres.Init(
         Driver: "postgres",
         Source: "postgres://user:pass@localhost:5432/mydb?sslmode=disable",
     },
-    postgres.DefaultPoolConfig(), // 生产级默认连接池参数
+    postgres.DefaultPoolConfig(), // production-grade default pool parameters
     log,
 )
 if err != nil {
-    // go-chat: 降级为内存仓储
-    // user-platform: 直接 Fatal
+    // go-chat: degrade to in-memory storage
+    // user-platform: exit with log.Fatal
 }
 defer db.Close()
 ```
 
-## 连接池配置
+## Connection Pool Configuration
 
 ```go
 pool := postgres.PoolConfig{
-    MaxOpenConns:    25,             // 最大连接数
-    MaxIdleConns:    10,             // 最大空闲连接
+    MaxOpenConns:    25,             // maximum open connections
+    MaxIdleConns:    10,             // maximum idle connections
     ConnMaxLifetime: 30 * time.Minute,
     ConnMaxIdleTime: 5 * time.Minute,
 }
 ```
 
-## 设计决策
+## Design Decision
 
-返回 `error` 而非 `log.Fatal`，将「连接失败时是降级还是退出」的决策权交给调用方。
+Return `error` rather than `log.Fatal`, so the caller decides whether to degrade or exit when connection setup fails.

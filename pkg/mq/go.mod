@@ -3,8 +3,8 @@ module github.com/ownforge/ownforge/pkg/mq
 go 1.25.5
 
 require (
-	github.com/ownforge/ownforge/pkg/trace v0.1.0
 	github.com/nats-io/nats.go v1.50.0
+	github.com/ownforge/ownforge/pkg/trace v0.1.0
 	github.com/segmentio/kafka-go v0.4.50
 )
 

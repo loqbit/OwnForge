@@ -2,8 +2,8 @@ package bus
 
 import "context"
 
-// Message 表示一条与具体中间件解耦后的业务消息。
-// 业务 Handler 只依赖这层抽象，不直接感知 Kafka/NATS 的客户端类型。
+// Message represents a business message decoupled from any specific middleware.
+// Business handlers depend only on this abstraction and do not need to know Kafka or NATS client types.
 type Message struct {
 	Topic    string
 	Key      string
@@ -12,14 +12,14 @@ type Message struct {
 	Metadata map[string]string
 }
 
-// Handler 定义统一的消息处理接口。
-// 返回 nil 表示消息已成功处理，可由上层总线实现决定是否 ack/commit。
-// 返回 error 表示处理失败，由上层总线实现决定重试、重投或进入死信。
+// Handler defines the unified message-processing interface.
+// Returning nil means the message was handled successfully, and the upper bus implementation can decide whether to ack/commit.
+// Returning an error means processing failed, and the upper bus implementation can decide whether to retry, redeliver, or move it to a dead-letter queue.
 type Handler interface {
 	Handle(ctx context.Context, msg *Message) error
 }
 
-// HandlerFunc 允许直接使用函数实现 Handler。
+// HandlerFunc lets a plain function implement Handler directly.
 type HandlerFunc func(ctx context.Context, msg *Message) error
 
 func (f HandlerFunc) Handle(ctx context.Context, msg *Message) error {

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.0
-// source: proto/idgen/idgen.proto
+// source: idgen/idgen.proto
 
 package idgen
 
@@ -29,7 +29,7 @@ type NextIDRequest struct {
 
 func (x *NextIDRequest) Reset() {
 	*x = NextIDRequest{}
-	mi := &file_proto_idgen_idgen_proto_msgTypes[0]
+	mi := &file_idgen_idgen_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -41,7 +41,7 @@ func (x *NextIDRequest) String() string {
 func (*NextIDRequest) ProtoMessage() {}
 
 func (x *NextIDRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_idgen_idgen_proto_msgTypes[0]
+	mi := &file_idgen_idgen_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -54,7 +54,7 @@ func (x *NextIDRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NextIDRequest.ProtoReflect.Descriptor instead.
 func (*NextIDRequest) Descriptor() ([]byte, []int) {
-	return file_proto_idgen_idgen_proto_rawDescGZIP(), []int{0}
+	return file_idgen_idgen_proto_rawDescGZIP(), []int{0}
 }
 
 type NextIDResponse struct {
@@ -66,7 +66,7 @@ type NextIDResponse struct {
 
 func (x *NextIDResponse) Reset() {
 	*x = NextIDResponse{}
-	mi := &file_proto_idgen_idgen_proto_msgTypes[1]
+	mi := &file_idgen_idgen_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -78,7 +78,7 @@ func (x *NextIDResponse) String() string {
 func (*NextIDResponse) ProtoMessage() {}
 
 func (x *NextIDResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_idgen_idgen_proto_msgTypes[1]
+	mi := &file_idgen_idgen_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -91,7 +91,7 @@ func (x *NextIDResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NextIDResponse.ProtoReflect.Descriptor instead.
 func (*NextIDResponse) Descriptor() ([]byte, []int) {
-	return file_proto_idgen_idgen_proto_rawDescGZIP(), []int{1}
+	return file_idgen_idgen_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *NextIDResponse) GetId() int64 {
@@ -101,35 +101,35 @@ func (x *NextIDResponse) GetId() int64 {
 	return 0
 }
 
-var File_proto_idgen_idgen_proto protoreflect.FileDescriptor
+var File_idgen_idgen_proto protoreflect.FileDescriptor
 
-const file_proto_idgen_idgen_proto_rawDesc = "" +
+const file_idgen_idgen_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/idgen/idgen.proto\x12\x05idgen\"\x0f\n" +
+	"\x11idgen/idgen.proto\x12\x05idgen\"\x0f\n" +
 	"\rNextIDRequest\" \n" +
 	"\x0eNextIDResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id2F\n" +
 	"\vIDGenerator\x127\n" +
-	"\x06NextID\x12\x14.idgen.NextIDRequest\x1a\x15.idgen.NextIDResponse\"\x00B(Z&github.com/ownforge/ownforge/pkg/proto/idgenb\x06proto3"
+	"\x06NextID\x12\x14.idgen.NextIDRequest\x1a\x15.idgen.NextIDResponse\"\x00B.Z,github.com/ownforge/ownforge/pkg/proto/idgenb\x06proto3"
 
 var (
-	file_proto_idgen_idgen_proto_rawDescOnce sync.Once
-	file_proto_idgen_idgen_proto_rawDescData []byte
+	file_idgen_idgen_proto_rawDescOnce sync.Once
+	file_idgen_idgen_proto_rawDescData []byte
 )
 
-func file_proto_idgen_idgen_proto_rawDescGZIP() []byte {
-	file_proto_idgen_idgen_proto_rawDescOnce.Do(func() {
-		file_proto_idgen_idgen_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_idgen_idgen_proto_rawDesc), len(file_proto_idgen_idgen_proto_rawDesc)))
+func file_idgen_idgen_proto_rawDescGZIP() []byte {
+	file_idgen_idgen_proto_rawDescOnce.Do(func() {
+		file_idgen_idgen_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_idgen_idgen_proto_rawDesc), len(file_idgen_idgen_proto_rawDesc)))
 	})
-	return file_proto_idgen_idgen_proto_rawDescData
+	return file_idgen_idgen_proto_rawDescData
 }
 
-var file_proto_idgen_idgen_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_proto_idgen_idgen_proto_goTypes = []any{
+var file_idgen_idgen_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_idgen_idgen_proto_goTypes = []any{
 	(*NextIDRequest)(nil),  // 0: idgen.NextIDRequest
 	(*NextIDResponse)(nil), // 1: idgen.NextIDResponse
 }
-var file_proto_idgen_idgen_proto_depIdxs = []int32{
+var file_idgen_idgen_proto_depIdxs = []int32{
 	0, // 0: idgen.IDGenerator.NextID:input_type -> idgen.NextIDRequest
 	1, // 1: idgen.IDGenerator.NextID:output_type -> idgen.NextIDResponse
 	1, // [1:2] is the sub-list for method output_type
@@ -139,26 +139,26 @@ var file_proto_idgen_idgen_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_proto_idgen_idgen_proto_init() }
-func file_proto_idgen_idgen_proto_init() {
-	if File_proto_idgen_idgen_proto != nil {
+func init() { file_idgen_idgen_proto_init() }
+func file_idgen_idgen_proto_init() {
+	if File_idgen_idgen_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_idgen_idgen_proto_rawDesc), len(file_proto_idgen_idgen_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_idgen_idgen_proto_rawDesc), len(file_idgen_idgen_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_idgen_idgen_proto_goTypes,
-		DependencyIndexes: file_proto_idgen_idgen_proto_depIdxs,
-		MessageInfos:      file_proto_idgen_idgen_proto_msgTypes,
+		GoTypes:           file_idgen_idgen_proto_goTypes,
+		DependencyIndexes: file_idgen_idgen_proto_depIdxs,
+		MessageInfos:      file_idgen_idgen_proto_msgTypes,
 	}.Build()
-	File_proto_idgen_idgen_proto = out.File
-	file_proto_idgen_idgen_proto_goTypes = nil
-	file_proto_idgen_idgen_proto_depIdxs = nil
+	File_idgen_idgen_proto = out.File
+	file_idgen_idgen_proto_goTypes = nil
+	file_idgen_idgen_proto_depIdxs = nil
 }
