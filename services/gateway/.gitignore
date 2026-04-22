@@ -1,0 +1,28 @@
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Go build and test artifacts
+bin/
+tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local runtime files
+*.log
+app.log
+
