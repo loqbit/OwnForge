@@ -5,6 +5,7 @@ go 1.25.5
 replace (
 	github.com/ownforge/ownforge/pkg/conf => ../../pkg/conf
 	github.com/ownforge/ownforge/pkg/health => ../../pkg/health
+	github.com/ownforge/ownforge/pkg/id => ../../pkg/id
 	github.com/ownforge/ownforge/pkg/logger => ../../pkg/logger
 	github.com/ownforge/ownforge/pkg/metrics => ../../pkg/metrics
 	github.com/ownforge/ownforge/pkg/probe => ../../pkg/probe
@@ -13,9 +14,9 @@ replace (
 )
 
 require (
-	github.com/bwmarrin/snowflake v0.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/ownforge/ownforge/pkg/conf v0.2.1
+	github.com/ownforge/ownforge/pkg/id v0.0.0
 	github.com/ownforge/ownforge/pkg/probe v0.1.2
 	github.com/ownforge/ownforge/pkg/proto v1.3.1
 	github.com/spf13/viper v1.21.0

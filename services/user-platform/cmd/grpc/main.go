@@ -15,12 +15,12 @@ import (
 	commonOtel "github.com/ownforge/ownforge/pkg/otel"
 	"github.com/ownforge/ownforge/pkg/probe"
 	commonRedis "github.com/ownforge/ownforge/pkg/redis"
-	"github.com/ownforge/ownforge/pkg/rpc"
 	"github.com/ownforge/ownforge/services/user-platform/internal/appcontainer"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/bootstrap"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/database"
+	platformidgen "github.com/ownforge/ownforge/services/user-platform/internal/platform/idgen"
 	transportgrpc "github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc"
 
 	"go.uber.org/zap"
@@ -33,9 +33,10 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// 初始化底层基础设施
-	entClient, redisClient := initInfra(cfg, log)
+	entClient, redisClient, idgenClient := initInfra(cfg, log)
 	defer entClient.Close()
 	defer redisClient.Close()
+	defer idgenClient.Close()
 
 	// 初始化 OpenTelemetry 链路追踪
 	otelShutdown, err := commonOtel.InitTracer(cfg.OTel)
@@ -60,7 +61,7 @@ func main() {
 	defer probeShutdown()
 
 	// 依赖注入与组件装配
-	container := buildContainer(cfg, entClient, redisClient, log)
+	container := buildContainer(cfg, entClient, redisClient, idgenClient, log)
 	grpcServer := transportgrpc.SetupServer(transportgrpc.ServerDependencies{
 		UserService:    container.UserService,
 		ProfileService: container.ProfileService,
@@ -74,8 +75,9 @@ func main() {
 }
 
 // initInfra 初始化基础设施
-func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client) {
-	if err := rpc.InitIDGenClient(cfg.IDGenerator.Addr); err != nil {
+func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client, platformidgen.Client) {
+	idgenClient, err := platformidgen.New(cfg.IDGenerator.Addr)
+	if err != nil {
 		log.Fatal("初始化 ID 生成器客户端失败", zap.Error(err))
 	}
 
@@ -85,12 +87,12 @@ func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client)
 	}
 	redisClient := commonRedis.Init(cfg.Redis, log)
 
-	return entClient, redisClient
+	return entClient, redisClient, idgenClient
 }
 
 // buildContainer 构建应用运行容器。
-func buildContainer(cfg *config.Config, entClient *ent.Client, redisClient *redis.Client, log *zap.Logger) *appcontainer.Container {
-	return appcontainer.Build(cfg, entClient, redisClient, log)
+func buildContainer(cfg *config.Config, entClient *ent.Client, redisClient *redis.Client, idgenClient platformidgen.Client, log *zap.Logger) *appcontainer.Container {
+	return appcontainer.Build(cfg, entClient, redisClient, idgenClient, log)
 }
 
 // runServer 启动 gRPC 服务器，监听停机信号后优雅退出

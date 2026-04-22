@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ownforge/ownforge/pkg/rpc"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
+	platformidgen "github.com/ownforge/ownforge/services/user-platform/internal/platform/idgen"
 	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
 	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
 )
@@ -14,16 +14,17 @@ import (
 // UserStore 是 UserRepository 的 Ent 实现。
 type UserStore struct {
 	client *ent.Client
+	idgen  platformidgen.Client
 }
 
 // NewUserStore 创建一个 UserRepository 实例，直接持有 ent.Client。
-func NewUserStore(client *ent.Client) accountrepo.UserRepository {
-	return &UserStore{client: client}
+func NewUserStore(client *ent.Client, idgenClient platformidgen.Client) accountrepo.UserRepository {
+	return &UserStore{client: client, idgen: idgenClient}
 }
 
 // Create 创建一条用户主体记录。
 func (s *UserStore) Create(ctx context.Context, params accountrepo.CreateUserParams) (*accountrepo.User, error) {
-	newID, err := rpc.GenerateID(ctx)
+	newID, err := s.idgen.NextID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("生成 Snowflake ID 失败: %w", err)
 	}

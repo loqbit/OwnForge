@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ownforge/ownforge/pkg/rpc"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent/profile"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
+	platformidgen "github.com/ownforge/ownforge/services/user-platform/internal/platform/idgen"
 	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
 	sharedrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/shared"
 	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
@@ -16,16 +16,17 @@ import (
 // ProfileStore 是 ProfileRepository 的 Ent 实现。
 type ProfileStore struct {
 	client *ent.Client
+	idgen  platformidgen.Client
 }
 
 // NewProfileStore 创建一个 ProfileRepository 实例，直接持有 ent.Client。
-func NewProfileStore(client *ent.Client) accountrepo.ProfileRepository {
-	return &ProfileStore{client: client}
+func NewProfileStore(client *ent.Client, idgenClient platformidgen.Client) accountrepo.ProfileRepository {
+	return &ProfileStore{client: client, idgen: idgenClient}
 }
 
 // CreateEmpty 为新用户创建一条空资料记录。
 func (s *ProfileStore) CreateEmpty(ctx context.Context, userID int64) (*accountrepo.Profile, error) {
-	newID, err := rpc.GenerateID(ctx)
+	newID, err := s.idgen.NextID(ctx)
 	if err != nil {
 		return nil, err
 	}

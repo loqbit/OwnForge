@@ -24,7 +24,10 @@ type server struct {
 }
 
 func (s *server) NextID(ctx context.Context, in *pb.NextIDRequest) (*pb.NextIDResponse, error) {
-	id := idgen.NextID()
+	id, err := idgen.NextID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// 发号器为极度高频接口，这里为保证性能不打印每条请求的日志
 	return &pb.NextIDResponse{Id: id}, nil
 }

@@ -13,6 +13,7 @@ replace (
 	github.com/ownforge/ownforge/pkg/crypto => ../../pkg/crypto
 	github.com/ownforge/ownforge/pkg/errs => ../../pkg/errs
 	github.com/ownforge/ownforge/pkg/health => ../../pkg/health
+	github.com/ownforge/ownforge/pkg/id => ../../pkg/id
 	github.com/ownforge/ownforge/pkg/logger => ../../pkg/logger
 	github.com/ownforge/ownforge/pkg/metrics => ../../pkg/metrics
 	github.com/ownforge/ownforge/pkg/mq => ../../pkg/mq
@@ -22,7 +23,6 @@ replace (
 	github.com/ownforge/ownforge/pkg/proto => ../../pkg/proto
 	github.com/ownforge/ownforge/pkg/ratelimiter => ../../pkg/ratelimiter
 	github.com/ownforge/ownforge/pkg/redis => ../../pkg/redis
-	github.com/ownforge/ownforge/pkg/rpc => ../../pkg/rpc
 	github.com/ownforge/ownforge/pkg/trace => ../../pkg/trace
 )
 
@@ -36,6 +36,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/ownforge/ownforge/pkg/conf v0.2.1
+	github.com/ownforge/ownforge/pkg/id v0.0.0
 	github.com/ownforge/ownforge/pkg/metrics v0.3.1
 	github.com/ownforge/ownforge/pkg/mq v0.2.0
 	github.com/ownforge/ownforge/pkg/postgres v0.2.0
@@ -127,7 +128,6 @@ require (
 	github.com/ownforge/ownforge/pkg/otel v0.2.0
 	github.com/ownforge/ownforge/pkg/ratelimiter v0.2.0
 	github.com/ownforge/ownforge/pkg/redis v0.2.1
-	github.com/ownforge/ownforge/pkg/rpc v0.1.2
 	github.com/ownforge/ownforge/pkg/trace v0.1.0
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect

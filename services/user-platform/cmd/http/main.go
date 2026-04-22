@@ -15,12 +15,12 @@ import (
 	commonOtel "github.com/ownforge/ownforge/pkg/otel"
 	"github.com/ownforge/ownforge/pkg/probe"
 	commonRedis "github.com/ownforge/ownforge/pkg/redis"
-	"github.com/ownforge/ownforge/pkg/rpc"
 	"github.com/ownforge/ownforge/services/user-platform/internal/appcontainer"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/bootstrap"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/database"
+	platformidgen "github.com/ownforge/ownforge/services/user-platform/internal/platform/idgen"
 	httprouter "github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/router"
 	"go.uber.org/zap"
 )
@@ -37,9 +37,10 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// 1. 初始化底层基础设施
-	entClient, redisClient := initInfra(cfg, log)
+	entClient, redisClient, idgenClient := initInfra(cfg, log)
 	defer entClient.Close()
 	defer redisClient.Close()
+	defer idgenClient.Close()
 
 	// 2. 初始化 OpenTelemetry 链路追踪
 	otelShutdown, err := commonOtel.InitTracer(cfg.OTel)
@@ -49,15 +50,16 @@ func main() {
 	defer otelShutdown(context.Background())
 
 	// 3. 依赖注入与组件装配
-	router := buildRouter(cfg, entClient, redisClient, log)
+	router := buildRouter(cfg, entClient, redisClient, idgenClient, log)
 
 	// 4. 阻塞运行与优雅停机
 	runServer(router, cfg.Server.Port, log)
 }
 
 // initInfra 初始化基础设施
-func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client) {
-	if err := rpc.InitIDGenClient(cfg.IDGenerator.Addr); err != nil {
+func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client, platformidgen.Client) {
+	idgenClient, err := platformidgen.New(cfg.IDGenerator.Addr)
+	if err != nil {
 		log.Fatal("初始化 ID 生成器客户端失败", zap.Error(err))
 	}
 
@@ -67,12 +69,12 @@ func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client)
 	}
 	redisClient := commonRedis.Init(cfg.Redis, log)
 
-	return entClient, redisClient
+	return entClient, redisClient, idgenClient
 }
 
 // buildRouter 依赖注入装配
-func buildRouter(cfg *config.Config, entClient *ent.Client, redisClient *redis.Client, log *zap.Logger) *gin.Engine {
-	container := appcontainer.Build(cfg, entClient, redisClient, log)
+func buildRouter(cfg *config.Config, entClient *ent.Client, redisClient *redis.Client, idgenClient platformidgen.Client, log *zap.Logger) *gin.Engine {
+	container := appcontainer.Build(cfg, entClient, redisClient, idgenClient, log)
 	r := gin.New()
 
 	// 探针端点：/healthz, /readyz, /metrics（注册在业务中间件之前）

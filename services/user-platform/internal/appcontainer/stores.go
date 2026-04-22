@@ -7,6 +7,7 @@ import (
 	"github.com/ownforge/ownforge/services/user-platform/internal/auth"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"
+	platformidgen "github.com/ownforge/ownforge/services/user-platform/internal/platform/idgen"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/smsauth"
 	entaccountstore "github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/account"
 	entapplicationstore "github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/application"
@@ -17,11 +18,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func buildStores(entClient *ent.Client, redisClient *redis.Client) storeSet {
+func buildStores(entClient *ent.Client, redisClient *redis.Client, idgenClient platformidgen.Client) storeSet {
 	return storeSet{
-		userRepo:       entaccountstore.NewUserStore(entClient),
+		userRepo:       entaccountstore.NewUserStore(entClient, idgenClient),
 		identityRepo:   entaccountstore.NewUserIdentityStore(entClient),
-		profileRepo:    entaccountstore.NewProfileStore(entClient),
+		profileRepo:    entaccountstore.NewProfileStore(entClient, idgenClient),
 		outboxStore:    entinfrastore.NewEventOutboxStore(entClient),
 		tm:             entinfrastore.NewTransactionManager(entClient),
 		sessionRepo:    redissessionstore.NewSessionStore(redisClient),

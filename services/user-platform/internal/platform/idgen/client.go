@@ -22,7 +22,7 @@ const (
 	sourceGRPC  = "grpc"
 )
 
-// Client defines the capabilities of the ID generator client.
+// Client generates int64 IDs for user-platform.
 type Client interface {
 	NextID(ctx context.Context) (int64, error)
 	Close() error

@@ -6,6 +6,7 @@ replace (
 	github.com/ownforge/ownforge/pkg/conf => ../../pkg/conf
 	github.com/ownforge/ownforge/pkg/errs => ../../pkg/errs
 	github.com/ownforge/ownforge/pkg/health => ../../pkg/health
+	github.com/ownforge/ownforge/pkg/id => ../../pkg/id
 	github.com/ownforge/ownforge/pkg/logger => ../../pkg/logger
 	github.com/ownforge/ownforge/pkg/metrics => ../../pkg/metrics
 	github.com/ownforge/ownforge/pkg/otel => ../../pkg/otel
@@ -24,6 +25,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.100
 	github.com/ownforge/ownforge/pkg/conf v0.2.1
 	github.com/ownforge/ownforge/pkg/health v0.2.1
+	github.com/ownforge/ownforge/pkg/id v0.0.0
 	github.com/ownforge/ownforge/pkg/metrics v0.3.1
 	github.com/ownforge/ownforge/pkg/postgres v0.2.0
 	github.com/ownforge/ownforge/pkg/probe v0.1.2
