@@ -1,7 +1,22 @@
 go 1.25.5
 
 use (
+	./pkg/conf
+	./pkg/crypto
+	./pkg/errs
+	./pkg/health
 	./pkg/id
+	./pkg/logger
+	./pkg/metrics
+	./pkg/mq
+	./pkg/otel
+	./pkg/postgres
+	./pkg/probe
+	./pkg/proto
+	./pkg/ratelimiter
+	./pkg/redis
+	./pkg/rpc
+	./pkg/trace
 	./services/gateway
 	./services/id-generator
 	./services/notes

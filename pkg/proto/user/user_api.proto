@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+option go_package = "github.com/ownforge/ownforge/pkg/proto/user";
+
+package user;
+
+message RegisterRequest {
+    string phone = 1;
+    string email = 2;
+    string username = 3;
+    string password = 4;
+}
+
+message RegisterResponse {
+    int64 user_id = 1;
+    string username = 2;
+    string phone = 3;
+}
+
+message ChangePasswordRequest {
+    string old_password = 1;
+    string new_password = 2;
+}
+
+message ChangePasswordResponse {
+    int64 user_id = 1;
+    string message = 2;
+}
+
+message LogoutAllSessionsRequest {}
+
+message LogoutAllSessionsResponse {
+    int64 user_id = 1;
+    string message = 2;
+}
+
+message BindEmailRequest {
+    string email = 1;
+}
+
+message BindEmailResponse {
+    int64 user_id = 1;
+    string email = 2;
+    string message = 3;
+}
+
+message SetPasswordRequest {
+    string new_password = 1;
+}
+
+message SetPasswordResponse {
+    int64 user_id = 1;
+    string message = 2;
+}
+
+service UserService {
+    rpc Register (RegisterRequest) returns (RegisterResponse);
+    rpc ChangePassword (ChangePasswordRequest) returns (ChangePasswordResponse);
+    rpc LogoutAllSessions (LogoutAllSessionsRequest) returns (LogoutAllSessionsResponse);
+    rpc BindEmail (BindEmailRequest) returns (BindEmailResponse);
+    rpc SetPassword (SetPasswordRequest) returns (SetPasswordResponse);
+    rpc GetProfile (GetProfileRequest) returns (ProfileResponse);
+    rpc UpdateProfile (UpdateProfileRequest) returns (ProfileResponse);
+}
+
+message GetProfileRequest {
+    int64 user_id = 1;
+}
+
+message UpdateProfileRequest {
+    int64 user_id = 1;
+    string nickname = 2;
+    string avatar_url = 3;
+    string bio = 4;
+    string birthday = 5;
+}
+
+message ProfileResponse {
+    int64 user_id = 1;
+    string nickname = 2;
+    string avatar_url = 3;
+    string bio = 4;
+    string updated_at = 5;
+    string birthday = 6;
+}

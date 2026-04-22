@@ -1,0 +1,611 @@
+syntax = "proto3";
+
+option go_package = "github.com/ownforge/ownforge/pkg/proto/note";
+
+package note;
+
+import "google/api/annotations.proto";
+
+service NoteService {
+    // ── 核心片段 CRUD ──
+
+    rpc ListSnippets (ListSnippetsRequest) returns (ListSnippetsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/me/snippets"
+        };
+    }
+
+    rpc CreateSnippet (CreateSnippetRequest) returns (SnippetResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/snippets"
+            body: "*"
+        };
+    }
+
+    rpc GetSnippet (GetSnippetRequest) returns (SnippetResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/snippets/{snippet_id}"
+        };
+    }
+
+    rpc GetSnippetAIMetadata (GetSnippetAIMetadataRequest) returns (SnippetAIMetadataResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/snippets/{snippet_id}/ai"
+        };
+    }
+
+    rpc UpdateSnippet (UpdateSnippetRequest) returns (SnippetResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/notes/snippets/{snippet_id}"
+            body: "*"
+        };
+    }
+
+    rpc DeleteSnippet (DeleteSnippetRequest) returns (DeleteSnippetResponse) {
+        option (google.api.http) = {
+            delete: "/api/v1/notes/snippets/{snippet_id}"
+        };
+    }
+
+    rpc RestoreSnippet (RestoreSnippetRequest) returns (RestoreSnippetResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/notes/snippets/{snippet_id}/restore"
+        };
+    }
+
+    rpc SetSnippetTags (SetSnippetTagsRequest) returns (SetSnippetTagsResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/notes/snippets/{snippet_id}/tags"
+            body: "*"
+        };
+    }
+
+    // MoveSnippet 将片段移动到目标分组并设置排序权重。
+    // group_id 省略时表示收集箱（未分组）；sort_order 省略时服务端自动追加到目标分组末尾。
+    rpc MoveSnippet (MoveSnippetRequest) returns (SnippetResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/notes/snippets/{snippet_id}/move"
+            body: "*"
+        };
+    }
+
+    rpc SearchSnippets (SearchSnippetsRequest) returns (ListSnippetsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/snippets/search"
+        };
+    }
+
+    // 公开片段 — 不加 http 注解，保留手写 handler（无需鉴权）
+    rpc GetPublicSnippet (GetPublicSnippetRequest) returns (SnippetResponse);
+
+    rpc FavoriteSnippet (FavoriteSnippetRequest) returns (FavoriteSnippetResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/snippets/{snippet_id}/favorite"
+        };
+    }
+
+    rpc UnfavoriteSnippet (UnfavoriteSnippetRequest) returns (FavoriteSnippetResponse) {
+        option (google.api.http) = {
+            delete: "/api/v1/notes/snippets/{snippet_id}/favorite"
+        };
+    }
+
+    rpc CreateSnippetFromTemplate (CreateSnippetFromTemplateRequest) returns (SnippetResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/snippets/from-template"
+            body: "*"
+        };
+    }
+
+    rpc CreateSnippetFromShare (CreateSnippetFromShareRequest) returns (SnippetResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/snippets/from-share"
+            body: "*"
+        };
+    }
+
+    // ── 工作区列表 ──
+
+    rpc ListRecentSnippets (ListSnippetsRequest) returns (ListSnippetsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/me/snippets/recent"
+        };
+    }
+
+    rpc ListSharedSnippets (ListSnippetsRequest) returns (ListSnippetsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/me/snippets/shared"
+        };
+    }
+
+    rpc ListFavoriteSnippets (ListSnippetsRequest) returns (ListSnippetsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/me/snippets/favorites"
+        };
+    }
+
+    // ── 分组 ──
+
+    rpc ListGroups (ListGroupsRequest) returns (ListGroupsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/groups"
+        };
+    }
+
+    rpc GetGroup (GetGroupRequest) returns (GroupResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/groups/{group_id}"
+        };
+    }
+
+    rpc CreateGroup (CreateGroupRequest) returns (GroupResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/groups"
+            body: "*"
+        };
+    }
+
+    rpc UpdateGroup (UpdateGroupRequest) returns (GroupResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/notes/groups/{group_id}"
+            body: "*"
+        };
+    }
+
+    rpc DeleteGroup (DeleteGroupRequest) returns (DeleteGroupResponse) {
+        option (google.api.http) = {
+            delete: "/api/v1/notes/groups/{group_id}"
+        };
+    }
+
+    // ── 标签 ──
+
+    rpc ListTags (ListTagsRequest) returns (ListTagsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/tags"
+        };
+    }
+
+    rpc CreateTag (CreateTagRequest) returns (TagResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/tags"
+            body: "*"
+        };
+    }
+
+    rpc UpdateTag (UpdateTagRequest) returns (TagResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/notes/tags/{tag_id}"
+            body: "*"
+        };
+    }
+
+    rpc DeleteTag (DeleteTagRequest) returns (DeleteTagResponse) {
+        option (google.api.http) = {
+            delete: "/api/v1/notes/tags/{tag_id}"
+        };
+    }
+
+    // ── 模板 ──
+
+    rpc ListTemplates (ListTemplatesRequest) returns (ListTemplatesResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/templates"
+        };
+    }
+
+    rpc GetTemplate (GetTemplateRequest) returns (TemplateResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/templates/{template_id}"
+        };
+    }
+
+    rpc CreateTemplate (CreateTemplateRequest) returns (TemplateResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/templates"
+            body: "*"
+        };
+    }
+
+    rpc UpdateTemplate (UpdateTemplateRequest) returns (TemplateResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/notes/templates/{template_id}"
+            body: "*"
+        };
+    }
+
+    rpc DeleteTemplate (DeleteTemplateRequest) returns (DeleteTemplateResponse) {
+        option (google.api.http) = {
+            delete: "/api/v1/notes/templates/{template_id}"
+        };
+    }
+
+    // ── 分享 ──
+
+    rpc CreateShare (CreateShareRequest) returns (ShareResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/shares"
+            body: "*"
+        };
+    }
+
+    rpc ListMyShares (ListMySharesRequest) returns (ListSharesResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/notes/shares/my"
+        };
+    }
+
+    rpc DeleteShare (DeleteShareRequest) returns (DeleteShareResponse) {
+        option (google.api.http) = {
+            delete: "/api/v1/notes/shares/{share_id}"
+        };
+    }
+
+    // 公开分享 — 不加 http 注解，保留手写 handler（无需鉴权）
+    rpc GetPublicShareByToken (GetPublicShareByTokenRequest) returns (PublicShareResponse);
+
+    // ── Upload ──
+
+    rpc PresignUpload (PresignUploadRequest) returns (PresignUploadResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/uploads/presign"
+            body: "*"
+        };
+    }
+
+    rpc CompleteUpload (CompleteUploadRequest) returns (CompleteUploadResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/notes/uploads/complete"
+            body: "*"
+        };
+    }
+
+    // 文件上传（兼容旧链路）— 不加 http 注解，保留手写 handler（二进制流）
+    rpc UploadFile (UploadFileRequest) returns (UploadFileResponse);
+}
+
+// ── 已有请求与响应 ──
+
+message CreateSnippetRequest {
+    string title = 1;
+    string content = 2;
+    string language = 3;
+    optional int64 group_id = 4; // 可选的所属分组
+}
+
+message GetSnippetRequest {
+    int64 snippet_id = 1;
+}
+
+message GetSnippetAIMetadataRequest {
+    int64 snippet_id = 1;
+}
+
+message ListSnippetsRequest {
+    optional int64 group_id = 1;  // 按分组筛选
+    optional int64 tag_id = 2;    // 按标签筛选
+    string keyword = 3;           // 模糊搜索标题
+    int32 limit = 4;              // 每页条数，默认 20，最大 100
+    string cursor = 5;            // 游标分页（上一页返回的 next_cursor）
+    string sort_by = 6;           // "updated_at" | "created_at" | "title" | "manual"，默认 "updated_at"
+    string type = 7;              // 按类型筛选：code / note / file / ""(全部)
+    string status = 8;            // 状态筛选：""(默认，只看 active), "active", "trashed"
+    bool only_favorites = 9;      // 是否仅显示收藏的
+}
+
+message UpdateSnippetRequest {
+    int64 snippet_id = 1;
+    string title = 2;
+    string content = 3;
+    string language = 4;
+}
+
+message SnippetResponse {
+    int64 id = 1;
+    int64 owner_id = 2;
+    string title = 3;
+    string type = 4;
+    string content = 5;
+    string file_url = 6;
+    int64 file_size = 7;
+    string mime_type = 8;
+    string language = 9;
+    int64 group_id = 10;
+    string created_at = 11;
+    string updated_at = 12;
+    repeated int64 tag_ids = 13;
+    int32 sort_order = 14; // 在所属分组内的排序权重，值越小越靠前
+    bool is_favorite = 15;
+    string deleted_at = 16;
+}
+
+message ListSnippetsResponse {
+    repeated SnippetResponse snippets = 1;
+    string next_cursor = 2;  // 空字符串 = 没有下一页
+    bool has_more = 3;
+}
+
+// ── 扩展请求与响应 ──
+
+message DeleteSnippetRequest {
+    int64 snippet_id = 1;
+}
+message DeleteSnippetResponse {
+    int64 id = 1;
+}
+
+message RestoreSnippetRequest {
+    int64 snippet_id = 1;
+}
+message RestoreSnippetResponse {
+    int64 id = 1;
+}
+
+message SetSnippetTagsRequest {
+    int64 snippet_id = 1;
+    repeated int64 tag_ids = 2;
+}
+
+message SetSnippetTagsResponse {}
+
+// MoveSnippetRequest 移动片段到指定分组并可选地设置排序权重。
+// group_id 不传表示移动到收集箱（未分组）。
+// sort_order 不传表示追加到目标分组末尾（由服务端计算 max+1）。
+message MoveSnippetRequest {
+    int64 snippet_id = 1;
+    optional int64 group_id = 2;
+    optional int32 sort_order = 3;
+}
+
+// SearchSnippetsRequest 结构化搜索请求（重设计）
+message SearchSnippetsRequest {
+    string keyword = 1;
+    string language = 2;
+    int32 limit = 3;
+    int32 offset = 4;
+}
+
+message GetPublicSnippetRequest {
+    int64 snippet_id = 1;
+}
+
+message AITodoItem {
+    string text = 1;
+    string priority = 2;
+    bool done = 3;
+}
+
+message SnippetAIMetadataResponse {
+    int64 snippet_id = 1;
+    string summary = 2;
+    repeated string suggested_tags = 3;
+    repeated AITodoItem todos = 4;
+    string model = 5;
+    string prompt_version = 6;
+    string updated_at = 7;
+}
+
+message FavoriteSnippetRequest {
+    int64 snippet_id = 1;
+}
+message UnfavoriteSnippetRequest {
+    int64 snippet_id = 1;
+}
+message FavoriteSnippetResponse {
+    int64 snippet_id = 1;
+    bool favorite = 2;
+}
+
+message CreateSnippetFromTemplateRequest {
+    int64 template_id = 1;
+    string title = 2;
+}
+
+message CreateSnippetFromShareRequest {
+    string token = 1;
+    string password = 2;
+    string title = 3;
+}
+
+// ── Group Messages ──
+message GroupResponse {
+    int64 id = 1;
+    string name = 2;
+    int64 owner_id = 3;
+    optional int64 parent_id = 4;
+    string description = 5;
+    int32 sort_order = 6;
+    int32 children_count = 7;
+    int32 snippet_count = 8;
+    string created_at = 9;
+    string updated_at = 10;
+}
+message ListGroupsRequest {}
+message GetGroupRequest {
+    int64 group_id = 1;
+}
+message ListGroupsResponse {
+    repeated GroupResponse groups = 1;
+}
+message CreateGroupRequest {
+    string name = 1;
+    optional int64 parent_id = 2;
+    string description = 3;
+}
+message UpdateGroupRequest {
+    int64 group_id = 1;
+    string name = 2;
+    optional int64 parent_id = 3;
+    string description = 4;
+    optional int32 sort_order = 5;
+}
+message DeleteGroupRequest {
+    int64 group_id = 1;
+}
+message DeleteGroupResponse {
+    int64 id = 1;
+}
+
+// ── Tag Messages ──
+message TagResponse {
+    int64 id = 1;
+    string name = 2;
+    int64 owner_id = 3;
+    string color = 4;
+    string created_at = 5;
+}
+message ListTagsRequest {}
+message ListTagsResponse {
+    repeated TagResponse tags = 1;
+}
+message CreateTagRequest {
+    string name = 1;
+    string color = 2;
+}
+message UpdateTagRequest {
+    int64 tag_id = 1;
+    string name = 2;
+    string color = 3;
+}
+message DeleteTagRequest {
+    int64 tag_id = 1;
+}
+message DeleteTagResponse {
+    int64 id = 1;
+}
+
+// ── Template Messages ──
+message TemplateResponse {
+    string id = 1;
+    string name = 2;
+    string language = 3;
+    string content = 4;
+    string description = 5;
+    string category = 6;
+    bool   is_system = 7;
+    int64  owner_id = 8;
+    string created_at = 9;
+    string updated_at = 10;
+}
+message ListTemplatesRequest {
+    string category = 1;  // 按分类过滤，空字符串 = 全部
+}
+message ListTemplatesResponse {
+    repeated TemplateResponse templates = 1;
+}
+message GetTemplateRequest {
+    string template_id = 1;
+}
+message CreateTemplateRequest {
+    string name = 1;
+    string language = 2;
+    string content = 3;
+    string description = 4;
+    string category = 5;
+}
+message UpdateTemplateRequest {
+    string template_id = 1;
+    string name = 2;
+    string language = 3;
+    string content = 4;
+    string description = 5;
+    string category = 6;
+}
+message DeleteTemplateRequest {
+    string template_id = 1;
+}
+message DeleteTemplateResponse {
+    string id = 1;
+}
+
+// ── Share ──
+message CreateShareRequest {
+    int64 snippet_id = 1;
+    string kind = 2;
+    string password = 3;
+    string expires_at = 4;
+}
+
+message ListMySharesRequest {
+    string kind = 1;
+}
+
+message ShareResponse {
+    int64 id = 1;
+    string token = 2;
+    string kind = 3;
+    int64 snippet_id = 4;
+    int64 owner_id = 5;
+    bool has_password = 6;
+    string expires_at = 7;
+    int32 view_count = 8;
+    int32 fork_count = 9;
+    string created_at = 10;
+}
+
+message ListSharesResponse {
+    repeated ShareResponse shares = 1;
+}
+
+message DeleteShareRequest {
+    int64 share_id = 1;
+}
+
+message DeleteShareResponse {
+    int64 id = 1;
+}
+
+message GetPublicShareByTokenRequest {
+    string token = 1;
+    string password = 2;
+}
+
+message PublicShareResponse {
+    ShareResponse share = 1;
+    SnippetResponse snippet = 2;
+}
+
+// ── Upload ──
+message PresignUploadRequest {
+    string filename = 1;
+    string mime_type = 2;
+    int64 size = 3;
+}
+
+message PresignUploadResponse {
+    string url = 1;
+    string object_key = 2;
+    string expires_at = 3;
+    map<string, string> headers = 4;
+    string public_url = 5;
+}
+
+message CompleteUploadRequest {
+    string object_key = 1;
+    string filename = 2;
+    int64 size = 3;
+    string mime_type = 4;
+    optional int64 snippet_id = 5;
+}
+
+message CompleteUploadResponse {
+    string filename = 1;
+    int64 size = 2;
+    string url = 3;
+    string mime_type = 4;
+    string thumbnail_url = 5;
+    string object_key = 6;
+}
+
+message UploadFileRequest {
+    bytes file_data = 1;
+    string filename = 2;
+}
+message UploadFileResponse {
+    string id = 1;
+    string filename = 2;
+    int64 size = 3;
+    string url = 4;           // 文件访问 URL
+    string mime_type = 5;     // MIME 类型
+    string thumbnail_url = 6; // 缩略图 URL（图片类型）
+}

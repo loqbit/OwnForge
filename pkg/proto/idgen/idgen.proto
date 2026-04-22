@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package idgen;
+
+// 统一指向 common 模块的包路径
+option go_package = "github.com/ownforge/ownforge/pkg/proto/idgen";
+
+service IDGenerator {
+    rpc NextID(NextIDRequest) returns (NextIDResponse) {}
+}
+
+message NextIDRequest {}
+
+message NextIDResponse {
+    int64 id = 1;
+}
