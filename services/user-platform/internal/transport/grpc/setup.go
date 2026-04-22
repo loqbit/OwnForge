@@ -5,10 +5,10 @@ package transportgrpc
 import (
 	"time"
 
-	commonlogger "github.com/luckysxx/common/logger"
-	"github.com/luckysxx/common/metrics"
-	auth_pb "github.com/luckysxx/common/proto/auth"
-	user_pb "github.com/luckysxx/common/proto/user"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
+	"github.com/ownforge/ownforge/pkg/metrics"
+	auth_pb "github.com/ownforge/ownforge/pkg/proto/auth"
+	user_pb "github.com/ownforge/ownforge/pkg/proto/user"
 	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
 	authservice "github.com/ownforge/ownforge/services/user-platform/internal/service/auth"
 	"github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc/interceptor"

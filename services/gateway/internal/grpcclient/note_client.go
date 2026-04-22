@@ -3,7 +3,7 @@ package grpcclient
 import (
 	"google.golang.org/grpc"
 
-	notepb "github.com/luckysxx/common/proto/note"
+	notepb "github.com/ownforge/ownforge/pkg/proto/note"
 )
 
 func NewNoteClient(noteServiceAddr string) (notepb.NoteServiceClient, error) {

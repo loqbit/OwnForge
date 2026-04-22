@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/luckysxx/common/logger"
+	"github.com/ownforge/ownforge/pkg/logger"
 	"github.com/ownforge/ownforge/services/user-platform/internal/auth"
 	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/handler"
 	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/middleware"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/luckysxx/common/rpc"
+	"github.com/ownforge/ownforge/pkg/rpc"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent/profile"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"

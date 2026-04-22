@@ -1,10 +1,10 @@
 package config
 
 import (
-	"github.com/luckysxx/common/conf"
-	commonOtel "github.com/luckysxx/common/otel"
-	"github.com/luckysxx/common/postgres"
-	commonRedis "github.com/luckysxx/common/redis"
+	"github.com/ownforge/ownforge/pkg/conf"
+	commonOtel "github.com/ownforge/ownforge/pkg/otel"
+	"github.com/ownforge/ownforge/pkg/postgres"
+	commonRedis "github.com/ownforge/ownforge/pkg/redis"
 )
 
 type Config struct {

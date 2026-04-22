@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/luckysxx/common/rpc"
+	"github.com/ownforge/ownforge/pkg/rpc"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
 	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"

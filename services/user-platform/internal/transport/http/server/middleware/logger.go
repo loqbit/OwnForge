@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/luckysxx/common/trace"
+	"github.com/ownforge/ownforge/pkg/trace"
 	"go.uber.org/zap"
 )
 

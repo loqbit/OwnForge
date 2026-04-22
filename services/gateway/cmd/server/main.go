@@ -13,12 +13,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/luckysxx/common/health"
-	"github.com/luckysxx/common/logger"
-	"github.com/luckysxx/common/otel"
-	"github.com/luckysxx/common/probe"
-	"github.com/luckysxx/common/ratelimiter"
-	"github.com/luckysxx/common/redis"
+	"github.com/ownforge/ownforge/pkg/health"
+	"github.com/ownforge/ownforge/pkg/logger"
+	"github.com/ownforge/ownforge/pkg/otel"
+	"github.com/ownforge/ownforge/pkg/probe"
+	"github.com/ownforge/ownforge/pkg/ratelimiter"
+	"github.com/ownforge/ownforge/pkg/redis"
 
 	"github.com/ownforge/ownforge/services/gateway/internal/auth"
 	"github.com/ownforge/ownforge/services/gateway/internal/config"

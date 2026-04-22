@@ -1,7 +1,7 @@
 package handler
 
 import (
-	commonlogger "github.com/luckysxx/common/logger"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
 	groupsvc "github.com/ownforge/ownforge/services/notes/internal/service/group"
 	httperrs "github.com/ownforge/ownforge/services/notes/internal/transport/http/codec/errs"
 	"github.com/ownforge/ownforge/services/notes/internal/transport/http/codec/response"

@@ -9,8 +9,8 @@ import (
 	"github.com/ownforge/ownforge/services/gateway/internal/handler/validator"
 
 	"github.com/gin-gonic/gin"
-	commonlogger "github.com/luckysxx/common/logger"
-	notepb "github.com/luckysxx/common/proto/note"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
+	notepb "github.com/ownforge/ownforge/pkg/proto/note"
 	"go.uber.org/zap"
 )
 

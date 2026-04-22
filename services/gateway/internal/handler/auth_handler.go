@@ -8,8 +8,8 @@ import (
 	"github.com/ownforge/ownforge/services/gateway/internal/handler/validator"
 
 	"github.com/gin-gonic/gin"
-	commonlogger "github.com/luckysxx/common/logger"
-	authpb "github.com/luckysxx/common/proto/auth"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
+	authpb "github.com/ownforge/ownforge/pkg/proto/auth"
 
 	"go.uber.org/zap"
 )

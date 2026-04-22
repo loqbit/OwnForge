@@ -3,7 +3,7 @@ package errs
 import (
 	"errors"
 
-	pkgerrs "github.com/luckysxx/common/errs"
+	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
 	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

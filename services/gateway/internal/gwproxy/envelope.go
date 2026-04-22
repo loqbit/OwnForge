@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/luckysxx/common/errs"
+	"github.com/ownforge/ownforge/pkg/errs"
 )
 
 // responseRecorder 拦截 gRPC-Gateway 的 HTTP 响应以便包装为信封格式。

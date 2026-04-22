@@ -3,7 +3,7 @@ package idgen
 import (
 	"context"
 
-	idgenpb "github.com/luckysxx/common/proto/idgen"
+	idgenpb "github.com/ownforge/ownforge/pkg/proto/idgen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

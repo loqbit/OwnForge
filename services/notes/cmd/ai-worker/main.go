@@ -11,8 +11,8 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/luckysxx/common/logger"
-	commonRedis "github.com/luckysxx/common/redis"
+	"github.com/ownforge/ownforge/pkg/logger"
+	commonRedis "github.com/ownforge/ownforge/pkg/redis"
 	"github.com/ownforge/ownforge/services/notes/internal/event"
 	"github.com/ownforge/ownforge/services/notes/internal/platform/config"
 	"github.com/ownforge/ownforge/services/notes/internal/platform/database"

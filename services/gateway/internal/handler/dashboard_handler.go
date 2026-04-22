@@ -10,9 +10,9 @@ import (
 	"github.com/ownforge/ownforge/services/gateway/internal/handler/validator"
 
 	"github.com/gin-gonic/gin"
-	commonlogger "github.com/luckysxx/common/logger"
-	notepb "github.com/luckysxx/common/proto/note"
-	userpb "github.com/luckysxx/common/proto/user"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
+	notepb "github.com/ownforge/ownforge/pkg/proto/note"
+	userpb "github.com/ownforge/ownforge/pkg/proto/user"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )

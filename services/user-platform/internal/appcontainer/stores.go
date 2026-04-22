@@ -3,7 +3,7 @@ package appcontainer
 import (
 	"github.com/redis/go-redis/v9"
 
-	"github.com/luckysxx/common/ratelimiter"
+	"github.com/ownforge/ownforge/pkg/ratelimiter"
 	"github.com/ownforge/ownforge/services/user-platform/internal/auth"
 	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"

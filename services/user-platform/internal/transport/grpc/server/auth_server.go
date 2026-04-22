@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	pb "github.com/luckysxx/common/proto/auth"
+	pb "github.com/ownforge/ownforge/pkg/proto/auth"
 	authservice "github.com/ownforge/ownforge/services/user-platform/internal/service/auth"
 	grpcerrs "github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc/codec/errs"
 	"github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc/interceptor"

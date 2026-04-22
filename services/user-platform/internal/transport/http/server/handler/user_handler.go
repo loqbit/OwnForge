@@ -1,7 +1,7 @@
 package handler
 
 import (
-	commonlogger "github.com/luckysxx/common/logger"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
 	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
 	authservice "github.com/ownforge/ownforge/services/user-platform/internal/service/auth"
 	httpdto "github.com/ownforge/ownforge/services/user-platform/internal/transport/http/codec/dto"

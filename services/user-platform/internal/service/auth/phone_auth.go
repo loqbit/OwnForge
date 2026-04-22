@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/luckysxx/common/crypto"
-	pkgerrs "github.com/luckysxx/common/errs"
-	"github.com/luckysxx/common/ratelimiter"
+	"github.com/ownforge/ownforge/pkg/crypto"
+	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
+	"github.com/ownforge/ownforge/pkg/ratelimiter"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/smsauth"
 	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
 	sharedrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/shared"

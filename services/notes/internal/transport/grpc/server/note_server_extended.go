@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	commonlogger "github.com/luckysxx/common/logger"
-	notepb "github.com/luckysxx/common/proto/note"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
+	notepb "github.com/ownforge/ownforge/pkg/proto/note"
 	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
 	groupcontract "github.com/ownforge/ownforge/services/notes/internal/service/group/contract"
 	lineagecontract "github.com/ownforge/ownforge/services/notes/internal/service/lineage/contract"

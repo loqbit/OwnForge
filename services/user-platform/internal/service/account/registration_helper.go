@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	mqevents "github.com/luckysxx/common/mq/events"
-	mqtopics "github.com/luckysxx/common/mq/topics"
-	"github.com/luckysxx/common/trace"
+	mqevents "github.com/ownforge/ownforge/pkg/mq/events"
+	mqtopics "github.com/ownforge/ownforge/pkg/mq/topics"
+	"github.com/ownforge/ownforge/pkg/trace"
 	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
 	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
 )

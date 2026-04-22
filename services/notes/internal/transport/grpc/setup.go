@@ -4,9 +4,9 @@ package transportgrpc
 import (
 	"time"
 
-	commonlogger "github.com/luckysxx/common/logger"
-	"github.com/luckysxx/common/metrics"
-	notepb "github.com/luckysxx/common/proto/note"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
+	"github.com/ownforge/ownforge/pkg/metrics"
+	notepb "github.com/ownforge/ownforge/pkg/proto/note"
 	aimetadatarepo "github.com/ownforge/ownforge/services/notes/internal/repository/aimetadata"
 	groupsvc "github.com/ownforge/ownforge/services/notes/internal/service/group"
 	lineagesvc "github.com/ownforge/ownforge/services/notes/internal/service/lineage"

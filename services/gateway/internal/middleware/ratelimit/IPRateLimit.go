@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/luckysxx/common/ratelimiter"
+	"github.com/ownforge/ownforge/pkg/ratelimiter"
 	"go.uber.org/zap"
 )
 

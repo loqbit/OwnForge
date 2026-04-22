@@ -1,7 +1,7 @@
 package appcontainer
 
 import (
-	"github.com/luckysxx/common/ratelimiter"
+	"github.com/ownforge/ownforge/pkg/ratelimiter"
 	"github.com/ownforge/ownforge/services/user-platform/internal/auth"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/smsauth"
 	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"

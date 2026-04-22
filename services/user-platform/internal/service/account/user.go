@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/luckysxx/common/crypto"
+	"github.com/ownforge/ownforge/pkg/crypto"
 	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
 	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
 	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"

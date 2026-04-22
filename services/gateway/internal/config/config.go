@@ -4,9 +4,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/luckysxx/common/conf"
-	commonOtel "github.com/luckysxx/common/otel"
-	commonRedis "github.com/luckysxx/common/redis"
+	"github.com/ownforge/ownforge/pkg/conf"
+	commonOtel "github.com/ownforge/ownforge/pkg/otel"
+	commonRedis "github.com/ownforge/ownforge/pkg/redis"
 )
 
 // Config 定义了 API Gateway 的完整配置结构。

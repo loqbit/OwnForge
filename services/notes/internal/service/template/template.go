@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	pkgerrs "github.com/luckysxx/common/errs"
-	commonlogger "github.com/luckysxx/common/logger"
+	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
+	commonlogger "github.com/ownforge/ownforge/pkg/logger"
 	"github.com/ownforge/ownforge/services/notes/internal/platform/idgen"
 	templaterepo "github.com/ownforge/ownforge/services/notes/internal/repository/template"
 	"github.com/ownforge/ownforge/services/notes/internal/service/template/contract"

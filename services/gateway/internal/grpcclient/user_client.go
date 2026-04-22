@@ -3,7 +3,7 @@ package grpcclient
 import (
 	"google.golang.org/grpc"
 
-	userpb "github.com/luckysxx/common/proto/user"
+	userpb "github.com/ownforge/ownforge/pkg/proto/user"
 )
 
 func NewUserClient(userPlatformAddr string) (userpb.UserServiceClient, error) {

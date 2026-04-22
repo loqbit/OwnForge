@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	notepb "github.com/luckysxx/common/proto/note"
+	notepb "github.com/ownforge/ownforge/pkg/proto/note"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"

@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/luckysxx/common/logger"
-	"github.com/luckysxx/common/probe"
-	pb "github.com/luckysxx/common/proto/idgen"
+	"github.com/ownforge/ownforge/pkg/logger"
+	"github.com/ownforge/ownforge/pkg/probe"
+	pb "github.com/ownforge/ownforge/pkg/proto/idgen"
 	"github.com/ownforge/ownforge/services/id-generator/internal/idgen"
 	"github.com/ownforge/ownforge/services/id-generator/internal/platform/config"
 	"go.uber.org/zap"

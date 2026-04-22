@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/luckysxx/common/proto/user"
+	pb "github.com/ownforge/ownforge/pkg/proto/user"
 	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
 
 	"go.uber.org/zap"

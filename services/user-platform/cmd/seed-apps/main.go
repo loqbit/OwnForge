@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/luckysxx/common/logger"
+	"github.com/ownforge/ownforge/pkg/logger"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/bootstrap"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"
 	"github.com/ownforge/ownforge/services/user-platform/internal/platform/database"

@@ -5,7 +5,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	commonPG "github.com/luckysxx/common/postgres"
+	commonPG "github.com/ownforge/ownforge/pkg/postgres"
 	"github.com/ownforge/ownforge/services/notes/internal/ent"
 	"github.com/ownforge/ownforge/services/notes/internal/ent/migrate"
 

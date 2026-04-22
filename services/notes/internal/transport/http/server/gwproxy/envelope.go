@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/luckysxx/common/errs"
+	"github.com/ownforge/ownforge/pkg/errs"
 )
 
 type responseRecorder struct {
