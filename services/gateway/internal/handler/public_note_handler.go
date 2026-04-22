@@ -14,38 +14,38 @@ import (
 	"go.uber.org/zap"
 )
 
-// PublicNoteHandler 处理无需鉴权的笔记公开端点。
-// 此类端点不走 JWT 中间件组，因此不能通过 gRPC-Gateway 统一代理，
-// 需保留为独立的 Gin handler。
+// PublicNoteHandler handles public note endpoints that do not require authentication.
+// These endpoints do not go through the JWT middleware group, so they cannot be uniformly proxied via gRPC-Gateway,
+// and therefore remain standalone Gin handlers.
 type PublicNoteHandler struct {
 	noteClient notepb.NoteServiceClient
 	log        *zap.Logger
 }
 
-// NewPublicNoteHandler 创建一个公开笔记 handler。
+// NewPublicNoteHandler creates a public note handler.
 func NewPublicNoteHandler(noteClient notepb.NoteServiceClient, log *zap.Logger) *PublicNoteHandler {
 	return &PublicNoteHandler{noteClient: noteClient, log: log}
 }
 
-// GetPublic 获取公开片段（不需要登录）。
+// GetPublic fetches a public snippet without login.
 // GET /api/v1/notes/public/snippets/:id
 func (h *PublicNoteHandler) GetPublic(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		response.BadRequest(c, "无效的笔记ID")
+		response.BadRequest(c, "invalid note ID")
 		return
 	}
 
 	res, err := h.noteClient.GetPublicSnippet(c.Request.Context(), &notepb.GetPublicSnippetRequest{SnippetId: id})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("获取公开笔记失败", zap.Int64("snippetID", id), zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("failed to fetch public note", zap.Int64("snippetID", id), zap.Error(err))
 		response.Error(c, err)
 		return
 	}
 	response.Success(c, res)
 }
 
-// GetPublicShare 获取公开分享（不需要登录）。
+// GetPublicShare fetches a public share without login.
 // GET /api/v1/notes/public/shares/:token
 func (h *PublicNoteHandler) GetPublicShare(c *gin.Context) {
 	token := c.Param("token")
@@ -59,7 +59,7 @@ func (h *PublicNoteHandler) GetPublicShare(c *gin.Context) {
 		Password: password,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("获取公开分享失败", zap.String("token", token), zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("failed to fetch public share", zap.String("token", token), zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -67,41 +67,41 @@ func (h *PublicNoteHandler) GetPublicShare(c *gin.Context) {
 	response.Success(c, res)
 }
 
-// UploadHandler 处理文件上传端点。
-// 二进制流上传不适合 JSON-based gRPC-Gateway，保留为手写 handler。
+// UploadHandler handles file-upload endpoints.
+// Binary-stream uploads do not fit JSON-based gRPC-Gateway well, so they remain handwritten handlers.
 type UploadHandler struct {
 	noteClient notepb.NoteServiceClient
 	log        *zap.Logger
 }
 
-// NewUploadHandler 创建一个文件上传 handler。
+// NewUploadHandler creates a file-upload handler.
 func NewUploadHandler(noteClient notepb.NoteServiceClient, log *zap.Logger) *UploadHandler {
 	return &UploadHandler{noteClient: noteClient, log: log}
 }
 
-// Upload 接收浏览器的 multipart/form-data 文件，
-// 通过 gRPC UploadFile 转发给 go-note 微服务写入 MinIO，
-// 然后将文件访问 URL 等信息返回给前端。
+// Upload receives multipart/form-data files from the browser,
+// forwards them to the go-note microservice via gRPC UploadFile for MinIO storage,
+// and then returns the file URL and related metadata to the frontend.
 // POST /api/v1/notes/uploads
 func (h *UploadHandler) Upload(c *gin.Context) {
 	val, exists := c.Get("userID")
 	if !exists {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 	userID := val.(int64)
 
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		response.BadRequest(c, "缺少上传文件")
+		response.BadRequest(c, "missing uploaded file")
 		return
 	}
 	defer file.Close()
 
 	fileData, err := io.ReadAll(file)
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("读取上传文件失败", zap.Error(err))
-		response.BadRequest(c, "读取文件失败")
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("failed to read uploaded file", zap.Error(err))
+		response.BadRequest(c, "failed to read file")
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 		Filename: header.Filename,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("gRPC UploadFile 失败",
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("gRPC UploadFile failed",
 			zap.Int64("userID", userID),
 			zap.String("filename", header.Filename),
 			zap.Error(err),

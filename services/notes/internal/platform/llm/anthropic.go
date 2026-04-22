@@ -10,22 +10,22 @@ import (
 	"time"
 )
 
-// AnthropicClient Anthropic Messages API 实现。
+// AnthropicClient implements the Anthropic Messages API.
 //
-// Anthropic 的 API 格式与 OpenAI 不同：
-//   - 端点: /v1/messages（而非 /v1/chat/completions）
-//   - 认证: x-api-key header（而非 Authorization: Bearer）
-//   - system prompt 是顶层字段（而非 messages 数组里的 role=system）
+// Anthropic's API format differs from OpenAI's:
+//   - Endpoint: /v1/messages instead of /v1/chat/completions
+//   - Authentication: x-api-key header instead of Authorization: Bearer
+//   - The system prompt is a top-level field instead of a role=system entry inside messages
 //
-// 但对外暴露一模一样的 Client 接口。
+// It still exposes exactly the same Client interface to the rest of the code.
 type AnthropicClient struct {
 	baseURL    string
 	apiKey     string
 	httpClient *http.Client
 }
 
-// NewAnthropicClient 创建 Anthropic 客户端。
-// baseURL 默认应为 "https://api.anthropic.com"。
+// NewAnthropicClient creates an Anthropic client.
+// baseURL should normally be "https://api.anthropic.com".
 func NewAnthropicClient(baseURL, apiKey string) *AnthropicClient {
 	if baseURL == "" {
 		baseURL = "https://api.anthropic.com"
@@ -39,7 +39,7 @@ func NewAnthropicClient(baseURL, apiKey string) *AnthropicClient {
 	}
 }
 
-// ── Anthropic API 请求/响应结构 ──
+// Anthropic API request/response structs.
 
 type anthropicRequest struct {
 	Model       string             `json:"model"`
@@ -69,9 +69,9 @@ type anthropicResponse struct {
 	} `json:"error,omitempty"`
 }
 
-// Complete 调用 Anthropic Messages API 完成对话。
+// Complete sends a completion request to the Anthropic Messages API.
 func (c *AnthropicClient) Complete(ctx context.Context, req *CompletionRequest) (*CompletionResponse, error) {
-	// 将统一的 Messages 拆分为 Anthropic 格式：system 提到顶层，其余保留
+	// Convert the common Messages format into Anthropic's format by lifting system to the top level and keeping the rest.
 	var system string
 	messages := make([]anthropicMessage, 0, len(req.Messages))
 	for _, m := range req.Messages {
@@ -97,46 +97,46 @@ func (c *AnthropicClient) Complete(ctx context.Context, req *CompletionRequest) 
 
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
-		return nil, fmt.Errorf("llm: 序列化请求失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to serialize request: %w", err)
 	}
 
-	// 构造 HTTP 请求
+	// Build the HTTP request.
 	url := c.baseURL + "/v1/messages"
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(jsonBody))
 	if err != nil {
-		return nil, fmt.Errorf("llm: 创建请求失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to create request: %w", err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("x-api-key", c.apiKey)
 	httpReq.Header.Set("anthropic-version", "2023-06-01")
 
-	// 发送请求
+	// Send the request.
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("llm: HTTP 请求失败: %w", err)
+		return nil, fmt.Errorf("llm: HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("llm: 读取响应失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to read response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("llm: Anthropic API 返回 %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("llm: Anthropic API returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	// 解析响应
+	// Parse the response.
 	var result anthropicResponse
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, fmt.Errorf("llm: 解析响应失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to parse response: %w", err)
 	}
 
 	if result.Error != nil {
-		return nil, fmt.Errorf("llm: Anthropic 错误 [%s]: %s", result.Error.Type, result.Error.Message)
+		return nil, fmt.Errorf("llm: Anthropic error [%s]: %s", result.Error.Type, result.Error.Message)
 	}
 
-	// 提取文本内容（Anthropic 返回 content 数组，取第一个 text block）
+	// Extract the text content. Anthropic returns a content array, so this takes the first text block.
 	var content string
 	for _, block := range result.Content {
 		if block.Type == "text" {

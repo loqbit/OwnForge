@@ -7,7 +7,7 @@ services:
     container_name: go-note
     build:
       context: .
-      dockerfile: Dockerfile.server
+      dockerfile: Dockerfile
     volumes:
       - ./configs:/app/configs:ro
     environment:

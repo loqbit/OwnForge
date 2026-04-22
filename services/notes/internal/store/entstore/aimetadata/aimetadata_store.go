@@ -9,19 +9,19 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
 )
 
-// Store 是 AIMetadata 仓储层的 ent 实现。
+// Store is the Ent-backed implementation of the AI metadata repository.
 type Store struct {
 	client *ent.Client
 }
 
-// New 创建一个新的 AIMetadata 仓储层实现。
+// New creates a new AI metadata repository implementation.
 func New(client *ent.Client) aimetadatarepo.Repository {
 	return &Store{
 		client: client,
 	}
 }
 
-// GetBySnippetID 获取指定 snippet_id 的 AI 元数据。
+// GetBySnippetID returns AI metadata for the given snippet_id.
 func (s *Store) GetBySnippetID(ctx context.Context, snippetID int64) (*aimetadatarepo.AIMetadata, error) {
 	record, err := s.client.SnippetAIMetadata.Query().
 		Where(snippetaimetadata.IDEQ(snippetID)).
@@ -33,7 +33,7 @@ func (s *Store) GetBySnippetID(ctx context.Context, snippetID int64) (*aimetadat
 	return mapAIMetadata(record), nil
 }
 
-// Upsert 插入或更新已有的 AI 元数据。
+// Upsert inserts or updates AI metadata.
 func (s *Store) Upsert(ctx context.Context, in aimetadatarepo.UpsertInput) error {
 	err := s.client.SnippetAIMetadata.Create().
 		SetID(in.SnippetID).

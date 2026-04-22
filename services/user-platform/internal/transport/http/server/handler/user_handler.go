@@ -20,7 +20,7 @@ type UserHandler struct {
 	logger *zap.Logger
 }
 
-// Dependencies 描述用户 HTTP Handler 所需的依赖集合。
+// Dependencies groups dependencies required by the user HTTP handler.
 type Dependencies struct {
 	UserService accountservice.UserService
 	AuthService authservice.AuthService
@@ -31,22 +31,22 @@ func NewUserHandler(deps Dependencies) *UserHandler {
 	return &UserHandler{svc: deps.UserService, avc: deps.AuthService, logger: deps.Logger}
 }
 
-// TODO: 用户完成手机号体系切换后，删除 Register 相关 HTTP 接口和调用链。
+// TODO: Remove the Register HTTP endpoint and call chain after the phone-based identity migration is complete.
 
-// @Summary      用户注册
-// @Description  用户注册接口
+// @Summary      User registration
+// @Description  Register a user
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        request body dto.RegisterRequest true "注册信息"
+// @Param        request body dto.RegisterRequest true "Registration payload"
 // @Success      200  {object}  dto.RegisterResponse
 // @Router       /users/register [post]
 func (h *UserHandler) Register(c *gin.Context) {
 	var req httpdto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// 使用 validator 翻译验证错误为友好提示
+		// Use the validator helper to turn validation errors into user-friendly messages.
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -58,7 +58,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("用户注册失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("user registration failed", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -70,20 +70,20 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 }
 
-// @Summary      用户登录
-// @Description  用户登录接口
+// @Summary      User login
+// @Description  Log in a user
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        request body dto.LoginRequest true "登录信息"
+// @Param        request body dto.LoginRequest true "Login payload"
 // @Success      200  {object}  dto.LoginResponse
 // @Router       /users/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
 	var req httpdto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// 使用 validator 翻译验证错误为友好提示
+		// Use the validator helper to turn validation errors into user-friendly messages.
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -95,8 +95,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 		DeviceID: req.DeviceID,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("用户登录失败", zap.Error(err))
-		// 这里可以直接抛出，因为底层 Service 已经是 Domain Error 了
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("user login failed", zap.Error(err))
+		// The service already returns domain errors, so they can be forwarded directly.
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -112,7 +112,7 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 	var req httpdto.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -121,7 +121,7 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 		Token: req.Token,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("刷新 Token 失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("failed to refresh token", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -131,27 +131,27 @@ func (h *UserHandler) RefreshToken(c *gin.Context) {
 	})
 }
 
-// @Summary      用户登出
-// @Description  登出特定设备
+// @Summary      User logout
+// @Description  Log out from a specific device
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        request body dto.LogoutRequest true "登出信息"
+// @Param        request body dto.LogoutRequest true "Logout payload"
 // @Success      200
 // @Router       /users/logout [post]
 func (h *UserHandler) Logout(c *gin.Context) {
 	var req httpdto.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
 
-	// 经过 Auth 中间件后，安全的获取身份
+	// Read the authenticated identity after the auth middleware has run.
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权的访问")
+		response.Unauthorized(c, "unauthorized access")
 		return
 	}
 
@@ -161,33 +161,33 @@ func (h *UserHandler) Logout(c *gin.Context) {
 		DeviceID: req.DeviceID,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("登出失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("logout failed", zap.Error(err))
 		response.Error(c, err)
 		return
 	}
 	response.Success(c, nil)
 }
 
-// @Summary      修改密码
-// @Description  当前登录用户修改密码，并使历史登录态全部失效
+// @Summary      Change password
+// @Description  Change the current user's password and invalidate existing sessions
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        request body dto.ChangePasswordRequest true "修改密码信息"
+// @Param        request body dto.ChangePasswordRequest true "Change-password payload"
 // @Success      200  {object}  dto.ChangePasswordResponse
 // @Router       /users/password/change [post]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	var req httpdto.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
 
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权的访问")
+		response.Unauthorized(c, "unauthorized access")
 		return
 	}
 
@@ -197,7 +197,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		NewPassword: req.NewPassword,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("修改密码失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("failed to change password", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -208,8 +208,8 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	})
 }
 
-// @Summary      退出全部设备
-// @Description  当前登录用户主动让自己的全部登录态失效
+// @Summary      Log out all devices
+// @Description  Let the current user invalidate all active sessions
 // @Tags         User
 // @Accept       json
 // @Produce      json
@@ -218,7 +218,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 func (h *UserHandler) LogoutAllSessions(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权的访问")
+		response.Unauthorized(c, "unauthorized access")
 		return
 	}
 
@@ -226,7 +226,7 @@ func (h *UserHandler) LogoutAllSessions(c *gin.Context) {
 		UserID: userID,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("退出全部设备失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("failed to log out from all devices", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -237,26 +237,26 @@ func (h *UserHandler) LogoutAllSessions(c *gin.Context) {
 	})
 }
 
-// @Summary      绑定邮箱
-// @Description  当前登录用户绑定邮箱身份
+// @Summary      Bind email
+// @Description  Bind an email identity for the current user
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        request body dto.BindEmailRequest true "绑定邮箱信息"
+// @Param        request body dto.BindEmailRequest true "Bind-email payload"
 // @Success      200  {object}  dto.BindEmailResponse
 // @Router       /users/email/bind [post]
 func (h *UserHandler) BindEmail(c *gin.Context) {
 	var req httpdto.BindEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
 
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权的访问")
+		response.Unauthorized(c, "unauthorized access")
 		return
 	}
 
@@ -265,7 +265,7 @@ func (h *UserHandler) BindEmail(c *gin.Context) {
 		Email:  req.Email,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("绑定邮箱失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("failed to bind email", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -277,26 +277,26 @@ func (h *UserHandler) BindEmail(c *gin.Context) {
 	})
 }
 
-// @Summary      设置密码
-// @Description  当前登录用户首次设置本地密码
+// @Summary      Set password
+// @Description  Let the current user set a local password for the first time
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        request body dto.SetPasswordRequest true "设置密码信息"
+// @Param        request body dto.SetPasswordRequest true "Set-password payload"
 // @Success      200  {object}  dto.SetPasswordResponse
 // @Router       /users/password/set [post]
 func (h *UserHandler) SetPassword(c *gin.Context) {
 	var req httpdto.SetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
 
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权的访问")
+		response.Unauthorized(c, "unauthorized access")
 		return
 	}
 
@@ -305,7 +305,7 @@ func (h *UserHandler) SetPassword(c *gin.Context) {
 		NewPassword: req.NewPassword,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("设置密码失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("failed to set password", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -320,7 +320,7 @@ func (h *UserHandler) SendPhoneCode(c *gin.Context) {
 	var req httpdto.SendPhoneCodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -330,7 +330,7 @@ func (h *UserHandler) SendPhoneCode(c *gin.Context) {
 		Scene: req.Scene,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("发送手机验证码失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("failed to send phone verification code", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -347,7 +347,7 @@ func (h *UserHandler) PhoneAuthEntry(c *gin.Context) {
 	var req httpdto.PhoneAuthEntryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -359,7 +359,7 @@ func (h *UserHandler) PhoneAuthEntry(c *gin.Context) {
 		DeviceID:         req.DeviceID,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("手机号登录失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("phone login failed", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}
@@ -381,7 +381,7 @@ func (h *UserHandler) PhonePasswordLogin(c *gin.Context) {
 	var req httpdto.PhonePasswordLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -393,7 +393,7 @@ func (h *UserHandler) PhonePasswordLogin(c *gin.Context) {
 		DeviceID: req.DeviceID,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("手机号密码登录失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("phone-password login failed", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}

@@ -9,48 +9,48 @@ import (
 	"go.uber.org/zap"
 )
 
-// RedisStreamSubscriber 基于 Redis Stream 消费者组的事件订阅实现。
+// RedisStreamSubscriber subscribes to events through a Redis Stream consumer group.
 //
-// 核心流程：
-//  1. 启动时自动创建消费者组（XGROUP CREATE ... MKSTREAM）
-//  2. 循环 XREADGROUP 拉取新消息
-//  3. handler 处理成功 → XACK 确认
-//  4. handler 处理失败 → 不 ACK，消息留在 Pending Entries List，下次启动自动重试
+// Flow:
+//  1. Create the consumer group on startup if needed (XGROUP CREATE ... MKSTREAM)
+//  2. Poll for new messages with XREADGROUP
+//  3. ACK with XACK when the handler succeeds
+//  4. Leave the message pending when the handler fails so it can be retried after restart
 type RedisStreamSubscriber struct {
 	client *redis.Client
 	logger *zap.Logger
 }
 
-// NewRedisStreamSubscriber 创建 Redis Stream 订阅者。
+// NewRedisStreamSubscriber creates a Redis Stream subscriber.
 func NewRedisStreamSubscriber(client *redis.Client, logger *zap.Logger) *RedisStreamSubscriber {
 	return &RedisStreamSubscriber{client: client, logger: logger}
 }
 
-// Subscribe 以消费者组模式订阅 topic，阻塞直到 ctx 取消。
+// Subscribe consumes a topic through a consumer group and blocks until ctx is canceled.
 func (s *RedisStreamSubscriber) Subscribe(ctx context.Context, topic Topic, group, consumer string, handler Handler) error {
 	stream := string(topic)
 
-	// 1. 创建消费者组（幂等：已存在则忽略）
+	// 1. Create the consumer group idempotently.
 	if err := s.ensureGroup(ctx, stream, group); err != nil {
 		return err
 	}
 
-	s.logger.Info("event: 开始订阅",
+	s.logger.Info("event: starting subscription",
 		zap.String("topic", stream),
 		zap.String("group", group),
 		zap.String("consumer", consumer),
 	)
 
-	// 2. 先处理 Pending 消息（上次未 ACK 的），再处理新消息
+	// 2. Drain pending messages first, then process new ones.
 	if err := s.processPending(ctx, stream, group, consumer, handler); err != nil {
-		s.logger.Warn("event: 处理 Pending 消息时出错", zap.Error(err))
+		s.logger.Warn("event: failed to process pending messages", zap.Error(err))
 	}
 
-	// 3. 循环读取新消息
+	// 3. Continuously read new messages.
 	for {
 		select {
 		case <-ctx.Done():
-			s.logger.Info("event: 订阅已停止", zap.String("topic", stream))
+			s.logger.Info("event: subscription stopped", zap.String("topic", stream))
 			return ctx.Err()
 		default:
 		}
@@ -58,17 +58,17 @@ func (s *RedisStreamSubscriber) Subscribe(ctx context.Context, topic Topic, grou
 		streams, err := s.client.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: consumer,
-			Streams:  []string{stream, ">"},  // ">" 表示只读新消息
-			Count:    10,                       // 每批最多拉 10 条
-			Block:    3 * time.Second,          // 阻塞等待 3 秒
+			Streams:  []string{stream, ">"}, // ">" means read new messages only.
+			Count:    10,                    // Read at most 10 messages per batch.
+			Block:    3 * time.Second,       // Block for up to 3 seconds.
 		}).Result()
 
 		if err != nil {
 			if err == redis.Nil || err == context.Canceled || err == context.DeadlineExceeded {
-				continue // 超时无消息或 ctx 取消，继续
+				continue // No message before timeout, or ctx was canceled.
 			}
-			s.logger.Error("event: XREADGROUP 失败", zap.Error(err))
-			time.Sleep(time.Second) // 避免错误风暴
+			s.logger.Error("event: XREADGROUP failed", zap.Error(err))
+			time.Sleep(time.Second) // Prevent error storms.
 			continue
 		}
 
@@ -80,21 +80,21 @@ func (s *RedisStreamSubscriber) Subscribe(ctx context.Context, topic Topic, grou
 	}
 }
 
-// processPending 处理上次未 ACK 的 Pending 消息（Worker 重启后的断点续消费）。
+// processPending replays pending messages left unacked by a previous worker run.
 func (s *RedisStreamSubscriber) processPending(ctx context.Context, stream, group, consumer string, handler Handler) error {
 	for {
 		streams, err := s.client.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: consumer,
-			Streams:  []string{stream, "0"}, // "0" 表示读取 Pending 消息
+			Streams:  []string{stream, "0"}, // "0" means read pending messages.
 			Count:    10,
 		}).Result()
 		if err != nil {
-			return fmt.Errorf("event: 读取 Pending 消息失败: %w", err)
+			return fmt.Errorf("event: failed to read pending messages: %w", err)
 		}
 
 		if len(streams) == 0 || len(streams[0].Messages) == 0 {
-			return nil // 没有 Pending 消息了
+			return nil // No pending messages left.
 		}
 
 		for _, msg := range streams[0].Messages {
@@ -103,11 +103,11 @@ func (s *RedisStreamSubscriber) processPending(ctx context.Context, stream, grou
 	}
 }
 
-// handleMessage 处理单条消息：调用 handler，成功则 ACK。
+// handleMessage processes one message and ACKs it on success.
 func (s *RedisStreamSubscriber) handleMessage(ctx context.Context, stream, group string, msg redis.XMessage, handler Handler) {
 	data, ok := msg.Values["data"].(string)
 	if !ok {
-		s.logger.Warn("event: 消息缺少 data 字段, 自动 ACK 跳过",
+		s.logger.Warn("event: message missing data field, auto-ACK and skip",
 			zap.String("msg_id", msg.ID),
 		)
 		s.client.XAck(ctx, stream, group, msg.ID)
@@ -115,34 +115,34 @@ func (s *RedisStreamSubscriber) handleMessage(ctx context.Context, stream, group
 	}
 
 	if err := handler(ctx, []byte(data)); err != nil {
-		s.logger.Error("event: handler 处理失败，消息不 ACK（将重试）",
+		s.logger.Error("event: handler failed, message not ACKed and will be retried",
 			zap.String("msg_id", msg.ID),
 			zap.String("stream", stream),
 			zap.Error(err),
 		)
-		return // 不 ACK → 消息留在 PEL → 下次重试
+		return // No ACK: the message stays in the PEL and is retried later.
 	}
 
-	// 处理成功，ACK 确认
+	// ACK after successful processing.
 	if err := s.client.XAck(ctx, stream, group, msg.ID).Err(); err != nil {
-		s.logger.Error("event: XACK 失败", zap.String("msg_id", msg.ID), zap.Error(err))
+		s.logger.Error("event: XACK failed", zap.String("msg_id", msg.ID), zap.Error(err))
 	}
 }
 
-// ensureGroup 创建消费者组（幂等操作）。
+// ensureGroup creates the consumer group idempotently.
 func (s *RedisStreamSubscriber) ensureGroup(ctx context.Context, stream, group string) error {
 	_, err := s.client.XGroupCreateMkStream(ctx, stream, group, "0").Result()
 	if err != nil {
-		// "BUSYGROUP" 表示组已存在，正常忽略
+		// "BUSYGROUP" means the group already exists, which is expected.
 		if redis.HasErrorPrefix(err, "BUSYGROUP") {
 			return nil
 		}
-		return fmt.Errorf("event: XGROUP CREATE 失败: %w", err)
+		return fmt.Errorf("event: XGROUP CREATE failed: %w", err)
 	}
 	return nil
 }
 
-// Close 释放资源（当前无需额外清理）。
+// Close releases resources. No extra cleanup is currently required.
 func (s *RedisStreamSubscriber) Close() error {
 	return nil
 }

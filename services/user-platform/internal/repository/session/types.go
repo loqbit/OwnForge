@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// SsoSession 是全局登录态的领域模型。
+// SsoSession is the domain model for a global SSO session.
 type SsoSession struct {
 	ID          uuid.UUID
 	UserID      int64
@@ -23,7 +23,7 @@ type SsoSession struct {
 	RevokedAt   *time.Time
 }
 
-// CreateSsoSessionParams 是创建全局登录态的参数。
+// CreateSsoSessionParams contains parameters for creating a global SSO session.
 type CreateSsoSessionParams struct {
 	UserID      int64
 	IdentityID  *int
@@ -35,14 +35,14 @@ type CreateSsoSessionParams struct {
 	ExpiresAt   time.Time
 }
 
-// SessionRecord 是应用会话的领域模型。
+// SessionRecord is the domain model for an application session.
 type SessionRecord struct {
 	ID      uuid.UUID
 	UserID  int64
 	AppID   int
 	AppCode string
-	// SsoSessionID 为空表示该应用会话不是从某次全局登录态派生而来，
-	// 而是一次独立的应用登录。
+	// A nil SsoSessionID means the application session was not derived from a global SSO session,
+	// but instead came from an independent app login.
 	SsoSessionID *uuid.UUID
 	IdentityID   *int
 	TokenHash    string
@@ -57,11 +57,11 @@ type SessionRecord struct {
 	RevokedAt    *time.Time
 }
 
-// CreateSessionParams 是创建应用会话的参数。
+// CreateSessionParams contains parameters for creating an application session.
 type CreateSessionParams struct {
 	UserID  int64
 	AppCode string
-	// SsoSessionID 可选；当应用会话由某次 SSO 登录派生时传入。
+	// SsoSessionID is optional and is set when the app session is derived from an SSO login.
 	SsoSessionID *uuid.UUID
 	IdentityID   *int
 	TokenHash    string
@@ -72,7 +72,7 @@ type CreateSessionParams struct {
 	ExpiresAt    time.Time
 }
 
-// RotateSessionParams 是轮换应用会话令牌的参数。
+// RotateSessionParams contains parameters for rotating an application session token.
 type RotateSessionParams struct {
 	SessionID       uuid.UUID
 	PreviousVersion int64
@@ -81,7 +81,7 @@ type RotateSessionParams struct {
 	LastSeenAt      *time.Time
 }
 
-// TokenPair 是 Access Token 和 Refresh Token 的组合。
+// TokenPair is the pair of access and refresh tokens.
 type TokenPair struct {
 	AccessToken  string
 	RefreshToken string

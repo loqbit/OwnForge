@@ -1,6 +1,6 @@
 package contract
 
-// RecordCommand 记录文档来源信息。
+// RecordCommand records document lineage information.
 type RecordCommand struct {
 	SnippetID       int64
 	SourceSnippetID *int64

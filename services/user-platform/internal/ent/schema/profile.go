@@ -22,34 +22,34 @@ func (Profile) Fields() []ent.Field {
 		field.String("nickname").
 			MaxLen(32).
 			Default("").
-			Comment("用户昵称"),
+			Comment("user nickname"),
 
 		field.String("avatar_url").
 			MaxLen(512).
 			Default("").
-			Comment("用户头像URL"),
+			Comment("user avatar URL"),
 
 		field.String("bio").
 			MaxLen(256).
 			Default("").
-			Comment("个性签名"),
+			Comment("bio"),
 
 		field.String("birthday").
 			MaxLen(10).
 			Default("").
-			Comment("生日，格式 YYYY-MM-DD"),
+			Comment("birthday in YYYY-MM-DD format"),
 
 		field.Time("updated_at").
 			Default(time.Now).
 			UpdateDefault(time.Now).
-			Comment("最后更新时间"),
+			Comment("last update time"),
 	}
 }
 
 // Edges of the Profile.
 func (Profile) Edges() []ent.Edge {
 	return []ent.Edge{
-		// 1对1：一个 Profile 属于一个 User
+		// One-to-one: one Profile belongs to one User
 		edge.From("user", User.Type).Ref("profile").Unique().Required(),
 	}
 }

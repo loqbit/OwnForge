@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Dependencies 描述 HTTP 路由组装所需的依赖集合。
+// Dependencies groups the dependencies required to assemble the HTTP router.
 type Dependencies struct {
 	Engine      *gin.Engine
 	UserHandler *handler.UserHandler
@@ -19,7 +19,7 @@ type Dependencies struct {
 	Logger      *zap.Logger
 }
 
-// SetupRouter 组装 HTTP 路由。
+// SetupRouter wires up the HTTP routes.
 func SetupRouter(deps Dependencies) {
 	r := deps.Engine
 	userHandler := deps.UserHandler
@@ -29,7 +29,7 @@ func SetupRouter(deps Dependencies) {
 	r.Use(logger.GinLogger(log))
 	r.Use(logger.GinRecovery(log, true))
 
-	// 用于 Docker 容器的健康检查
+	// Health checks used by the Docker container.
 	healthHandler := func(c *gin.Context) {
 		c.String(200, "ok")
 	}
@@ -47,7 +47,7 @@ func SetupRouter(deps Dependencies) {
 			users.POST("/phone/entry", userHandler.PhoneAuthEntry)
 			users.POST("/phone/password-login", userHandler.PhonePasswordLogin)
 
-			// 需要鉴权接口组 (退化为信任网关传递的信息)
+			// Routes that require authentication, simplified to trust gateway-provided identity.
 			authUsers := users.Group("")
 			authUsers.Use(middleware.GatewayAuth(log))
 			{

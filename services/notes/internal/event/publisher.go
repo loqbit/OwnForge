@@ -2,28 +2,28 @@ package event
 
 import "context"
 
-// Topic 事件主题类型。
+// Topic is the event topic type.
 type Topic string
 
 const (
-	// TopicSnippetSaved 文档保存事件（创建或更新后触发）。
+	// TopicSnippetSaved is emitted after a document is created or updated.
 	TopicSnippetSaved Topic = "snippet.saved"
 )
 
-// SnippetSavedPayload snippet.saved 事件的消息体。
+// SnippetSavedPayload is the payload for the snippet.saved event.
 type SnippetSavedPayload struct {
 	SnippetID int64  `json:"snippet_id"`
 	OwnerID   int64  `json:"owner_id"`
 	Action    string `json:"action"` // "create" | "update"
 }
 
-// Publisher 事件发布抽象接口。
+// Publisher abstracts event publishing.
 //
-// 当前实现：RedisStreamPublisher（基于 Redis Stream XADD）。
-// 未来 Phase 6 可替换为 MemoryPublisher（基于 Go channel，桌面版/NAS 版零依赖）。
+// Current implementation: RedisStreamPublisher based on Redis Stream XADD.
+// In a future phase, this can be swapped with MemoryPublisher based on Go channels for zero-dependency desktop/NAS builds.
 type Publisher interface {
-	// Publish 发布一条事件。payload 会被 JSON 序列化。
+	// Publish emits one event. payload is serialized as JSON.
 	Publish(ctx context.Context, topic Topic, payload any) error
-	// Close 释放资源。
+	// Close releases resources.
 	Close() error
 }

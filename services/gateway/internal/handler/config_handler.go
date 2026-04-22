@@ -7,18 +7,18 @@ import (
 	"github.com/ownforge/ownforge/services/gateway/internal/handler/response"
 )
 
-// ConfigHandler 处理前端运行时配置请求。
+// ConfigHandler handles frontend runtime-config requests.
 type ConfigHandler struct {
 	clientCfg config.ClientConfig
 }
 
-// NewConfigHandler 创建 ConfigHandler，接收预加载的客户端配置。
+// NewConfigHandler creates a ConfigHandler with preloaded client config.
 func NewConfigHandler(clientCfg config.ClientConfig) *ConfigHandler {
 	return &ConfigHandler{clientCfg: clientCfg}
 }
 
-// GetClientConfig 返回前端所需的运行时配置（公开接口，无需鉴权）。
-// 响应示例:
+// GetClientConfig returns the runtime config required by the frontend. It is public.
+// Response example:
 //
 //	{
 //	  "code": 200,

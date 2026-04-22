@@ -1,57 +1,64 @@
 # ID Generator Service
 
-分布式唯一 ID 生成服务。基于 Twitter Snowflake 算法，通过 gRPC 对外提供高性能、全局唯一的 ID 发号能力。
+Distributed unique ID generation service. It is based on the Twitter Snowflake algorithm and exposes high-performance, globally unique ID generation over gRPC.
 
-## 技术栈
-- **Go 1.25+** / **Viper** 配置管理 / **Zap** 结构化日志
-- **gRPC** + **Protobuf** 高性能通信
-- **Snowflake** 雪花算法（毫秒级时间戳 + 节点 ID + 序列号）
-- **Docker** 容器化部署
+## Tech Stack
 
-## 目录结构
+- **Go 1.25+** / **Viper** for configuration management / **Zap** for structured logging
+- **gRPC** + **Protobuf** for high-performance communication
+- **Snowflake** algorithm (millisecond timestamp + node ID + sequence number)
+- **Docker** for containerized deployment
+
+## Directory Structure
+
 ```text
-├── cmd/idgen/main.go                  # 主入口：配置加载、gRPC 注册、优雅停机
+├── cmd/idgen/main.go                  # main entrypoint: config loading, gRPC registration, and graceful shutdown
 ├── internal/
-│   ├── idgen/snowflake.go             # 雪花算法核心实现
-│   └── platform/config/config.go      # Viper 配置结构体 + godotenv 加载
-├── .env.example                       # 环境变量模板
-├── .env                               # 环境变量（不提交，见 .env.example）
-└── docker-compose.yaml                # 容器编排
+│   ├── idgen/snowflake.go             # core Snowflake implementation
+│   └── platform/config/config.go      # Viper config structs plus godotenv loading
+├── .env.example                       # environment variable template
+├── .env                               # environment variables (do not commit; see `.env.example`)
+└── docker-compose.yaml                # container orchestration
 ```
 
-## 快速开始
+## Quick Start
 
-### 1. 配置环境变量
+### 1. Configure Environment Variables
+
 ```bash
 cp .env.example .env
 ```
 
-### 2. 本地运行
+### 2. Run Locally
+
 ```bash
 go mod tidy
 go run cmd/idgen/main.go
 ```
-服务默认监听 `:50059`。
 
-### 3. Docker 部署
+The service listens on `:50059` by default.
+
+### 3. Docker Deployment
+
 ```bash
 docker-compose up -d --build
 
-# 查看日志
+# View logs
 docker logs -f id-generator
 ```
 
-## 配置说明
+## Configuration
 
 ### .env
-| 变量 | 说明 |
-|------|------|
-| `APP_ENV` | 运行环境，影响日志颜色 |
-| `SERVER_PORT` | gRPC 监听端口 |
-| `SERVER_MODE` | 运行模式 |
-| `SNOWFLAKE_NODE_ID` | 雪花节点 ID（集群部署时每个实例必须不同） |
 
-## gRPC 接口
+| Variable | Description |
+|------|------|
+| `APP_ENV` | runtime environment, affects log coloring |
+| `SERVER_PORT` | gRPC listen port |
+| `SERVER_MODE` | runtime mode |
+| `SNOWFLAKE_NODE_ID` | Snowflake node ID; each instance must use a unique value in clustered deployments |
+
+## gRPC Interface
 
 ```protobuf
 service IDGenerator {
@@ -59,4 +66,4 @@ service IDGenerator {
 }
 ```
 
-调用 `NextID` 即可获取一个全局唯一的 `int64` ID。
+Call `NextID` to get a globally unique `int64` ID.

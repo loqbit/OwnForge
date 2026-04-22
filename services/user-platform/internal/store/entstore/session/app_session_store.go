@@ -18,12 +18,12 @@ type AppSessionStore struct {
 	client *ent.Client
 }
 
-// NewAppSessionStore 创建应用会话仓储的 Ent 实现。
+// NewAppSessionStore creates the Ent-backed application session repository.
 func NewAppSessionStore(client *ent.Client) sessionrepo.AppSessionRepository {
 	return &AppSessionStore{client: client}
 }
 
-// Create 创建一条新的应用会话记录。
+// Create inserts a new application session record.
 func (s *AppSessionStore) Create(ctx context.Context, params sessionrepo.CreateSessionParams) (*sessionrepo.SessionRecord, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -51,7 +51,7 @@ func (s *AppSessionStore) Create(ctx context.Context, params sessionrepo.CreateS
 	return s.GetByID(ctx, created.ID)
 }
 
-// GetByID 按主键查询应用会话。
+// GetByID looks up an application session by primary key.
 func (s *AppSessionStore) GetByID(ctx context.Context, id uuid.UUID) (*sessionrepo.SessionRecord, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -68,7 +68,7 @@ func (s *AppSessionStore) GetByID(ctx context.Context, id uuid.UUID) (*sessionre
 	return shared.MapSession(entity), nil
 }
 
-// GetByTokenHash 按令牌哈希查询应用会话。
+// GetByTokenHash looks up an application session by token hash.
 func (s *AppSessionStore) GetByTokenHash(ctx context.Context, tokenHash string) (*sessionrepo.SessionRecord, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -85,7 +85,7 @@ func (s *AppSessionStore) GetByTokenHash(ctx context.Context, tokenHash string) 
 	return shared.MapSession(entity), nil
 }
 
-// ListActiveByUserAndApp 查询某个用户在指定应用下的全部活跃会话。
+// ListActiveByUserAndApp returns all active sessions for a user in the specified app.
 func (s *AppSessionStore) ListActiveByUserAndApp(ctx context.Context, userID int64, appCode string) ([]*sessionrepo.SessionRecord, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -111,7 +111,7 @@ func (s *AppSessionStore) ListActiveByUserAndApp(ctx context.Context, userID int
 	return result, nil
 }
 
-// ListActiveByUserID 查询某个用户名下全部活跃的应用会话。
+// ListActiveByUserID returns all active application sessions for a user.
 func (s *AppSessionStore) ListActiveByUserID(ctx context.Context, userID int64) ([]*sessionrepo.SessionRecord, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -136,7 +136,7 @@ func (s *AppSessionStore) ListActiveByUserID(ctx context.Context, userID int64) 
 	return result, nil
 }
 
-// Touch 更新应用会话最近一次活跃时间。
+// Touch updates the last-active timestamp for an application session.
 func (s *AppSessionStore) Touch(ctx context.Context, id uuid.UUID, at time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -145,7 +145,7 @@ func (s *AppSessionStore) Touch(ctx context.Context, id uuid.UUID, at time.Time)
 		Exec(ctx))
 }
 
-// Rotate 轮换应用会话的令牌哈希并递增版本号。
+// Rotate rotates the token hash for an application session and increments its version.
 func (s *AppSessionStore) Rotate(ctx context.Context, params sessionrepo.RotateSessionParams) (*sessionrepo.SessionRecord, error) {
 	current, err := s.GetByID(ctx, params.SessionID)
 	if err != nil {
@@ -170,7 +170,7 @@ func (s *AppSessionStore) Rotate(ctx context.Context, params sessionrepo.RotateS
 	return s.GetByID(ctx, params.SessionID)
 }
 
-// Revoke 撤销指定应用会话。
+// Revoke revokes the specified application session.
 func (s *AppSessionStore) Revoke(ctx context.Context, id uuid.UUID, revokedAt time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -180,7 +180,7 @@ func (s *AppSessionStore) Revoke(ctx context.Context, id uuid.UUID, revokedAt ti
 		Exec(ctx))
 }
 
-// RevokeByUserID 撤销某个用户名下全部活跃的应用会话。
+// RevokeByUserID revokes all active application sessions for a user.
 func (s *AppSessionStore) RevokeByUserID(ctx context.Context, userID int64, revokedAt time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 

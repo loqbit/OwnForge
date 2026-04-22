@@ -9,12 +9,12 @@ import (
 	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
-// EventOutboxStore 是 EventOutboxWriter 的 Ent 实现。
+// EventOutboxStore is the Ent-backed implementation of EventOutboxWriter.
 type EventOutboxStore struct {
 	client *ent.Client
 }
 
-// NewEventOutboxStore 创建一个 EventOutboxWriter 实例。
+// NewEventOutboxStore creates an EventOutboxWriter instance.
 func NewEventOutboxStore(client *ent.Client) infrarepo.EventOutboxWriter {
 	return &EventOutboxStore{client: client}
 }

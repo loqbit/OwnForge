@@ -14,21 +14,21 @@ import (
 	"go.uber.org/zap"
 )
 
-// GinLogger 返回一个记录 HTTP 请求信息的 Gin 中间件
+// GinLogger returns a Gin middleware that records HTTP request information.
 func GinLogger(log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path
 		query := c.Request.URL.RawQuery
 
-		c.Next() // 执行后续的逻辑
+		c.Next() // Execute the remaining handlers.
 
-		// Docker 健康检查很频繁（每 10 秒一次），为了防止日志刷屏，我们可以直接过滤掉对 /health 的日志记录
+		// Docker health checks run frequently (every 10 seconds), so we can filter /health logs to avoid log spam.
 		if path == "/health" {
 			return
 		}
 
-		// 请求结束，记录日志
+		// Record logs when the request finishes.
 		cost := time.Since(start)
 		status := c.Writer.Status()
 		traceID := trace.FromContext(c.Request.Context())
@@ -48,21 +48,21 @@ func GinLogger(log *zap.Logger) gin.HandlerFunc {
 		}
 
 		if status >= 500 {
-			log.Error("服务器内部错误", fields...)
+			log.Error("internal server error", fields...)
 		} else if status >= 400 {
-			log.Warn("请求异常", fields...)
+			log.Warn("request error", fields...)
 		} else {
-			log.Info("请求", fields...)
+			log.Info("request", fields...)
 		}
 	}
 }
 
-// GinRecovery recover 掉项目可能出现的 panic，并使用 zap 记录相关日志
+// GinRecovery catches panics that may occur in the project and records them with zap.
 func GinRecovery(log *zap.Logger, stack bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				// 检查是否为已断开的连接，这种情况通常不需要记录 panic 堆栈。
+				// Check whether the connection is already broken; in that case a panic stacktrace is usually unnecessary.
 				var brokenPipe bool
 				if ne, ok := err.(*net.OpError); ok {
 					if se, ok := ne.Err.(*os.SyscallError); ok {
@@ -78,7 +78,7 @@ func GinRecovery(log *zap.Logger, stack bool) gin.HandlerFunc {
 						zap.Any("error", err),
 						zap.String("request", string(httpRequest)),
 					)
-					// 如果连接已经断开，就无法再向其写入状态码。
+					// If the connection is already closed, a status code can no longer be written.
 					c.Error(err.(error)) // nolint: errcheck
 					c.Abort()
 					return

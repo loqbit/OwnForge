@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// SsoSessionRepository 定义了全局登录态的持久化接口。
+// SsoSessionRepository defines the persistence interface for global SSO sessions.
 type SsoSessionRepository interface {
 	Create(ctx context.Context, params CreateSsoSessionParams) (*SsoSession, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*SsoSession, error)
@@ -19,7 +19,7 @@ type SsoSessionRepository interface {
 	RevokeByUserID(ctx context.Context, userID int64, revokedAt time.Time) error
 }
 
-// AppSessionRepository 定义了应用会话的持久化接口。
+// AppSessionRepository defines the persistence interface for application sessions.
 type AppSessionRepository interface {
 	Create(ctx context.Context, params CreateSessionParams) (*SessionRecord, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*SessionRecord, error)
@@ -32,7 +32,7 @@ type AppSessionRepository interface {
 	RevokeByUserID(ctx context.Context, userID int64, revokedAt time.Time) error
 }
 
-// SessionRepository 屏蔽了 refresh session 缓存存储引擎的细节。
+// SessionRepository hides the details of the refresh-session cache backend.
 type SessionRepository interface {
 	SaveDeviceSession(ctx context.Context, userID int64, appCode string, deviceID string, refreshToken string, duration time.Duration) error
 	GetSessionByToken(ctx context.Context, refreshToken string) (userID int64, appCode string, deviceID string, err error)
@@ -45,7 +45,7 @@ type SessionRepository interface {
 	CheckGracePeriod(ctx context.Context, oldToken string) (*TokenPair, bool)
 }
 
-// PhoneCodeRepository 定义了手机验证码的持久化接口。
+// PhoneCodeRepository defines the persistence interface for phone verification codes.
 type PhoneCodeRepository interface {
 	SaveCode(ctx context.Context, phone string, scene string, code string, ttl time.Duration, cooldown time.Duration) error
 	CooldownTTL(ctx context.Context, phone string, scene string) (time.Duration, bool, error)

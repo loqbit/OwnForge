@@ -12,13 +12,13 @@ import (
 	"go.uber.org/zap"
 )
 
-// ShareHandler 处理分享相关 HTTP 请求。
+// ShareHandler handles share-related HTTP requests.
 type ShareHandler struct {
 	svc    sharesvc.Service
 	logger *zap.Logger
 }
 
-// NewShareHandler 创建 ShareHandler 实例。
+// NewShareHandler creates a ShareHandler instance.
 func NewShareHandler(svc sharesvc.Service, logger *zap.Logger) *ShareHandler {
 	return &ShareHandler{svc: svc, logger: logger}
 }
@@ -32,14 +32,14 @@ func (h *ShareHandler) GetPublic(c *gin.Context) {
 
 	result, err := h.svc.GetPublicByToken(c.Request.Context(), token, password)
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("读取公开分享失败", zap.String("token", token), zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Warn("failed to read public share", zap.String("token", token), zap.Error(err))
 		switch {
 		case errors.Is(err, sharesvc.ErrPasswordRequired), errors.Is(err, sharesvc.ErrInvalidPassword):
 			response.Unauthorized(c, err.Error())
 		case errors.Is(err, sharesvc.ErrShareExpired):
-			c.JSON(410, gin.H{"code": 410, "msg": "分享已过期", "data": nil})
+			c.JSON(410, gin.H{"code": 410, "msg": "share has expired", "data": nil})
 		case sharedrepo.IsNotFoundError(err):
-			response.NotFound(c, "分享不存在")
+			response.NotFound(c, "share not found")
 		default:
 			response.Error(c, httperrs.ConvertToCustomError(err))
 		}

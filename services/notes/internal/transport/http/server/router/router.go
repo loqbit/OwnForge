@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// SetupRouter 配置路由。
+// SetupRouter wires up the HTTP routes.
 func SetupRouter(
 	r *gin.Engine,
 	uploadHandler *handler.UploadHandler,

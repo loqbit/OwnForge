@@ -9,28 +9,28 @@ import (
 	"go.uber.org/zap"
 )
 
-// RedisStreamPublisher 基于 Redis Stream 的事件发布实现。
+// RedisStreamPublisher publishes events through Redis Streams.
 //
-// 使用 XADD 将消息写入 Stream，消息持久化在 Redis 中，
-// 即使消费者暂时离线也不会丢失。
+// It writes messages with XADD so they stay persisted in Redis,
+// even if consumers are temporarily offline.
 type RedisStreamPublisher struct {
 	client *redis.Client
 	logger *zap.Logger
 }
 
-// NewRedisStreamPublisher 创建 Redis Stream 发布者。
+// NewRedisStreamPublisher creates a Redis Stream publisher.
 func NewRedisStreamPublisher(client *redis.Client, logger *zap.Logger) *RedisStreamPublisher {
 	return &RedisStreamPublisher{client: client, logger: logger}
 }
 
-// Publish 将事件发布到 Redis Stream。
+// Publish writes an event to a Redis Stream.
 //
-// Stream key = topic 名称（如 "snippet.saved"）。
-// 消息包含一个 "data" 字段，值为 JSON 序列化的 payload。
+// The stream key matches the topic name, for example "snippet.saved".
+// Messages contain a "data" field whose value is the JSON-serialized payload.
 func (p *RedisStreamPublisher) Publish(ctx context.Context, topic Topic, payload any) error {
 	data, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("event: 序列化 payload 失败: %w", err)
+		return fmt.Errorf("event: failed to serialize payload: %w", err)
 	}
 
 	_, err = p.client.XAdd(ctx, &redis.XAddArgs{
@@ -38,26 +38,26 @@ func (p *RedisStreamPublisher) Publish(ctx context.Context, topic Topic, payload
 		Values: map[string]any{
 			"data": string(data),
 		},
-		// MaxLen + Approx: 保留最近 10000 条消息，自动裁剪旧数据，防止 Stream 无限增长
+		// MaxLen + Approx keeps the most recent 10,000 messages and trims old ones automatically.
 		MaxLen: 10000,
 		Approx: true,
 	}).Result()
 	if err != nil {
-		p.logger.Error("event: XADD 失败",
+		p.logger.Error("event: XADD failed",
 			zap.String("topic", string(topic)),
 			zap.Error(err),
 		)
-		return fmt.Errorf("event: XADD 失败: %w", err)
+		return fmt.Errorf("event: XADD failed: %w", err)
 	}
 
-	p.logger.Debug("event: 事件已发布",
+	p.logger.Debug("event: published",
 		zap.String("topic", string(topic)),
 		zap.ByteString("data", data),
 	)
 	return nil
 }
 
-// Close 释放资源（当前无需额外清理）。
+// Close releases resources. No extra cleanup is currently required.
 func (p *RedisStreamPublisher) Close() error {
 	return nil
 }

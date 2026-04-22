@@ -12,17 +12,17 @@ import (
 	"go.uber.org/zap"
 )
 
-// InitEntClient 初始化 Ent 客户端。
+// InitEntClient initializes the Ent client.
 //
-// 底层 Postgres 连接（含 OTel 追踪和连接池）由 common/postgres 统一管理，
-// 本函数只负责 Ent 包装和 Schema Migration。
+// The underlying Postgres connection, including OTel tracing and pooling, is managed centrally by common/postgres.
+// This function only handles the Ent wrapper and schema migration.
 func InitEntClient(driver, source string, autoMigrate bool, log *zap.Logger) *ent.Client {
 	db, err := commonPG.Init(commonPG.Config{
 		Driver: driver,
 		Source: source,
 	}, commonPG.DefaultPoolConfig(), log)
 	if err != nil {
-		log.Fatal("初始化数据库失败", zap.Error(err))
+		log.Fatal("failed to initialize database", zap.Error(err))
 		return nil
 	}
 
@@ -35,14 +35,14 @@ func InitEntClient(driver, source string, autoMigrate bool, log *zap.Logger) *en
 			migrate.WithDropIndex(true),
 			migrate.WithDropColumn(true),
 		); err != nil {
-			log.Fatal("自动执行 Ent schema migration 失败", zap.Error(err))
+			log.Fatal("failed to run Ent schema migration automatically", zap.Error(err))
 			return nil
 		}
-		log.Info("已执行 Ent schema migration", zap.Bool("auto_migrate", true))
+		log.Info("Ent schema migration completed", zap.Bool("auto_migrate", true))
 	} else {
-		log.Info("跳过 Ent schema migration", zap.Bool("auto_migrate", false))
+		log.Info("skipped Ent schema migration", zap.Bool("auto_migrate", false))
 	}
 
-	log.Info("成功初始化 Ent 客户端")
+	log.Info("Ent client initialized successfully")
 	return client
 }

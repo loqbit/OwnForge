@@ -10,29 +10,29 @@ import (
 	"go.uber.org/zap"
 )
 
-// UploadHandler 处理附件上传的 HTTP 请求。
+// UploadHandler handles attachment upload HTTP requests.
 type UploadHandler struct {
 	svc    uploadsvc.UploadService
 	logger *zap.Logger
 }
 
-// NewUploadHandler 创建 UploadHandler 实例。
+// NewUploadHandler creates an UploadHandler instance.
 func NewUploadHandler(svc uploadsvc.UploadService, logger *zap.Logger) *UploadHandler {
 	return &UploadHandler{svc: svc, logger: logger}
 }
 
-// Upload 接收单文件上传，存入对象存储后返回访问 URL。
+// Upload accepts a single file, stores it in object storage, and returns its access URL.
 // POST /api/v1/notes/uploads
 func (h *UploadHandler) Upload(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未登录")
+		response.Unauthorized(c, "not logged in")
 		return
 	}
 
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		response.BadRequest(c, "缺少上传文件")
+		response.BadRequest(c, "missing uploaded file")
 		return
 	}
 	defer file.Close()
@@ -64,11 +64,11 @@ func (h *UploadHandler) Upload(c *gin.Context) {
 	})
 }
 
-// Presign 生成浏览器直传对象存储的预签名 URL。
+// Presign generates a presigned URL for direct browser uploads to object storage.
 func (h *UploadHandler) Presign(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未登录")
+		response.Unauthorized(c, "not logged in")
 		return
 	}
 
@@ -78,7 +78,7 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 		Size     int64  `json:"size"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "上传签名参数无效")
+		response.BadRequest(c, "invalid upload-signature parameters")
 		return
 	}
 
@@ -102,11 +102,11 @@ func (h *UploadHandler) Presign(c *gin.Context) {
 	})
 }
 
-// Complete 确认前端直传已完成。
+// Complete confirms that a direct frontend upload has finished.
 func (h *UploadHandler) Complete(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未登录")
+		response.Unauthorized(c, "not logged in")
 		return
 	}
 
@@ -118,7 +118,7 @@ func (h *UploadHandler) Complete(c *gin.Context) {
 		SnippetID *int64 `json:"snippet_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "上传完成参数无效")
+		response.BadRequest(c, "invalid upload-complete parameters")
 		return
 	}
 

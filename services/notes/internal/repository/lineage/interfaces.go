@@ -2,7 +2,7 @@ package lineagerepo
 
 import "context"
 
-// Repository 定义 snippet_lineage 数据访问接口。
+// Repository defines the data access interface for snippet_lineage.
 type Repository interface {
 	Create(ctx context.Context, item *Lineage) (*Lineage, error)
 	GetBySnippetID(ctx context.Context, snippetID int64) (*Lineage, error)

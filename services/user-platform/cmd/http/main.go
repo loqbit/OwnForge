@@ -27,7 +27,7 @@ import (
 
 // @title           User Platform Service
 // @version         1.0
-// @description     用户中心服务，提供注册、登录功能
+// @description     User center service providing registration and login APIs
 // @host            localhost:8081
 // @BasePath        /api/v1
 func main() {
@@ -36,48 +36,47 @@ func main() {
 
 	cfg := config.LoadConfig()
 
-	// 1. 初始化底层基础设施
+	// 1. Initialize the underlying infrastructure.
 	entClient, redisClient, idgenClient := initInfra(cfg, log)
 	defer entClient.Close()
 	defer redisClient.Close()
 	defer idgenClient.Close()
 
-	// 2. 初始化 OpenTelemetry 链路追踪
+	// 2. Initialize OpenTelemetry tracing.
 	otelShutdown, err := commonOtel.InitTracer(cfg.OTel)
 	if err != nil {
-		log.Fatal("初始化 OpenTelemetry 失败", zap.Error(err))
+		log.Fatal("failed to initialize OpenTelemetry", zap.Error(err))
 	}
 	defer otelShutdown(context.Background())
 
-	// 3. 依赖注入与组件装配
+	// 3. Wire dependencies and assemble components.
 	router := buildRouter(cfg, entClient, redisClient, idgenClient, log)
 
-	// 4. 阻塞运行与优雅停机
+	// 4. Run and handle graceful shutdown.
 	runServer(router, cfg.Server.Port, log)
 }
 
-// initInfra 初始化基础设施
+// initInfra initializes the infrastructure.
 func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client, platformidgen.Client) {
 	idgenClient, err := platformidgen.New(cfg.IDGenerator.Addr)
 	if err != nil {
-		log.Fatal("初始化 ID 生成器客户端失败", zap.Error(err))
+		log.Fatal("failed to initialize ID generator client", zap.Error(err))
 	}
-
 	entClient := database.InitEntClient(cfg.Database.Driver, cfg.Database.Source, cfg.Database.AutoMigrate, log)
 	if err := bootstrap.EnsureDefaultApps(context.Background(), entClient, log, bootstrap.DefaultApps); err != nil {
-		log.Fatal("初始化默认应用失败", zap.Error(err))
+		log.Fatal("failed to initialize default apps", zap.Error(err))
 	}
 	redisClient := commonRedis.Init(cfg.Redis, log)
 
 	return entClient, redisClient, idgenClient
 }
 
-// buildRouter 依赖注入装配
+// buildRouter wires dependencies into the router.
 func buildRouter(cfg *config.Config, entClient *ent.Client, redisClient *redis.Client, idgenClient platformidgen.Client, log *zap.Logger) *gin.Engine {
 	container := appcontainer.Build(cfg, entClient, redisClient, idgenClient, log)
 	r := gin.New()
 
-	// 探针端点：/healthz, /readyz, /metrics（注册在业务中间件之前）
+	// Probe endpoints: /healthz, /readyz, and /metrics, registered before business middleware.
 	probe.Register(r, log,
 		probe.WithCheck("postgres", func(ctx context.Context) error {
 			_, err := entClient.User.Query().Exist(ctx)
@@ -96,33 +95,33 @@ func buildRouter(cfg *config.Config, entClient *ent.Client, redisClient *redis.C
 	return r
 }
 
-// runServer 启动 HTTP 服务器，监听停机信号后优雅退出
+// runServer starts the HTTP server and shuts it down gracefully after receiving a stop signal.
 func runServer(router *gin.Engine, port string, log *zap.Logger) {
-	// 启动 HTTP 服务器
+	// Start the HTTP server.
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: router,
 	}
 	go func() {
-		log.Info("HTTP 服务已启动", zap.String("port", port))
+		log.Info("HTTP server started", zap.String("port", port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("HTTP 服务监听失败", zap.Error(err))
+			log.Fatal("HTTP server failed to listen", zap.Error(err))
 		}
 	}()
 
-	// 监听停机信号
+	// Wait for a shutdown signal.
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 
-	log.Info("收到停机信号，开始优雅退出...")
+	log.Info("received shutdown signal, starting graceful shutdown...")
 
-	// 优雅关闭 HTTP 服务器（等待正在处理的请求完成）
+	// Gracefully shut down the HTTP server and wait for in-flight requests to finish.
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		log.Fatal("HTTP 服务强制退出", zap.Error(err))
+		log.Fatal("HTTP server forced to exit", zap.Error(err))
 	}
 
-	log.Info("所有服务已安全退出")
+	log.Info("all services exited safely")
 }

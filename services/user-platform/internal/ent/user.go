@@ -18,13 +18,13 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
-	// 用户全局版本
+	// User global version
 	UserVersion int64 `json:"user_version,omitempty"`
-	// 用户账号状态
+	// User account status
 	Status user.Status `json:"status,omitempty"`
-	// 创建时间
+	// Creation time
 	CreatedAt time.Time `json:"created_at,omitempty"`
-	// 最后更新时间
+	// Last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.

@@ -1,4 +1,4 @@
-# api-gateway CI/CD：测试 → 构建 → 推送
+# api-gateway CI/CD: test -> build -> push
 name: CI/CD
 
 on:
@@ -26,7 +26,7 @@ env:
   IMAGE_NAME: luckys-go-project/api-gateway
 
 jobs:
-  # ============ 阶段 1：测试 ============
+  # ============ Stage 1: test ============
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -46,7 +46,7 @@ jobs:
       - name: Run vet
         run: go vet ./...
 
-  # ============ 阶段 2：构建 + 推送 ============
+  # ============ Stage 2: build + push ============
   build:
     needs: test
     runs-on: ubuntu-latest

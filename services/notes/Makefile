@@ -2,60 +2,42 @@ SHELL := /bin/bash
 
 NETWORK_EXTERNAL = go-net
 
-.PHONY: help run run-http run-grpc run-server build build-http build-grpc build-server test lint ent-generate docker-up docker-down docker-build clean
+.PHONY: help run build test lint ent-generate docker-up docker-down docker-build clean
 
 init-networks:
 	@docker network inspect $(NETWORK_EXTERNAL) >/dev/null 2>&1 || docker network create $(NETWORK_EXTERNAL)
 
 help:
 	@echo "Available targets:"
-	@echo "  make run              # 启动 go-note 单主进程服务"
-	@echo "  make run-http         # 启动 go-note 旧 HTTP 服务"
-	@echo "  make run-grpc         # 启动 go-note 旧 gRPC 服务"
-	@echo "  make run-server       # 启动 go-note 单主进程服务"
-	@echo "  make build            # 编译单主进程二进制"
-	@echo "  make build-http       # 编译旧 HTTP 二进制"
-	@echo "  make build-grpc       # 编译 gRPC 二进制"
-	@echo "  make build-server     # 编译单主进程二进制"
-	@echo "  make test             # 运行所有测试"
-	@echo "  make ent-generate     # 重新生成 Ent 代码"
-	@echo "  make lint             # Go vet + build 检查"
-	@echo "  make docker-up        # Docker Compose 启动"
-	@echo "  make docker-down      # Docker Compose 停止"
-	@echo "  make docker-build     # Docker Compose 构建并启动"
-	@echo "  make clean            # 清理编译产物"
+	@echo "  make run              # start the go-note service (HTTP + gRPC)"
+	@echo "  make run-ai-worker    # start the AI worker"
+	@echo "  make build            # build the go-note binary"
+	@echo "  make build-ai-worker  # build the AI worker binary"
+	@echo "  make test             # run all tests"
+	@echo "  make ent-generate     # regenerate Ent code"
+	@echo "  make lint             # run go vet and build checks"
+	@echo "  make docker-up        # start Docker Compose"
+	@echo "  make docker-down      # stop Docker Compose"
+	@echo "  make docker-build     # build and start Docker Compose"
+	@echo "  make clean            # clean build artifacts"
 
 # ==========================================
-# 开发
+# Development
 # ==========================================
 
 run:
 	@go run ./cmd/server/main.go
 
-run-http:
-	@go run ./cmd/http/main.go
-
-run-grpc:
-	@go run ./cmd/grpc/main.go
-
-run-server:
-	@go run ./cmd/server/main.go
+run-ai-worker:
+	@go run ./cmd/ai-worker/main.go
 
 build:
 	@go build -o bin/go-note ./cmd/server/main.go
 	@echo "Binary built: bin/go-note"
 
-build-http:
-	@go build -o bin/go-note-http ./cmd/http/main.go
-	@echo "Binary built: bin/go-note-http"
-
-build-grpc:
-	@go build -o bin/go-note-grpc ./cmd/grpc/main.go
-	@echo "Binary built: bin/go-note-grpc"
-
-build-server:
-	@go build -o bin/go-note-server ./cmd/server/main.go
-	@echo "Binary built: bin/go-note-server"
+build-ai-worker:
+	@go build -o bin/ai-worker ./cmd/ai-worker/main.go
+	@echo "Binary built: bin/ai-worker"
 
 test:
 	@go test ./internal/...
@@ -66,7 +48,7 @@ lint:
 	@echo "Lint passed"
 
 # ==========================================
-# 代码生成
+# Code generation
 # ==========================================
 
 ent-generate:
@@ -90,7 +72,7 @@ docker-build: init-networks
 	@echo "Services built and started"
 
 # ==========================================
-# 清理
+# Cleanup
 # ==========================================
 
 clean:

@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ToStatusError 将领域/存储层错误转换为 gRPC status error。
+// ToStatusError converts domain and storage errors into gRPC status errors.
 func ToStatusError(err error) error {
 	if err == nil {
 		return nil
@@ -26,19 +26,19 @@ func ToStatusError(err error) error {
 
 	switch {
 	case errors.Is(err, sharedrepo.ErrDuplicateKey):
-		return status.Error(codes.AlreadyExists, "记录已存在")
+		return status.Error(codes.AlreadyExists, "record already exists")
 	case errors.Is(err, sharedrepo.ErrNoRows):
-		return status.Error(codes.NotFound, "记录不存在")
+		return status.Error(codes.NotFound, "record not found")
 	case errors.Is(err, sharedrepo.ErrForeignKey):
-		return status.Error(codes.FailedPrecondition, "关联记录不存在")
+		return status.Error(codes.FailedPrecondition, "related record not found")
 	case errors.Is(err, sharedrepo.ErrCheckViolation),
 		errors.Is(err, sharedrepo.ErrNotNullViolation),
 		errors.Is(err, sharedrepo.ErrInvalidData):
-		return status.Error(codes.InvalidArgument, "请求数据不合法")
+		return status.Error(codes.InvalidArgument, "invalid request data")
 	case errors.Is(err, sharedrepo.ErrConnection):
-		return status.Error(codes.Unavailable, "数据库连接失败，请稍后重试")
+		return status.Error(codes.Unavailable, "database connection failed, please try again later")
 	default:
-		return status.Error(codes.Internal, "系统繁忙，请稍后再试")
+		return status.Error(codes.Internal, "system busy, please try again later")
 	}
 }
 

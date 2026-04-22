@@ -9,18 +9,18 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// DefaultDialOptions 返回生产级 gRPC 客户端的标准 DialOption 集合。
+// DefaultDialOptions returns the standard production-grade set of gRPC client DialOptions.
 //
-// 包含：
-//   - 明文传输（内网通信，不需要 TLS）
-//   - OTel 链路追踪（自动传播 TraceID）
-//   - KeepAlive 心跳（防止空闲连接被中间设备关闭）
-//   - 熔断器（下游持续故障时快速失败）
-//   - 自动重试（仅对可恢复的错误生效）
+// Includes:
+//   - insecure transport for internal traffic where TLS is not needed
+//   - OTel tracing with automatic TraceID propagation
+//   - keepalive pings to prevent idle connections from being closed by intermediaries
+//   - circuit breaker for fast failure when downstream services keep failing
+//   - automatic retries for recoverable errors only
 //
-// target 用于标识下游服务，每个 target 有独立的熔断器状态。
+// target identifies the downstream service, and each target has its own breaker state.
 func DefaultDialOptions(target string) []grpc.DialOption {
-	const maxMsgSize = 16 << 20 // 16 MB — 需要支持最大 10MB 文件上传 + protobuf 编码开销
+	const maxMsgSize = 16 << 20 // 16 MB — must support up to 10 MB file uploads plus protobuf encoding overhead
 
 	return []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -30,22 +30,22 @@ func DefaultDialOptions(target string) []grpc.DialOption {
 			grpc.MaxCallSendMsgSize(maxMsgSize),
 		),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                10 * time.Second, // 每 10 秒发一次心跳，快速检测断连
-			Timeout:             3 * time.Second,  // 3 秒没响应视为连接断开
-			PermitWithoutStream: true,             // 即使没有活跃 RPC 也保持心跳
+			Time:                10 * time.Second, // send a keepalive ping every 10 seconds to detect disconnects quickly
+			Timeout:             3 * time.Second,  // consider the connection broken if no response arrives within 3 seconds
+			PermitWithoutStream: true,             // keep sending heartbeats even without active RPCs
 		}),
 		grpc.WithDefaultServiceConfig(serviceConfig()),
-		// 熔断器拦截器 — 在重试之前判断是否需要快速失败
+		// circuit-breaker interceptor to decide whether to fast-fail before retrying
 		grpc.WithChainUnaryInterceptor(CircuitBreakerInterceptor(target)),
 	}
 }
 
-// serviceConfig 返回 gRPC 客户端的 Service Config JSON 配置。
+// serviceConfig returns the gRPC client's service-config JSON.
 //
-// 包含：
-//   - round_robin 负载均衡：配合 K8s Headless Service，让 gRPC 将请求轮询分发到所有后端 Pod，
-//     解决 HTTP/2 长连接导致 L4 负载均衡失效的经典问题。
-//   - 重试策略：最多重试 3 次（含首次调用共 4 次），指数退避，仅对 UNAVAILABLE 和 DEADLINE_EXCEEDED 生效。
+// Includes:
+//   - round_robin load balancing with a K8s Headless Service so gRPC distributes requests across backend pods,
+//     solving the classic issue where HTTP/2 long-lived connections defeat L4 load balancing.
+//   - retry policy: retry up to 3 times (4 total attempts including the first call) with exponential backoff, only for UNAVAILABLE and DEADLINE_EXCEEDED.
 func serviceConfig() string {
 	return `{
 		"loadBalancingConfig": [{"round_robin": {}}],

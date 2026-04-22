@@ -1,29 +1,29 @@
 # API Gateway
 
-`api-gateway` 是整个微服务系统的统一入口，负责鉴权、限流、观测与请求转发，对外暴露稳定的 HTTP API，对内对接 `user-platform` 和 `go-note` 等服务。
+`api-gateway` is the unified entrypoint for the microservice system. It handles authentication, rate limiting, observability, and request forwarding, exposing a stable HTTP API externally while connecting internally to services such as `user-platform` and `go-note`.
 
 ## Core Features
 
-- JWT 鉴权与用户上下文透传
-- 基于 Redis 的多层限流
-- Gin + OpenTelemetry + Prometheus 指标采集
-- 统一日志与崩溃恢复中间件
-- 通过配置将请求路由到下游 HTTP / gRPC 服务
+- JWT authentication and user-context propagation
+- Multi-layer rate limiting based on Redis
+- Gin + OpenTelemetry + Prometheus metrics collection
+- Unified logging and panic recovery middleware
+- Request routing to downstream HTTP / gRPC services through configuration
 
 ## Directory Layout
 
 ```text
 api-gateway/
-├── cmd/server/                    # 服务启动入口
-├── .env.example                   # 环境变量模板
+├── cmd/server/                    # service startup entrypoint
+├── .env.example                   # environment variable template
 ├── internal/
-│   ├── auth/                      # JWT 工具
-│   ├── config/                    # 配置加载
-│   ├── grpcclient/                # 下游 gRPC 客户端
-│   ├── handler/                   # HTTP Handler、DTO、参数校验
-│   ├── middleware/                # 日志、鉴权、限流中间件
-│   ├── proxy/                     # 反向代理封装
-│   └── restclient/                # 下游 REST 客户端
+│   ├── auth/                      # JWT utilities
+│   ├── config/                    # configuration loading
+│   ├── grpcclient/                # downstream gRPC clients
+│   ├── handler/                   # HTTP handlers, DTOs, and parameter validation
+│   ├── middleware/                # logging, auth, and rate-limiting middleware
+│   ├── proxy/                     # reverse-proxy wrapper
+│   └── restclient/                # downstream REST clients
 ├── docker-compose.yaml
 ├── Dockerfile
 └── go.mod
@@ -56,7 +56,7 @@ api-gateway/
 go run cmd/server/main.go
 ```
 
-默认监听环境变量中的服务端口。
+By default, the service listens on the port defined by environment variables.
 
 ### Docker
 
@@ -66,12 +66,12 @@ docker-compose up -d --build
 
 ## Configuration
 
-- 运行配置统一通过环境变量注入
-- 本地开发请从 `.env.example` 复制出 `.env`
-- 提交代码前请确认敏感配置未写入仓库
+- Runtime configuration is injected uniformly through environment variables
+- For local development, copy `.env.example` to `.env`
+- Before committing code, make sure sensitive configuration has not been added to the repository
 
 ## Git Hygiene
 
-- `.gitignore` 已忽略 macOS 缓存、编辑器目录、构建产物和本地环境文件。
-- 像 `internal/.DS_Store` 这类系统文件不应提交，清理后再做 commit。
-- 新增本地调试文件时，优先确认是否属于应忽略范围，避免把临时文件带进主分支。
+- `.gitignore` already ignores macOS cache files, editor directories, build artifacts, and local environment files
+- System files like `internal/.DS_Store` should not be committed; clean them up before committing
+- When adding local debug files, first check whether they should be ignored so temporary files do not end up on the main branch

@@ -13,18 +13,18 @@ import (
 	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
-// ProfileStore 是 ProfileRepository 的 Ent 实现。
+// ProfileStore is the Ent-backed implementation of ProfileRepository.
 type ProfileStore struct {
 	client *ent.Client
 	idgen  platformidgen.Client
 }
 
-// NewProfileStore 创建一个 ProfileRepository 实例，直接持有 ent.Client。
+// NewProfileStore creates a ProfileRepository backed directly by ent.Client.
 func NewProfileStore(client *ent.Client, idgenClient platformidgen.Client) accountrepo.ProfileRepository {
 	return &ProfileStore{client: client, idgen: idgenClient}
 }
 
-// CreateEmpty 为新用户创建一条空资料记录。
+// CreateEmpty creates an empty profile record for a new user.
 func (s *ProfileStore) CreateEmpty(ctx context.Context, userID int64) (*accountrepo.Profile, error) {
 	newID, err := s.idgen.NextID(ctx)
 	if err != nil {
@@ -43,7 +43,7 @@ func (s *ProfileStore) CreateEmpty(ctx context.Context, userID int64) (*accountr
 	return shared.MapProfile(p), nil
 }
 
-// GetByUserID 按用户 ID 查询对应的资料记录。
+// GetByUserID looks up the profile record for a user ID.
 func (s *ProfileStore) GetByUserID(ctx context.Context, userID int64) (*accountrepo.Profile, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -56,7 +56,7 @@ func (s *ProfileStore) GetByUserID(ctx context.Context, userID int64) (*accountr
 	return shared.MapProfile(p), nil
 }
 
-// EnsureByUserID 确保指定用户一定拥有一条资料记录。
+// EnsureByUserID makes sure the specified user has a profile record.
 func (s *ProfileStore) EnsureByUserID(ctx context.Context, userID int64) (*accountrepo.Profile, error) {
 	p, err := s.GetByUserID(ctx, userID)
 	if err == nil {
@@ -71,22 +71,22 @@ func (s *ProfileStore) EnsureByUserID(ctx context.Context, userID int64) (*accou
 		return p, nil
 	}
 
-	// 如果并发请求已经补齐了资料，再查一次即可。
+	// If a concurrent request has already created the profile, just query it again.
 	if sharedrepo.IsDuplicateKeyError(err) {
 		return s.GetByUserID(ctx, userID)
 	}
 	return nil, err
 }
 
-// Update 按用户 ID 更新一条资料记录。
+// Update updates a profile record by user ID.
 func (s *ProfileStore) Update(ctx context.Context, userID int64, nickname, avatarURL, bio, birthday string) (*accountrepo.Profile, error) {
-	// 先根据 userID 查出 profile 实体
+	// Look up the profile entity by userID first.
 	p, err := s.EnsureByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 使用 profile ID 直接更新
+	// Update directly by profile ID.
 	c := shared.EntClientFromCtx(ctx, s.client)
 
 	updated, err := c.Profile.UpdateOneID(p.ID).

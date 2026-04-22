@@ -10,20 +10,20 @@ import (
 	"time"
 )
 
-// OpenAICompatClient 基于 OpenAI Chat Completions API 协议的通用实现。
+// OpenAICompatClient is a generic implementation based on the OpenAI Chat Completions API protocol.
 //
-// 兼容所有支持 /v1/chat/completions 端点的服务：
+// It works with any service that supports the /v1/chat/completions endpoint, including:
 //   - OpenAI:  baseURL = "https://api.openai.com/v1"
 //   - Ollama:  baseURL = "http://localhost:11434/v1"
 //   - Qwen:    baseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-//   - 任意代理: 用户自填 baseURL
+//   - Any proxy, using a user-supplied baseURL
 type OpenAICompatClient struct {
 	baseURL    string
 	apiKey     string
 	httpClient *http.Client
 }
 
-// NewOpenAICompatClient 创建 OpenAI Compatible 客户端。
+// NewOpenAICompatClient creates an OpenAI-compatible client.
 func NewOpenAICompatClient(baseURL, apiKey string) *OpenAICompatClient {
 	return &OpenAICompatClient{
 		baseURL: baseURL,
@@ -34,7 +34,7 @@ func NewOpenAICompatClient(baseURL, apiKey string) *OpenAICompatClient {
 	}
 }
 
-// ── OpenAI API 请求/响应结构 ──
+// OpenAI API request/response structs.
 
 type openAIRequest struct {
 	Model       string          `json:"model"`
@@ -63,9 +63,9 @@ type openAIResponse struct {
 	} `json:"error,omitempty"`
 }
 
-// Complete 调用 OpenAI Compatible API 完成对话。
+// Complete sends a completion request to an OpenAI-compatible API.
 func (c *OpenAICompatClient) Complete(ctx context.Context, req *CompletionRequest) (*CompletionResponse, error) {
-	// 构造请求体
+	// Build the request body.
 	messages := make([]openAIMessage, len(req.Messages))
 	for i, m := range req.Messages {
 		messages[i] = openAIMessage{Role: m.Role, Content: m.Content}
@@ -80,48 +80,48 @@ func (c *OpenAICompatClient) Complete(ctx context.Context, req *CompletionReques
 
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
-		return nil, fmt.Errorf("llm: 序列化请求失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to serialize request: %w", err)
 	}
 
-	// 构造 HTTP 请求
+	// Build the HTTP request.
 	url := c.baseURL + "/chat/completions"
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(jsonBody))
 	if err != nil {
-		return nil, fmt.Errorf("llm: 创建请求失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to create request: %w", err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	if c.apiKey != "" {
 		httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
 	}
 
-	// 发送请求
+	// Send the request.
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("llm: HTTP 请求失败: %w", err)
+		return nil, fmt.Errorf("llm: HTTP request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("llm: 读取响应失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to read response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("llm: API 返回 %d: %s", resp.StatusCode, string(respBody))
+		return nil, fmt.Errorf("llm: API returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	// 解析响应
+	// Parse the response.
 	var result openAIResponse
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, fmt.Errorf("llm: 解析响应失败: %w", err)
+		return nil, fmt.Errorf("llm: failed to parse response: %w", err)
 	}
 
 	if result.Error != nil {
-		return nil, fmt.Errorf("llm: API 错误: %s", result.Error.Message)
+		return nil, fmt.Errorf("llm: API error: %s", result.Error.Message)
 	}
 
 	if len(result.Choices) == 0 {
-		return nil, fmt.Errorf("llm: API 返回空 choices")
+		return nil, fmt.Errorf("llm: API returned empty choices")
 	}
 
 	return &CompletionResponse{

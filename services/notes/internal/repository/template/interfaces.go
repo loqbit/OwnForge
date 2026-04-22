@@ -6,7 +6,7 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/service/template/contract"
 )
 
-// Repository 定义 template 数据访问接口。
+// Repository defines the template data access interface.
 type Repository interface {
 	Create(ctx context.Context, id, ownerID int64, params *contract.CreateTemplateCommand) (*Template, error)
 	GetByID(ctx context.Context, id int64) (*Template, error)

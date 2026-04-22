@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// AuthHandler 处理认证模块的 BFF 路由，通过 gRPC 调用 user-platform 的 AuthService。
+// AuthHandler handles authentication BFF routes and calls user-platform's AuthService over gRPC.
 type AuthHandler struct {
 	authClient authpb.AuthServiceClient
 	ssoCookie  *ssoCookieManager
@@ -29,12 +29,12 @@ func NewAuthHandler(authClient authpb.AuthServiceClient, cookieCfg config.SSOCoo
 	}
 }
 
-// Login 用户登录
+// Login handles user sign-in.
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -46,7 +46,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		DeviceId: req.DeviceId,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("用户登录失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("user login failed", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -61,12 +61,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
-// RefreshToken 刷新访问令牌（公共接口，无需 JWT 鉴权，但需要提供 refresh_token）
+// RefreshToken refreshes the access token. It is public and does not require JWT auth, but it does require a refresh_token.
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req dto.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -75,7 +75,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		Token: req.RefreshToken,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("刷新令牌失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("failed to refresh token", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -86,19 +86,19 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	})
 }
 
-// ExchangeSSO 使用浏览器中的 SSO Cookie 为目标应用换取新的双 token。
+// ExchangeSSO exchanges the browser's SSO cookie for a new token pair for the target app.
 func (h *AuthHandler) ExchangeSSO(c *gin.Context) {
 	var req dto.ExchangeSSORequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
 
 	ssoToken, ok := h.ssoCookie.get(c)
 	if !ok {
-		response.Unauthorized(c, "SSO 登录态不存在或已失效，请重新登录")
+		response.Unauthorized(c, "SSO session is missing or expired, please sign in again")
 		return
 	}
 
@@ -108,7 +108,7 @@ func (h *AuthHandler) ExchangeSSO(c *gin.Context) {
 		DeviceId: req.DeviceId,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("SSO 换票失败", zap.Error(err), zap.String("app_code", req.AppCode))
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("SSO exchange failed", zap.Error(err), zap.String("app_code", req.AppCode))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -121,16 +121,16 @@ func (h *AuthHandler) ExchangeSSO(c *gin.Context) {
 	})
 }
 
-// Logout 用户退出登录（需 JWT 鉴权，从上下文获取 userID 用于日志追踪）
+// Logout signs out the user. It requires JWT auth and reads userID from context for log tracing.
 func (h *AuthHandler) Logout(c *gin.Context) {
 	val, exists := c.Get("userID")
 	if !exists {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 	userID := val.(int64)
 
-	// 从请求体中读取 device_id（兼容旧客户端：不提供也不报错）
+	// Read device_id from the request body, remaining compatible with older clients that omit it.
 	var req dto.LogoutRequest
 	_ = c.ShouldBindJSON(&req)
 
@@ -140,7 +140,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		DeviceId: req.DeviceId,
 	})
 	if err != nil {
-		commonlogger.Ctx(grpcCtx, h.log).Error("用户退出登录失败", zap.Int64("userID", userID), zap.Error(err))
+		commonlogger.Ctx(grpcCtx, h.log).Error("user logout failed", zap.Int64("userID", userID), zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -148,12 +148,12 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	response.Success(c, nil)
 }
 
-// SendPhoneCode 发送手机验证码（公共接口，无需鉴权）
+// SendPhoneCode sends a phone verification code. It is a public endpoint.
 func (h *AuthHandler) SendPhoneCode(c *gin.Context) {
 	var req dto.SendPhoneCodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -163,7 +163,7 @@ func (h *AuthHandler) SendPhoneCode(c *gin.Context) {
 		Scene: req.Scene,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("发送手机验证码失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("failed to send phone verification code", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -176,12 +176,12 @@ func (h *AuthHandler) SendPhoneCode(c *gin.Context) {
 	})
 }
 
-// PhoneAuthEntry 手机验证码登录/注册入口（公共接口，无需鉴权）
+// PhoneAuthEntry is the phone verification-code sign-in/sign-up entry point. It is public.
 func (h *AuthHandler) PhoneAuthEntry(c *gin.Context) {
 	var req dto.PhoneAuthEntryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -193,7 +193,7 @@ func (h *AuthHandler) PhoneAuthEntry(c *gin.Context) {
 		DeviceId:         req.DeviceId,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("手机验证码认证失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("phone verification-code authentication failed", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -214,12 +214,12 @@ func (h *AuthHandler) PhoneAuthEntry(c *gin.Context) {
 	})
 }
 
-// PhonePasswordLogin 手机号+密码登录（公共接口，无需鉴权）
+// PhonePasswordLogin handles sign-in with phone number and password. It is public.
 func (h *AuthHandler) PhonePasswordLogin(c *gin.Context) {
 	var req dto.PhonePasswordLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -231,7 +231,7 @@ func (h *AuthHandler) PhonePasswordLogin(c *gin.Context) {
 		DeviceId: req.DeviceId,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("手机号密码登录失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("phone-password login failed", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}

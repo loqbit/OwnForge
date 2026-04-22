@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	ErrLineageIDGeneration = pkgerrs.NewServerErr(errors.New("生成来源记录 ID 失败"))
-	ErrInvalidRelationType = pkgerrs.NewParamErr("relation_type 不合法", nil)
+	ErrLineageIDGeneration = pkgerrs.NewServerErr(errors.New("failed to generate lineage record ID"))
+	ErrInvalidRelationType = pkgerrs.NewParamErr("invalid relation_type", nil)
 )
 
 type Service interface {
@@ -43,20 +43,20 @@ func (s *lineageService) Record(ctx context.Context, cmd *contract.RecordCommand
 		return ErrInvalidRelationType
 	}
 
-	// 幂等：已存在就跳过。
-	// 注意要区分 "不存在"（正常 → 继续创建）和 "数据库故障"（异常 → 上抛）。
+	// Idempotent: skip creation when the record already exists.
+	// Treat "not found" as normal and continue, but bubble up real database failures.
 	existing, err := s.repo.GetBySnippetID(ctx, cmd.SnippetID)
 	if err == nil && existing != nil {
-		return nil // 已有记录，幂等跳过
+		return nil // Record already exists; skip for idempotency.
 	}
 	if err != nil && !sharedrepo.IsNotFoundError(err) {
-		commonlogger.Ctx(ctx, s.logger).Error("查询 lineage 失败", zap.Int64("snippet_id", cmd.SnippetID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to query lineage", zap.Int64("snippet_id", cmd.SnippetID), zap.Error(err))
 		return err
 	}
 
 	id, err := s.idgen.NextID(ctx)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("生成 lineage ID 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to generate lineage ID", zap.Error(err))
 		return ErrLineageIDGeneration
 	}
 

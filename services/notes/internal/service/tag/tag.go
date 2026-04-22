@@ -15,14 +15,14 @@ import (
 	"go.uber.org/zap"
 )
 
-// 领域错误定义
+// Domain errors.
 var (
-	ErrIDGeneration = pkgerrs.NewServerErr(errors.New("生成标签 ID 失败"))
-	ErrForbidden    = pkgerrs.New(pkgerrs.Forbidden, "无权限操作该标签", nil)
-	ErrNameRequired = pkgerrs.NewParamErr("标签名称不能为空", nil)
+	ErrIDGeneration = pkgerrs.NewServerErr(errors.New("failed to generate tag ID"))
+	ErrForbidden    = pkgerrs.New(pkgerrs.Forbidden, "no permission to operate on this tag", nil)
+	ErrNameRequired = pkgerrs.NewParamErr("tag name cannot be empty", nil)
 )
 
-// TagService 定义 tag 业务接口。
+// TagService defines the tag service interface.
 type TagService interface {
 	Create(ctx context.Context, userID int64, req *contract.CreateTagCommand) (*contract.TagResult, error)
 	List(ctx context.Context, userID int64) ([]contract.TagResult, error)
@@ -36,7 +36,7 @@ type tagService struct {
 	logger *zap.Logger
 }
 
-// NewTagService 创建 TagService 实例。
+// NewTagService creates a TagService instance.
 func NewTagService(repo tagrepo.Repository, idgenClient idgen.Client, logger *zap.Logger) TagService {
 	return &tagService{repo: repo, idgen: idgenClient, logger: logger}
 }
@@ -49,7 +49,7 @@ func (s *tagService) Create(ctx context.Context, userID int64, req *contract.Cre
 
 	id, err := s.idgen.NextID(ctx)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("生成 tag ID 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to generate tag ID", zap.Error(err))
 		return nil, ErrIDGeneration
 	}
 
@@ -60,7 +60,7 @@ func (s *tagService) Create(ctx context.Context, userID int64, req *contract.Cre
 
 	t, err := s.repo.Create(ctx, id, userID, params)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("创建 tag 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to create tag",
 			zap.Int64("id", id),
 			zap.Int64("userID", userID),
 			zap.Error(err),
@@ -74,7 +74,7 @@ func (s *tagService) Create(ctx context.Context, userID int64, req *contract.Cre
 func (s *tagService) List(ctx context.Context, userID int64) ([]contract.TagResult, error) {
 	list, err := s.repo.ListByOwner(ctx, userID)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("查询用户 tag 列表失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to query user tags",
 			zap.Int64("userID", userID),
 			zap.Error(err),
 		)
@@ -111,7 +111,7 @@ func (s *tagService) Update(ctx context.Context, userID, id int64, req *contract
 
 	t, err := s.repo.Update(ctx, userID, id, params)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("更新 tag 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to update tag",
 			zap.Int64("id", id),
 			zap.Error(err),
 		)
@@ -132,7 +132,7 @@ func (s *tagService) Delete(ctx context.Context, userID, id int64) error {
 	}
 
 	if err := s.repo.Delete(ctx, userID, id); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("删除 tag 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to delete tag",
 			zap.Int64("id", id),
 			zap.Error(err),
 		)

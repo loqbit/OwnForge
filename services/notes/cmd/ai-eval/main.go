@@ -1,14 +1,14 @@
 // Command ai-eval runs the Enrich golden-set regression.
 //
-// 用法：
+// Usage:
 //
-//	go run ./cmd/ai-eval                        # 跑全部 case
-//	go run ./cmd/ai-eval -case case_01_meeting  # 只跑指定 case
+//	go run ./cmd/ai-eval                        # Run all cases
+//	go run ./cmd/ai-eval -case case_01_meeting  # Run only the specified case
 //	go run ./cmd/ai-eval -dir testdata/eval/enrich -verbose
 //
-// 退出码：0=全通过；1=有 case 失败；2=运行错误（配置/网络）。
+// Exit codes: 0 = all passed; 1 = one or more cases failed; 2 = runtime error (config/network).
 //
-// 不连 DB、不发事件，只测 prompt → LLM → parse 这条核心链路。
+// Does not connect to the DB or publish events; only tests the core prompt -> LLM -> parse path.
 package main
 
 import (
@@ -31,7 +31,7 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/service/ai/prompt"
 )
 
-// ── Case 定义 ─────────────────────────────────────────────────────────
+// ── Case definitions ──────────────────────────────────────────────────
 
 type Case struct {
 	Name  string `json:"name"`
@@ -50,14 +50,14 @@ type Expect struct {
 
 type TagsExpect struct {
 	CountRange       []int      `json:"count_range,omitempty"`         // [min, max]
-	MustIncludeAnyOf [][]string `json:"must_include_any_of,omitempty"` // 每个子数组内"任一命中即可"；多个子数组全部都要满足（AND）
+	MustIncludeAnyOf [][]string `json:"must_include_any_of,omitempty"` // Match any item within each group; all groups must match (AND)
 	MustNotInclude   []string   `json:"must_not_include,omitempty"`
 }
 
 type TodosExpect struct {
-	MinCount        int      `json:"min_count,omitempty"`
-	MaxCount        int      `json:"max_count,omitempty"`
-	MustMentionAny  []string `json:"must_mention_any,omitempty"` // todo 文本中必须出现其中任一
+	MinCount       int      `json:"min_count,omitempty"`
+	MaxCount       int      `json:"max_count,omitempty"`
+	MustMentionAny []string `json:"must_mention_any,omitempty"` // The TODO text must mention at least one of these
 }
 
 type SummaryExpect struct {
@@ -66,7 +66,7 @@ type SummaryExpect struct {
 	MustMentionAny []string `json:"must_mention_any,omitempty"`
 }
 
-// ── 检查逻辑 ─────────────────────────────────────────────────────────
+// ── Validation logic ──────────────────────────────────────────────────
 
 type Violation struct {
 	Dim    string // "tags" / "todos" / "summary"
@@ -168,15 +168,15 @@ func checkSummary(got string, exp *SummaryExpect) []Violation {
 	return vs
 }
 
-// ── 主流程 ───────────────────────────────────────────────────────────
+// ── Main flow ─────────────────────────────────────────────────────────
 
 func main() {
 	_ = godotenv.Load()
 
 	var (
-		dir      = flag.String("dir", "testdata/eval/enrich", "golden set 目录")
-		only     = flag.String("case", "", "只跑指定 case 名称（不含 .json）")
-		verbose  = flag.Bool("verbose", false, "打印每个 case 的完整输出")
+		dir     = flag.String("dir", "testdata/eval/enrich", "Golden set directory")
+		only    = flag.String("case", "", "Run only the specified case name (without .json)")
+		verbose = flag.Bool("verbose", false, "Print the full output for each case")
 	)
 	flag.Parse()
 
@@ -185,11 +185,11 @@ func main() {
 
 	cases, err := loadCases(*dir, *only)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "加载 case 失败: %v\n", err)
+		fmt.Fprintf(os.Stderr, "failed to load cases: %v\n", err)
 		os.Exit(2)
 	}
 	if len(cases) == 0 {
-		fmt.Fprintf(os.Stderr, "没找到 case 于 %s\n", *dir)
+		fmt.Fprintf(os.Stderr, "no cases found in %s\n", *dir)
 		os.Exit(2)
 	}
 
@@ -242,20 +242,20 @@ func main() {
 		rate = float64(pass) * 100 / float64(total)
 	}
 	fmt.Printf("\n────────────────────────────────────────────\n")
-	fmt.Printf("通过率: %d/%d  (%.1f%%)\n", pass, total, rate)
+	fmt.Printf("Pass rate: %d/%d  (%.1f%%)\n", pass, total, rate)
 	if total > 0 {
-		fmt.Printf("平均 tokens: in=%d out=%d\n", totalIn/total, totalOut/total)
-		fmt.Printf("平均延迟: %dms\n", totalMS/total)
+		fmt.Printf("Average tokens: in=%d out=%d\n", totalIn/total, totalOut/total)
+		fmt.Printf("Average latency: %dms\n", totalMS/total)
 	}
-	fmt.Printf("Prompt 版本: %s\n", prompt.PromptVersionEnrich)
-	fmt.Printf("总耗时: %s\n", time.Since(started).Round(time.Millisecond))
+	fmt.Printf("Prompt version: %s\n", prompt.PromptVersionEnrich)
+	fmt.Printf("Total duration: %s\n", time.Since(started).Round(time.Millisecond))
 
 	if fail > 0 {
 		os.Exit(1)
 	}
 }
 
-// ── 辅助函数 ─────────────────────────────────────────────────────────
+// ── Helper functions ──────────────────────────────────────────────────
 
 func loadCases(dir, only string) ([]Case, error) {
 	entries, err := os.ReadDir(dir)
@@ -279,11 +279,11 @@ func loadCases(dir, only string) ([]Case, error) {
 	for _, f := range files {
 		data, err := os.ReadFile(f)
 		if err != nil {
-			return nil, fmt.Errorf("读取 %s: %w", f, err)
+			return nil, fmt.Errorf("read %s: %w", f, err)
 		}
 		var c Case
 		if err := json.Unmarshal(data, &c); err != nil {
-			return nil, fmt.Errorf("解析 %s: %w", f, err)
+			return nil, fmt.Errorf("parse %s: %w", f, err)
 		}
 		if c.Name == "" {
 			c.Name = strings.TrimSuffix(filepath.Base(f), ".json")
@@ -350,4 +350,3 @@ func printResult(r *contract.EnrichResult) {
 	fmt.Printf("     todos   : %v\n", todoTexts(r.Todos))
 	fmt.Printf("     summary : %s\n", r.Summary)
 }
-

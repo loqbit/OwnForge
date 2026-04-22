@@ -16,7 +16,7 @@ func IPrateLimit(limiter ratelimiter.Limiter, limit int, window time.Duration, l
 		key := fmt.Sprintf("ratelimit:ip:%s", ip)
 		err := limiter.Allow(c.Request.Context(), key, limit, window)
 		if err != nil {
-			log.Warn("触发网关IP限流", zap.String("ip", ip), zap.Error(err))
+			log.Warn("gateway IP rate limit triggered", zap.String("ip", ip), zap.Error(err))
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": err.Error()})
 			return
 		}

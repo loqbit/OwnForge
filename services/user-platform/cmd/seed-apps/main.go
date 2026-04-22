@@ -18,6 +18,6 @@ func main() {
 	defer entClient.Close()
 
 	if err := bootstrap.EnsureDefaultApps(context.Background(), entClient, log, bootstrap.DefaultApps); err != nil {
-		log.Fatal("初始化默认应用失败")
+		log.Fatal("failed to initialize default apps")
 	}
 }

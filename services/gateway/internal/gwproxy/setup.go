@@ -11,17 +11,17 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// NewNoteMux 创建并配置笔记服务的 gRPC-Gateway 反向代理 Mux。
+// NewNoteMux creates and configures the note service gRPC-Gateway reverse-proxy mux.
 //
-// 关键设计:
-//   - WithMetadata: 从 JWT 中间件已注入的 X-User-Id header 提取 userID，
-//     注入 gRPC outgoing metadata，与 go-note 的 GatewayAuthInterceptor 对齐。
-//   - 返回的 Mux 应通过 WrapHandler 包装后挂载到 Gin 路由，以保证信封格式兼容。
+// Key design:
+//   - WithMetadata: extract userID from the X-User-Id header already injected by the JWT middleware,
+//     and inject it into outgoing gRPC metadata to align with go-note's GatewayAuthInterceptor.
+//   - The returned mux should be wrapped with WrapHandler before mounting on Gin routes so the envelope format stays compatible.
 func NewNoteMux(ctx context.Context, noteGRPCAddr string) (*runtime.ServeMux, error) {
 	mux := runtime.NewServeMux(
-		// 从 HTTP 请求中提取 X-User-Id header，转换为 gRPC outgoing metadata。
-		// JWT 中间件在 auth.go:56 已将 userID 写入 X-User-Id header，
-		// 这里直接复用，无需额外鉴权逻辑。
+		// Extract the X-User-Id header from the HTTP request and convert it into outgoing gRPC metadata.
+		// The JWT middleware already writes userID into the X-User-Id header in auth.go:56,
+		// so it can be reused here without extra auth logic.
 		runtime.WithMetadata(func(ctx context.Context, r *http.Request) metadata.MD {
 			md := metadata.MD{}
 			if uid := r.Header.Get("X-User-Id"); uid != "" {

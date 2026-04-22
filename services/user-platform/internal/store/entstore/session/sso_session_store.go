@@ -16,12 +16,12 @@ type SsoSessionStore struct {
 	client *ent.Client
 }
 
-// NewSsoSessionStore 创建全局登录态仓储的 Ent 实现。
+// NewSsoSessionStore creates the Ent-backed global SSO session repository.
 func NewSsoSessionStore(client *ent.Client) sessionrepo.SsoSessionRepository {
 	return &SsoSessionStore{client: client}
 }
 
-// Create 创建一条新的全局登录态记录。
+// Create inserts a new global SSO session record.
 func (s *SsoSessionStore) Create(ctx context.Context, params sessionrepo.CreateSsoSessionParams) (*sessionrepo.SsoSession, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -42,7 +42,7 @@ func (s *SsoSessionStore) Create(ctx context.Context, params sessionrepo.CreateS
 	return s.GetByID(ctx, created.ID)
 }
 
-// GetByID 按主键查询全局登录态。
+// GetByID looks up a global SSO session by primary key.
 func (s *SsoSessionStore) GetByID(ctx context.Context, id uuid.UUID) (*sessionrepo.SsoSession, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -57,7 +57,7 @@ func (s *SsoSessionStore) GetByID(ctx context.Context, id uuid.UUID) (*sessionre
 	return shared.MapSsoSession(entity), nil
 }
 
-// GetByTokenHash 按令牌哈希查询全局登录态。
+// GetByTokenHash looks up a global SSO session by token hash.
 func (s *SsoSessionStore) GetByTokenHash(ctx context.Context, tokenHash string) (*sessionrepo.SsoSession, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -72,7 +72,7 @@ func (s *SsoSessionStore) GetByTokenHash(ctx context.Context, tokenHash string) 
 	return shared.MapSsoSession(entity), nil
 }
 
-// ListActiveByUserID 查询某个用户当前全部活跃的全局登录态。
+// ListActiveByUserID returns all currently active global SSO sessions for a user.
 func (s *SsoSessionStore) ListActiveByUserID(ctx context.Context, userID int64) ([]*sessionrepo.SsoSession, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -95,7 +95,7 @@ func (s *SsoSessionStore) ListActiveByUserID(ctx context.Context, userID int64) 
 	return result, nil
 }
 
-// Touch 更新全局登录态最近一次活跃时间。
+// Touch updates the last-active timestamp for a global SSO session.
 func (s *SsoSessionStore) Touch(ctx context.Context, id uuid.UUID, at time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -104,7 +104,7 @@ func (s *SsoSessionStore) Touch(ctx context.Context, id uuid.UUID, at time.Time)
 		Exec(ctx))
 }
 
-// BumpVersion 递增全局登录态版本号并返回最新值。
+// BumpVersion increments the global SSO session version and returns the latest value.
 func (s *SsoSessionStore) BumpVersion(ctx context.Context, id uuid.UUID) (int64, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -117,7 +117,7 @@ func (s *SsoSessionStore) BumpVersion(ctx context.Context, id uuid.UUID) (int64,
 	return entity.SSOVersion, nil
 }
 
-// Revoke 撤销指定全局登录态。
+// Revoke revokes the specified global SSO session.
 func (s *SsoSessionStore) Revoke(ctx context.Context, id uuid.UUID, revokedAt time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -127,7 +127,7 @@ func (s *SsoSessionStore) Revoke(ctx context.Context, id uuid.UUID, revokedAt ti
 		Exec(ctx))
 }
 
-// RevokeByUserID 撤销某个用户名下全部活跃的全局登录态。
+// RevokeByUserID revokes all active global SSO sessions for a user.
 func (s *SsoSessionStore) RevokeByUserID(ctx context.Context, userID int64, revokedAt time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 

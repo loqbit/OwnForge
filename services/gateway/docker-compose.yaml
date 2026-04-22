@@ -12,12 +12,12 @@ services:
       - .env
     environment:
       - APP_ENV=development
-      # 在这里使用环境变量把路由地址覆写为 Docker 内部的服务名！
+      # Override route addresses here with Docker-internal service names via environment variables.
       - ROUTES_USER_PLATFORM=http://user-http:8081
       - ROUTES_USER_PLATFORM_GRPC=user-grpc:9091
       - ROUTES_GO_NOTE=http://go-note:8080
       - ROUTES_GO_NOTE_GRPC=go-note:9093
-      # 如果启用了限流器，同样覆写 Redis 的地址为公网或 infra 网络里的名字
+      # If rate limiting is enabled, also override the Redis address with the public or infra-network service name.
       - REDIS_ADDR=${REDIS_ADDR:-global-redis:6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_DB=${REDIS_DB:-0}

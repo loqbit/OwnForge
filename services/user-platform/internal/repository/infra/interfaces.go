@@ -6,24 +6,24 @@ import (
 	"time"
 )
 
-// TransactionManager 定义了事务执行的能力。
+// TransactionManager defines transactional execution behavior.
 type TransactionManager interface {
 	WithTx(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
-// EventOutboxWriter 定义了事件 Outbox 的写入能力。
+// EventOutboxWriter defines the ability to write to the event outbox.
 type EventOutboxWriter interface {
 	Append(ctx context.Context, record *OutboxRecord) error
 }
 
-// OutboxRecord 是事件 Outbox 的写入记录。
-// 字段命名与 Debezium Outbox Event Router 的常见约定保持一致。
+// OutboxRecord is a record written to the event outbox.
+// Field names follow common Debezium Outbox Event Router conventions.
 type OutboxRecord struct {
-	ID            string          // 事件唯一 ID
-	AggregateType string          // 聚合类型（如 user）
-	AggregateID   string          // 聚合 ID（如 user_id）
-	EventType     string          // 事件类型（如 user_registered）
-	Payload       json.RawMessage // 事件内容（json）
-	Headers       json.RawMessage // 事件头 （trace_id、span_id 等）
-	CreatedAt     time.Time       // 创建时间
+	ID            string          // unique event ID
+	AggregateType string          // aggregate type (for example, user)
+	AggregateID   string          // aggregate ID (for example, user_id)
+	EventType     string          // event type (for example, user_registered)
+	Payload       json.RawMessage // event payload (JSON)
+	Headers       json.RawMessage // event headers (trace_id, span_id, etc.)
+	CreatedAt     time.Time       // creation time
 }

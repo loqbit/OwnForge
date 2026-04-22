@@ -16,9 +16,9 @@ type App struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// 应用唯一标识
+	// Unique application identifier
 	AppCode string `json:"app_code,omitempty"`
-	// 应用展示名称
+	// Display name of the application
 	AppName string `json:"app_name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AppQuery when eager-loading is set.

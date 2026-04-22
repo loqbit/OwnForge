@@ -19,23 +19,23 @@ type UserIdentity struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// 身份提供方
+	// Identity provider
 	Provider useridentity.Provider `json:"provider,omitempty"`
-	// 提供方唯一标识：手机号/邮箱/github_id/openid
+	// Provider-specific unique identifier: phone, email, github_id, openid, etc.
 	ProviderUID string `json:"provider_uid,omitempty"`
-	// 微信/QQ 生态联合 ID
+	// Shared union ID for the WeChat/QQ ecosystem
 	ProviderUnionID *string `json:"provider_union_id,omitempty"`
-	// 可读登录名：username/email
+	// Human-readable login name, such as username or email
 	LoginName *string `json:"login_name,omitempty"`
-	// 本地密码哈希；第三方登录为空
+	// Local password hash; empty for third-party logins
 	CredentialHash string `json:"-"`
-	// 身份验证通过时间
+	// Time when identity verification passed
 	VerifiedAt *time.Time `json:"verified_at,omitempty"`
-	// 身份绑定时间
+	// Time when the identity was linked
 	LinkedAt time.Time `json:"linked_at,omitempty"`
-	// 最近一次使用该身份登录的时间
+	// Most recent time this identity was used to log in
 	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
-	// 扩展元数据（如 OAuth scope、avatar_url 等）
+	// Extended metadata, such as OAuth scopes or avatar_url
 	Meta map[string]interface{} `json:"meta,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserIdentityQuery when eager-loading is set.

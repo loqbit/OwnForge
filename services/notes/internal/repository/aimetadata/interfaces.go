@@ -2,11 +2,11 @@ package aimetadata
 
 import "context"
 
-// Repository 定义 AI 元数据的数据访问接口。
+// Repository defines the AI metadata data access interface.
 type Repository interface {
-	// GetBySnippetID 获取片段的 AI 元数据。如果不存在，应返回明确的错误（对应 NotFound）。
+	// GetBySnippetID returns AI metadata for a snippet. It should return a clear not-found error when absent.
 	GetBySnippetID(ctx context.Context, snippetID int64) (*AIMetadata, error)
 
-	// Upsert 更新或插入 AI 元数据。
+	// Upsert updates or inserts AI metadata.
 	Upsert(ctx context.Context, in UpsertInput) error
 }

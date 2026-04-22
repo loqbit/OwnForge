@@ -11,22 +11,22 @@ import (
 	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
-// UserStore 是 UserRepository 的 Ent 实现。
+// UserStore is the Ent-backed implementation of UserRepository.
 type UserStore struct {
 	client *ent.Client
 	idgen  platformidgen.Client
 }
 
-// NewUserStore 创建一个 UserRepository 实例，直接持有 ent.Client。
+// NewUserStore creates a UserRepository backed directly by ent.Client.
 func NewUserStore(client *ent.Client, idgenClient platformidgen.Client) accountrepo.UserRepository {
 	return &UserStore{client: client, idgen: idgenClient}
 }
 
-// Create 创建一条用户主体记录。
+// Create inserts a user record.
 func (s *UserStore) Create(ctx context.Context, params accountrepo.CreateUserParams) (*accountrepo.User, error) {
 	newID, err := s.idgen.NextID(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("生成 Snowflake ID 失败: %w", err)
+		return nil, fmt.Errorf("failed to generate Snowflake ID: %w", err)
 	}
 	_ = params
 
@@ -42,7 +42,7 @@ func (s *UserStore) Create(ctx context.Context, params accountrepo.CreateUserPar
 	return shared.MapUser(u), nil
 }
 
-// GetByID 按主键查询处于激活状态的用户。
+// GetByID looks up an active user by primary key.
 func (s *UserStore) GetByID(ctx context.Context, id int64) (*accountrepo.User, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -57,7 +57,7 @@ func (s *UserStore) GetByID(ctx context.Context, id int64) (*accountrepo.User, e
 	return shared.MapUser(u), nil
 }
 
-// GetUserVersion 返回用户当前的全局版本号。
+// GetUserVersion returns the user's current global version.
 func (s *UserStore) GetUserVersion(ctx context.Context, id int64) (int64, error) {
 	u, err := s.GetByID(ctx, id)
 	if err != nil {
@@ -66,7 +66,7 @@ func (s *UserStore) GetUserVersion(ctx context.Context, id int64) (int64, error)
 	return u.UserVersion, nil
 }
 
-// BumpUserVersion 将用户的全局版本号递增 1，并返回最新值。
+// BumpUserVersion increments the user's global version by 1 and returns the new value.
 func (s *UserStore) BumpUserVersion(ctx context.Context, id int64) (int64, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 

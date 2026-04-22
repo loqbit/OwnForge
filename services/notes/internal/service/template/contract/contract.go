@@ -1,6 +1,6 @@
 package contract
 
-// CreateTemplateCommand 创建模板的服务层输入参数。
+// CreateTemplateCommand is the service-layer input for creating a template.
 type CreateTemplateCommand struct {
 	Name        string
 	Description string
@@ -9,7 +9,7 @@ type CreateTemplateCommand struct {
 	Category    string
 }
 
-// UpdateTemplateCommand 更新模板的服务层输入参数。
+// UpdateTemplateCommand is the service-layer input for updating a template.
 type UpdateTemplateCommand struct {
 	Name        string
 	Description string
@@ -18,7 +18,7 @@ type UpdateTemplateCommand struct {
 	Category    string
 }
 
-// TemplateResult 服务层输出的模板数据结构。
+// TemplateResult is the template shape returned by the service layer.
 type TemplateResult struct {
 	ID          int64
 	OwnerID     int64

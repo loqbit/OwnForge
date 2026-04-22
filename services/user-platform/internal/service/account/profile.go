@@ -7,25 +7,25 @@ import (
 	"go.uber.org/zap"
 )
 
-// ProfileService 定义了用户资料领域服务的接口。
+// ProfileService defines the domain-service interface for user profile data.
 type ProfileService interface {
 	GetProfile(ctx context.Context, query *GetProfileQuery) (*GetProfileResult, error)
 	UpdateProfile(ctx context.Context, cmd *UpdateProfileCommand) (*UpdateProfileResult, error)
 }
 
-// profileService 是 ProfileService 的默认实现。
+// profileService is the default implementation of ProfileService.
 type profileService struct {
 	profileRepo accountrepo.ProfileRepository
 	logger      *zap.Logger
 }
 
-// ProfileDependencies 描述资料服务所需的依赖集合。
+// ProfileDependencies groups the dependencies required by the profile service.
 type ProfileDependencies struct {
 	ProfileRepo accountrepo.ProfileRepository
 	Logger      *zap.Logger
 }
 
-// NewProfileService 创建一个资料服务实例。
+// NewProfileService creates a profile service instance.
 func NewProfileService(deps ProfileDependencies) ProfileService {
 	return &profileService{
 		profileRepo: deps.ProfileRepo,
@@ -33,7 +33,7 @@ func NewProfileService(deps ProfileDependencies) ProfileService {
 	}
 }
 
-// GetProfile 查询指定用户的资料信息。
+// GetProfile returns profile data for the specified user.
 func (s *profileService) GetProfile(ctx context.Context, query *GetProfileQuery) (*GetProfileResult, error) {
 	p, err := s.profileRepo.EnsureByUserID(ctx, query.UserID)
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *profileService) GetProfile(ctx context.Context, query *GetProfileQuery)
 	}, nil
 }
 
-// UpdateProfile 更新指定用户的资料信息。
+// UpdateProfile updates profile data for the specified user.
 func (s *profileService) UpdateProfile(ctx context.Context, cmd *UpdateProfileCommand) (*UpdateProfileResult, error) {
 	updated, err := s.profileRepo.Update(ctx, cmd.UserID, cmd.Nickname, cmd.AvatarURL, cmd.Bio, cmd.Birthday)
 	if err != nil {

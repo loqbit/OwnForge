@@ -13,17 +13,17 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
 )
 
-// Store 是 tag Repository 的 Ent 实现。
+// Store is the Ent-backed implementation of the tag repository.
 type Store struct {
 	client *ent.Client
 }
 
-// New 创建一个基于 Ent 的 tag Repository。
+// New creates an Ent-backed tag repository.
 func New(client *ent.Client) tagrepo.Repository {
 	return &Store{client: client}
 }
 
-// Create 创建一条 Tag 记录。
+// Create inserts a tag record.
 func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.CreateTagCommand) (*tagrepo.Tag, error) {
 	entity, err := s.client.Tag.Create().
 		SetID(id).
@@ -38,7 +38,7 @@ func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.
 	return mapTag(entity), nil
 }
 
-// GetByID 根据 ID 查询单个 Tag。
+// GetByID looks up a single tag by ID.
 func (s *Store) GetByID(ctx context.Context, id int64) (*tagrepo.Tag, error) {
 	entity, err := s.client.Tag.Get(ctx, id)
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *Store) GetByID(ctx context.Context, id int64) (*tagrepo.Tag, error) {
 	return mapTag(entity), nil
 }
 
-// ListByOwner 按 owner_id 查询用户的所有 Tag，按名称排序。
+// ListByOwner returns all tags for the owner, ordered by name.
 func (s *Store) ListByOwner(ctx context.Context, ownerID int64) ([]tagrepo.Tag, error) {
 	entities, err := s.client.Tag.
 		Query().
@@ -67,7 +67,7 @@ func (s *Store) ListByOwner(ctx context.Context, ownerID int64) ([]tagrepo.Tag, 
 	return results, nil
 }
 
-// ListByIDs 查询当前用户指定 ID 集合中的标签。
+// ListByIDs returns the specified tags owned by the current user.
 func (s *Store) ListByIDs(ctx context.Context, ownerID int64, ids []int64) ([]tagrepo.Tag, error) {
 	if len(ids) == 0 {
 		return []tagrepo.Tag{}, nil
@@ -108,7 +108,7 @@ func (s *Store) ListByIDs(ctx context.Context, ownerID int64, ids []int64) ([]ta
 	return results, nil
 }
 
-// Update 更新指定 Tag，需要校验 ownerID 所有权。
+// Update updates a tag after verifying ownership.
 func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.UpdateTagCommand) (*tagrepo.Tag, error) {
 	entity, err := s.client.Tag.
 		Query().
@@ -133,7 +133,7 @@ func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.
 	return mapTag(updated), nil
 }
 
-// Delete 删除指定 Tag，需要校验 ownerID 所有权。
+// Delete removes a tag after verifying ownership.
 func (s *Store) Delete(ctx context.Context, ownerID, id int64) error {
 	count, err := s.client.Tag.
 		Query().

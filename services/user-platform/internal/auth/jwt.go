@@ -7,13 +7,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// 定义 Token 生命周期的常量
+// Token lifetime constants.
 const (
 	AccessTokenDuration  = 15 * time.Minute
 	RefreshTokenDuration = 7 * 24 * time.Hour
 )
 
-// Claims JWT Claims 载荷
+// Claims is the JWT claims payload.
 type Claims struct {
 	UserID      int64  `json:"user_id"`
 	Username    string `json:"username"`
@@ -21,19 +21,19 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// JWTManager JWT 管理器
+// JWTManager manages JWT operations.
 type JWTManager struct {
 	secret []byte
 }
 
-// NewJWTManager 创建 JWT 管理器
+// NewJWTManager creates a JWT manager.
 func NewJWTManager(secret string) *JWTManager {
 	return &JWTManager{
 		secret: []byte(secret),
 	}
 }
 
-// GenerateAccessToken 生成访问 JWT。
+// GenerateAccessToken issues an access JWT.
 func (j *JWTManager) GenerateAccessToken(userID int64, username string, userVersion int64) (string, error) {
 	claims := Claims{
 		UserID:      userID,
@@ -49,7 +49,7 @@ func (j *JWTManager) GenerateAccessToken(userID int64, username string, userVers
 	return token.SignedString(j.secret)
 }
 
-// VerifyToken 解析并验证 JWT
+// VerifyToken parses and validates a JWT.
 func (j *JWTManager) VerifyToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return j.secret, nil

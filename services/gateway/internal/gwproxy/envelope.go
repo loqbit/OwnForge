@@ -1,5 +1,5 @@
-// Package gwproxy 提供 gRPC-Gateway 与 Gin 网关的集成工具，
-// 包括响应信封包装和 gRPC-Gateway Mux 的初始化。
+// Package gwproxy provides integration helpers for gRPC-Gateway and the Gin gateway,
+// including response envelope wrapping and gRPC-Gateway Mux setup.
 package gwproxy
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/ownforge/ownforge/pkg/errs"
 )
 
-// responseRecorder 拦截 gRPC-Gateway 的 HTTP 响应以便包装为信封格式。
+// responseRecorder intercepts gRPC-Gateway HTTP responses so they can be wrapped in an envelope.
 type responseRecorder struct {
 	http.ResponseWriter
 	body       *bytes.Buffer
@@ -35,12 +35,12 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 	return r.body.Write(b)
 }
 
-// WrapHandler 将 gRPC-Gateway 的 raw proto JSON 输出包装为网关统一信封格式。
+// WrapHandler wraps raw proto JSON output from gRPC-Gateway into the gateway's standard envelope format.
 //
-// 成功响应: {"code": 0, "msg": "success", "data": <proto_json>}
-// 错误响应: {"code": <err_code>, "msg": "<err_msg>", "data": null}
+// successful response: {"code": 0, "msg": "success", "data": <proto_json>}
+// error response: {"code": <err_code>, "msg": "<err_msg>", "data": null}
 //
-// 这保证了迁移对前端完全透明，不需要修改任何 API 调用逻辑。
+// This keeps the migration fully transparent to the frontend, with no API-call changes required.
 func WrapHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rec := &responseRecorder{
@@ -54,15 +54,15 @@ func WrapHandler(h http.Handler) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 
 		if rec.statusCode >= 400 {
-			// 错误路径：解析 gRPC-Gateway 的错误输出并重新包装
+			// Error path: parse the gRPC-Gateway error output and wrap it again.
 			writeErrorEnvelope(w, rec.statusCode, rec.body.Bytes())
 			return
 		}
 
-		// 成功路径：用信封包装原始 proto JSON
+		// success path: wrap the original proto JSON in an envelope
 		rawData := rec.body.Bytes()
 
-		// 处理空响应体（如 DeleteSnippet 等返回少量数据的场景）
+		// Handle empty response bodies, such as DeleteSnippet-like endpoints.
 		if len(rawData) == 0 {
 			rawData = []byte("null")
 		}
@@ -73,29 +73,29 @@ func WrapHandler(h http.Handler) http.Handler {
 	})
 }
 
-// grpcGatewayError 是 gRPC-Gateway 默认的错误 JSON 结构。
+// grpcGatewayError is the default gRPC-Gateway error JSON structure.
 type grpcGatewayError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-// writeErrorEnvelope 将 gRPC-Gateway 的错误响应转换为网关信封格式。
+// writeErrorEnvelope converts a gRPC-Gateway error response into the gateway envelope format.
 func writeErrorEnvelope(w http.ResponseWriter, httpStatus int, body []byte) {
 	var gwErr grpcGatewayError
 	if err := json.Unmarshal(body, &gwErr); err != nil {
-		// 解析失败，生成通用错误
+		// If parsing fails, generate a generic error.
 		w.WriteHeader(httpStatus)
 		w.Write([]byte(fmt.Sprintf(
-			`{"code":%d,"msg":"系统繁忙","data":null}`, errs.ServerErr,
+			`{"code":%d,"msg":"system busy","data":null}`, errs.ServerErr,
 		)))
 		return
 	}
 
-	// 映射 gRPC 错误码到网关业务码
+	// map gRPC status codes to gateway business codes
 	errCode := mapGRPCStatusToCode(gwErr.Code)
 	errMsg := gwErr.Message
 	if errMsg == "" {
-		errMsg = "系统繁忙"
+		errMsg = "system busy"
 	}
 
 	w.WriteHeader(httpStatus)
@@ -104,7 +104,7 @@ func writeErrorEnvelope(w http.ResponseWriter, httpStatus int, body []byte) {
 	)))
 }
 
-// mapGRPCStatusToCode 将 gRPC status code 映射为网关统一的业务错误码。
+// mapGRPCStatusToCode maps a gRPC status code to the gateway's standard business error code.
 func mapGRPCStatusToCode(grpcCode int) int {
 	switch grpcCode {
 	case 3: // InvalidArgument

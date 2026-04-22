@@ -15,15 +15,15 @@ import (
 	"go.uber.org/zap"
 )
 
-// 领域错误定义
+// Domain errors.
 var (
-	ErrIDGeneration   = pkgerrs.NewServerErr(errors.New("生成模板 ID 失败"))
-	ErrForbidden      = pkgerrs.New(pkgerrs.Forbidden, "无权限操作该模板", nil)
-	ErrSystemReadOnly = pkgerrs.New(pkgerrs.Forbidden, "系统模板不可修改或删除", nil)
-	ErrNameRequired   = pkgerrs.NewParamErr("模板名称不能为空", nil)
+	ErrIDGeneration   = pkgerrs.NewServerErr(errors.New("failed to generate template ID"))
+	ErrForbidden      = pkgerrs.New(pkgerrs.Forbidden, "no permission to operate on this template", nil)
+	ErrSystemReadOnly = pkgerrs.New(pkgerrs.Forbidden, "system templates cannot be modified or deleted", nil)
+	ErrNameRequired   = pkgerrs.NewParamErr("template name cannot be empty", nil)
 )
 
-// TemplateService 定义 template 业务接口。
+// TemplateService defines the template service interface.
 type TemplateService interface {
 	Create(ctx context.Context, userID int64, cmd *contract.CreateTemplateCommand) (*contract.TemplateResult, error)
 	List(ctx context.Context, userID int64, category string) ([]contract.TemplateResult, error)
@@ -39,7 +39,7 @@ type templateService struct {
 	logger *zap.Logger
 }
 
-// NewTemplateService 创建 TemplateService 实例。
+// NewTemplateService creates a TemplateService instance.
 func NewTemplateService(repo templaterepo.Repository, idgenClient idgen.Client, logger *zap.Logger) TemplateService {
 	return &templateService{repo: repo, idgen: idgenClient, logger: logger}
 }
@@ -52,7 +52,7 @@ func (s *templateService) Create(ctx context.Context, userID int64, cmd *contrac
 
 	id, err := s.idgen.NextID(ctx)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("生成 template ID 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to generate template ID", zap.Error(err))
 		return nil, ErrIDGeneration
 	}
 
@@ -66,7 +66,7 @@ func (s *templateService) Create(ctx context.Context, userID int64, cmd *contrac
 
 	t, err := s.repo.Create(ctx, id, userID, params)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("创建 template 失败", zap.Int64("id", id), zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to create template", zap.Int64("id", id), zap.Error(err))
 		return nil, err
 	}
 
@@ -76,7 +76,7 @@ func (s *templateService) Create(ctx context.Context, userID int64, cmd *contrac
 func (s *templateService) List(ctx context.Context, userID int64, category string) ([]contract.TemplateResult, error) {
 	list, err := s.repo.List(ctx, userID, category)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("查询模板列表失败", zap.Int64("userID", userID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to query templates", zap.Int64("userID", userID), zap.Error(err))
 		return nil, err
 	}
 
@@ -103,12 +103,12 @@ func (s *templateService) Update(ctx context.Context, userID, id int64, cmd *con
 		return nil, err
 	}
 
-	// 系统模板不可修改
+	// System templates cannot be modified.
 	if current.IsSystem {
 		return nil, ErrSystemReadOnly
 	}
 
-	// 只能修改自己的模板
+	// Only your own templates can be modified.
 	if current.OwnerID != userID {
 		return nil, ErrForbidden
 	}
@@ -128,7 +128,7 @@ func (s *templateService) Update(ctx context.Context, userID, id int64, cmd *con
 
 	t, err := s.repo.Update(ctx, userID, id, params)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("更新 template 失败", zap.Int64("id", id), zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to update template", zap.Int64("id", id), zap.Error(err))
 		return nil, err
 	}
 
@@ -141,25 +141,25 @@ func (s *templateService) Delete(ctx context.Context, userID, id int64) error {
 		return err
 	}
 
-	// 系统模板不可删除
+	// System templates cannot be deleted.
 	if current.IsSystem {
 		return ErrSystemReadOnly
 	}
 
-	// 只能删除自己的模板
+	// Only your own templates can be deleted.
 	if current.OwnerID != userID {
 		return ErrForbidden
 	}
 
 	if err := s.repo.Delete(ctx, userID, id); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("删除 template 失败", zap.Int64("id", id), zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to delete template", zap.Int64("id", id), zap.Error(err))
 		return err
 	}
 
 	return nil
 }
 
-// SeedSystemTemplates 初始化系统预置模板（幂等：已存在则跳过）。
+// SeedSystemTemplates initializes built-in system templates. The operation is idempotent and skips existing entries.
 func (s *templateService) SeedSystemTemplates(ctx context.Context) error {
 	count, err := s.repo.CountSystem(ctx)
 	if err != nil {
@@ -167,11 +167,11 @@ func (s *templateService) SeedSystemTemplates(ctx context.Context) error {
 	}
 
 	if count > 0 {
-		s.logger.Info("系统模板已存在，跳过 seed", zap.Int("count", count))
+		s.logger.Info("system templates already exist, skipping seed", zap.Int("count", count))
 		return nil
 	}
 
-	// 生成 3 个雪花 ID
+	// Generate 3 Snowflake IDs.
 	ids := make([]int64, 3)
 	for i := range ids {
 		id, err := s.idgen.NextID(ctx)
@@ -185,8 +185,8 @@ func (s *templateService) SeedSystemTemplates(ctx context.Context) error {
 		{
 			ID:          ids[0],
 			OwnerID:     0,
-			Name:        "会议记录",
-			Description: "标准会议纪要模板，包含日期、参会人、议题、决议和待办事项。",
+			Name:        "Meeting Notes",
+			Description: "Standard meeting notes template with date, attendees, agenda, decisions, and action items.",
 			Content:     seedMeetingNotes,
 			Language:    "markdown",
 			Category:    "meeting",
@@ -195,8 +195,8 @@ func (s *templateService) SeedSystemTemplates(ctx context.Context) error {
 		{
 			ID:          ids[1],
 			OwnerID:     0,
-			Name:        "技术方案",
-			Description: "技术设计文档模板，适用于新功能设计、架构重构等技术决策。",
+			Name:        "Technical Design",
+			Description: "Technical design document template for new features, architectural refactors, and similar decisions.",
 			Content:     seedTechDesign,
 			Language:    "markdown",
 			Category:    "tech_design",
@@ -205,8 +205,8 @@ func (s *templateService) SeedSystemTemplates(ctx context.Context) error {
 		{
 			ID:          ids[2],
 			OwnerID:     0,
-			Name:        "周报",
-			Description: "周报模板，记录本周进展、下周计划和需要支持的事项。",
+			Name:        "Weekly Report",
+			Description: "Weekly report template for tracking this week's progress, next week's plan, and support needed.",
 			Content:     seedWeeklyReport,
 			Language:    "markdown",
 			Category:    "weekly_report",
@@ -215,11 +215,11 @@ func (s *templateService) SeedSystemTemplates(ctx context.Context) error {
 	}
 
 	if err := s.repo.CreateBatch(ctx, templates); err != nil {
-		s.logger.Error("seed 系统模板失败", zap.Error(err))
+		s.logger.Error("failed to seed system templates", zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("系统模板初始化完成", zap.Int("count", len(templates)))
+	s.logger.Info("system templates initialized", zap.Int("count", len(templates)))
 	return nil
 }
 
@@ -258,134 +258,134 @@ func normalizeCategory(cat string) string {
 	return cat
 }
 
-// ── Seed 模板内容 ──────────────────────────────────────────────
+// Seed template contents
 
-const seedMeetingNotes = `# 会议记录
+const seedMeetingNotes = `# Meeting Notes
 
-## 基本信息
+## Basic Information
 
-- **日期**：YYYY-MM-DD
-- **时间**：HH:MM - HH:MM
-- **地点**：
-- **主持人**：
-- **参会人**：
+- **Date**: YYYY-MM-DD
+- **Time**: HH:MM - HH:MM
+- **Location**:
+- **Facilitator**:
+- **Attendees**:
 
-## 会议议题
+## Agenda
 
 1. 
 2. 
 3. 
 
-## 讨论记录
+## Discussion Notes
 
-### 议题一
-
-- 
-
-### 议题二
+### Topic 1
 
 - 
 
-## 决议
+### Topic 2
+
+- 
+
+## Decisions
 
 - [ ] 
 - [ ] 
 
 ## Action Items
 
-| 序号 | 事项 | 负责人 | 截止日期 | 状态 |
+| No. | Item | Owner | Due Date | Status |
 |------|------|--------|----------|------|
-| 1    |      |        |          | 待完成 |
-| 2    |      |        |          | 待完成 |
+| 1    |      |        |          | Pending |
+| 2    |      |        |          | Pending |
 
-## 下次会议
+## Next Meeting
 
-- **日期**：
-- **议题预告**：
+- **Date**:
+- **Planned Agenda**:
 `
 
-const seedTechDesign = `# 技术方案
+const seedTechDesign = `# Technical Design
 
-## 1. 背景与目标
+## 1. Background and Goals
 
-### 1.1 背景
+### 1.1 Background
 
-描述当前问题或需求的来源。
+Describe the origin of the current problem or requirement.
 
-### 1.2 目标
-
-- 
-- 
-
-### 1.3 非目标
+### 1.2 Goals
 
 - 
+- 
 
-## 2. 方案设计
+### 1.3 Non-goals
 
-### 2.1 整体架构
+- 
 
-描述方案的整体设计思路。
+## 2. Solution Design
 
-### 2.2 详细设计
+### 2.1 Overall Architecture
 
-#### 数据模型
+Describe the overall design approach for the solution.
 
-#### 接口设计
+### 2.2 Detailed Design
 
-#### 核心流程
+#### Data Model
 
-### 2.3 技术选型
+#### Interface Design
 
-| 组件 | 选型 | 理由 |
+#### Core Flow
+
+### 2.3 Technology Choices
+
+| Component | Choice | Reason |
 |------|------|------|
 |      |      |      |
 
-## 3. 里程碑
+## 3. Milestones
 
-| 阶段 | 内容 | 预计时间 |
+| Phase | Scope | Estimated Time |
 |------|------|----------|
 | P0   |      |          |
 | P1   |      |          |
 
-## 4. 风险评估
+## 4. Risk Assessment
 
-| 风险 | 影响 | 缓解措施 |
+| Risk | Impact | Mitigation |
 |------|------|----------|
 |      |      |          |
 
-## 5. 参考资料
+## 5. References
 
 - 
 `
 
-const seedWeeklyReport = `# 周报
+const seedWeeklyReport = `# Weekly Report
 
-**姓名**：
-**周期**：YYYY-MM-DD ~ YYYY-MM-DD
+**Name**:
+**Period**: YYYY-MM-DD ~ YYYY-MM-DD
 
-## 本周完成
-
-- [ ] 
-- [ ] 
-- [ ] 
-
-## 下周计划
+## Completed This Week
 
 - [ ] 
 - [ ] 
+- [ ] 
 
-## 需要协助
+## Plan for Next Week
+
+- [ ] 
+- [ ] 
+
+## Support Needed
 
 - 
 
-## 总结与思考
+## Summary and Reflection
 
-本周主要...
+This week mainly focused on...
 
-## 数据指标（可选）
+## Metrics (Optional)
 
-| 指标 | 上周 | 本周 | 变化 |
+| Metric | Last Week | This Week | Change |
 |------|------|------|------|
 |      |      |      |      |
 `

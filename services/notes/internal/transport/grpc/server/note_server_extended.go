@@ -27,10 +27,10 @@ import (
 )
 
 // =========================================================================
-// 片段扩展能力 (Snippet Extensions)
+// Snippet extensions
 // =========================================================================
 
-// DeleteSnippet 删除指定的代码片段
+// DeleteSnippet removes the specified snippet.
 func (s *NoteServer) DeleteSnippet(ctx context.Context, req *notepb.DeleteSnippetRequest) (*notepb.DeleteSnippetResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *NoteServer) DeleteSnippet(ctx context.Context, req *notepb.DeleteSnippe
 	return &notepb.DeleteSnippetResponse{Id: req.SnippetId}, nil
 }
 
-// RestoreSnippet 将片段从回收站恢复
+// RestoreSnippet restores a snippet from the trash.
 func (s *NoteServer) RestoreSnippet(ctx context.Context, req *notepb.RestoreSnippetRequest) (*notepb.RestoreSnippetResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -58,7 +58,7 @@ func (s *NoteServer) RestoreSnippet(ctx context.Context, req *notepb.RestoreSnip
 	return &notepb.RestoreSnippetResponse{Id: req.SnippetId}, nil
 }
 
-// MoveSnippet 移动片段到目标分组并可选地设置排序权重
+// MoveSnippet moves a snippet to the target group and can optionally set its sort order.
 func (s *NoteServer) MoveSnippet(ctx context.Context, req *notepb.MoveSnippetRequest) (*notepb.SnippetResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -72,14 +72,14 @@ func (s *NoteServer) MoveSnippet(ctx context.Context, req *notepb.MoveSnippetReq
 
 	result, err := s.snippetSvc.Move(ctx, userID, req.SnippetId, cmd)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC MoveSnippet 失败", zap.Int64("snippet_id", req.SnippetId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC MoveSnippet failed", zap.Int64("snippet_id", req.SnippetId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProto(result), nil
 }
 
-// SearchSnippets 根据查询条件搜索代码片段
+// SearchSnippets searches snippets by query criteria.
 func (s *NoteServer) SearchSnippets(ctx context.Context, req *notepb.SearchSnippetsRequest) (*notepb.ListSnippetsResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -106,12 +106,12 @@ func (s *NoteServer) SearchSnippets(ctx context.Context, req *notepb.SearchSnipp
 	}, nil
 }
 
-// GetPublicSnippet — 已废弃，公开访问统一走 Share 短链。
+// GetPublicSnippet is deprecated. Public access now goes through share short links.
 func (s *NoteServer) GetPublicSnippet(ctx context.Context, req *notepb.GetPublicSnippetRequest) (*notepb.SnippetResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "public snippet access has been removed, use share tokens instead")
 }
 
-// FavoriteSnippet 收藏指定的代码片段
+// FavoriteSnippet marks the specified snippet as a favorite.
 func (s *NoteServer) FavoriteSnippet(ctx context.Context, req *notepb.FavoriteSnippetRequest) (*notepb.FavoriteSnippetResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *NoteServer) FavoriteSnippet(ctx context.Context, req *notepb.FavoriteSn
 	return &notepb.FavoriteSnippetResponse{SnippetId: req.SnippetId, Favorite: true}, nil
 }
 
-// UnfavoriteSnippet 取消收藏指定的代码片段
+// UnfavoriteSnippet removes the specified snippet from favorites.
 func (s *NoteServer) UnfavoriteSnippet(ctx context.Context, req *notepb.UnfavoriteSnippetRequest) (*notepb.FavoriteSnippetResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *NoteServer) UnfavoriteSnippet(ctx context.Context, req *notepb.Unfavori
 	return &notepb.FavoriteSnippetResponse{SnippetId: req.SnippetId, Favorite: false}, nil
 }
 
-// CreateSnippetFromTemplate 基于已有模板创建新代码片段
+// CreateSnippetFromTemplate creates a new snippet from an existing template.
 func (s *NoteServer) CreateSnippetFromTemplate(ctx context.Context, req *notepb.CreateSnippetFromTemplateRequest) (*notepb.SnippetResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -172,13 +172,13 @@ func (s *NoteServer) CreateSnippetFromTemplate(ctx context.Context, req *notepb.
 		SourceUserID: &sourceUserID,
 		RelationType: "template",
 	}); err != nil {
-		commonlogger.Ctx(ctx, s.log).Warn("记录模板来源失败", zap.Int64("snippet_id", result.ID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Warn("failed to record template source", zap.Int64("snippet_id", result.ID), zap.Error(err))
 	}
 
 	return toProto(result), nil
 }
 
-// CreateSnippetFromShare 从分享导入到当前用户自己的知识库。
+// CreateSnippetFromShare imports a shared snippet into the current user's library.
 func (s *NoteServer) CreateSnippetFromShare(ctx context.Context, req *notepb.CreateSnippetFromShareRequest) (*notepb.SnippetResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -195,14 +195,14 @@ func (s *NoteServer) CreateSnippetFromShare(ctx context.Context, req *notepb.Cre
 		title = source.Snippet.Title
 	}
 
-	// 文件类型 snippet 需要复制对象存储中的文件，避免共享 key。
+	// File snippets must copy the object in storage to avoid sharing the same key.
 	fileURL := source.Snippet.FileURL
 	if source.Snippet.Type == "file" && fileURL != "" {
 		copiedURL, err := s.uploadSvc.CopyObject(ctx, fileURL, userID)
 		if err != nil {
-			commonlogger.Ctx(ctx, s.log).Warn("fork 文件复制失败，回退为共享 URL",
+			commonlogger.Ctx(ctx, s.log).Warn("fork file copy failed, falling back to shared URL",
 				zap.String("src_url", fileURL), zap.Error(err))
-			// 降级：复制失败仍使用原 URL，不阻断核心流程
+			// Fallback: keep using the original URL if the copy fails so the main flow can continue.
 		} else {
 			fileURL = copiedURL
 		}
@@ -235,12 +235,12 @@ func (s *NoteServer) CreateSnippetFromShare(ctx context.Context, req *notepb.Cre
 		SourceUserID:    &sourceUserID,
 		RelationType:    relationType,
 	}); err != nil {
-		commonlogger.Ctx(ctx, s.log).Warn("记录分享导入来源失败", zap.Int64("snippet_id", result.ID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Warn("failed to record share import source", zap.Int64("snippet_id", result.ID), zap.Error(err))
 	}
 
 	if source.Share.Kind == "template" {
 		if err := s.shareSvc.IncrementForkCount(ctx, source.Share.ID); err != nil {
-			commonlogger.Ctx(ctx, s.log).Warn("递增分享 fork_count 失败", zap.Int64("share_id", source.Share.ID), zap.Error(err))
+			commonlogger.Ctx(ctx, s.log).Warn("failed to increment share fork_count", zap.Int64("share_id", source.Share.ID), zap.Error(err))
 		}
 	}
 
@@ -248,30 +248,30 @@ func (s *NoteServer) CreateSnippetFromShare(ctx context.Context, req *notepb.Cre
 }
 
 // =========================================================================
-// 工作区列表能力 (Workspace Lists)
+// Workspace lists
 // =========================================================================
 
-// ListRecentSnippets 获取用户最近访问的代码片段列表
+// ListRecentSnippets returns the user's recently accessed snippets.
 func (s *NoteServer) ListRecentSnippets(ctx context.Context, req *notepb.ListSnippetsRequest) (*notepb.ListSnippetsResponse, error) {
 	return s.ListSnippets(ctx, req)
 }
 
-// ListSharedSnippets 获取与当前用户共享的代码片段列表
+// ListSharedSnippets returns snippets shared with the current user.
 func (s *NoteServer) ListSharedSnippets(ctx context.Context, req *notepb.ListSnippetsRequest) (*notepb.ListSnippetsResponse, error) {
 	return &notepb.ListSnippetsResponse{Snippets: []*notepb.SnippetResponse{}}, nil
 }
 
-// ListFavoriteSnippets 获取当前用户已经收藏的代码片段列表
+// ListFavoriteSnippets returns snippets already favorited by the current user.
 func (s *NoteServer) ListFavoriteSnippets(ctx context.Context, req *notepb.ListSnippetsRequest) (*notepb.ListSnippetsResponse, error) {
 	req.OnlyFavorites = true
 	return s.ListSnippets(ctx, req)
 }
 
 // =========================================================================
-// 资源管理：分组 (Groups)
+// Resource management: groups
 // =========================================================================
 
-// ListGroups 获取当前用户拥有的所有分组列表
+// ListGroups returns all groups owned by the current user.
 func (s *NoteServer) ListGroups(ctx context.Context, req *notepb.ListGroupsRequest) (*notepb.ListGroupsResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -280,7 +280,7 @@ func (s *NoteServer) ListGroups(ctx context.Context, req *notepb.ListGroupsReque
 
 	results, err := s.groupSvc.List(ctx, userID, nil)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC ListGroups 失败", zap.Int64("user_id", userID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC ListGroups failed", zap.Int64("user_id", userID), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -292,7 +292,7 @@ func (s *NoteServer) ListGroups(ctx context.Context, req *notepb.ListGroupsReque
 	return &notepb.ListGroupsResponse{Groups: groups}, nil
 }
 
-// GetGroup 获取单个分组详情
+// GetGroup returns details for a single group.
 func (s *NoteServer) GetGroup(ctx context.Context, req *notepb.GetGroupRequest) (*notepb.GroupResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -301,14 +301,14 @@ func (s *NoteServer) GetGroup(ctx context.Context, req *notepb.GetGroupRequest) 
 
 	result, err := s.groupSvc.GetByID(ctx, userID, req.GroupId)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC GetGroup 失败", zap.Int64("group_id", req.GroupId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC GetGroup failed", zap.Int64("group_id", req.GroupId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoGroup(result), nil
 }
 
-// CreateGroup 创建一个全新的分组
+// CreateGroup creates a new group.
 func (s *NoteServer) CreateGroup(ctx context.Context, req *notepb.CreateGroupRequest) (*notepb.GroupResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -321,14 +321,14 @@ func (s *NoteServer) CreateGroup(ctx context.Context, req *notepb.CreateGroupReq
 		Description: req.Description,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateGroup 失败", zap.Int64("user_id", userID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateGroup failed", zap.Int64("user_id", userID), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoGroup(result), nil
 }
 
-// UpdateGroup 更新现有分组的信息 (如重命名)
+// UpdateGroup updates an existing group, for example by renaming it.
 func (s *NoteServer) UpdateGroup(ctx context.Context, req *notepb.UpdateGroupRequest) (*notepb.GroupResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -342,14 +342,14 @@ func (s *NoteServer) UpdateGroup(ctx context.Context, req *notepb.UpdateGroupReq
 		SortOrder:   optionalInt32ToInt(req.SortOrder),
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateGroup 失败", zap.Int64("group_id", req.GroupId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateGroup failed", zap.Int64("group_id", req.GroupId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoGroup(result), nil
 }
 
-// DeleteGroup 删除指定的分组
+// DeleteGroup removes the specified group.
 func (s *NoteServer) DeleteGroup(ctx context.Context, req *notepb.DeleteGroupRequest) (*notepb.DeleteGroupResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -357,7 +357,7 @@ func (s *NoteServer) DeleteGroup(ctx context.Context, req *notepb.DeleteGroupReq
 	}
 
 	if err := s.groupSvc.Delete(ctx, userID, req.GroupId); err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC DeleteGroup 失败", zap.Int64("group_id", req.GroupId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC DeleteGroup failed", zap.Int64("group_id", req.GroupId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -365,10 +365,10 @@ func (s *NoteServer) DeleteGroup(ctx context.Context, req *notepb.DeleteGroupReq
 }
 
 // =========================================================================
-// 资源管理：标签 (Tags)
+// Resource management: tags
 // =========================================================================
 
-// ListTags 获取当前用户创建的所有标签
+// ListTags returns all tags created by the current user.
 func (s *NoteServer) ListTags(ctx context.Context, req *notepb.ListTagsRequest) (*notepb.ListTagsResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -377,7 +377,7 @@ func (s *NoteServer) ListTags(ctx context.Context, req *notepb.ListTagsRequest) 
 
 	results, err := s.tagSvc.List(ctx, userID)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC ListTags 失败", zap.Int64("user_id", userID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC ListTags failed", zap.Int64("user_id", userID), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -389,7 +389,7 @@ func (s *NoteServer) ListTags(ctx context.Context, req *notepb.ListTagsRequest) 
 	return &notepb.ListTagsResponse{Tags: tags}, nil
 }
 
-// CreateTag 为某代码片段创建一个新的个人标签
+// CreateTag creates a new personal tag.
 func (s *NoteServer) CreateTag(ctx context.Context, req *notepb.CreateTagRequest) (*notepb.TagResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -401,14 +401,14 @@ func (s *NoteServer) CreateTag(ctx context.Context, req *notepb.CreateTagRequest
 		Color: req.Color,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateTag 失败", zap.Int64("user_id", userID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateTag failed", zap.Int64("user_id", userID), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoTag(result), nil
 }
 
-// UpdateTag 更新标签
+// UpdateTag updates a tag.
 func (s *NoteServer) UpdateTag(ctx context.Context, req *notepb.UpdateTagRequest) (*notepb.TagResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -420,14 +420,14 @@ func (s *NoteServer) UpdateTag(ctx context.Context, req *notepb.UpdateTagRequest
 		Color: req.Color,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateTag 失败", zap.Int64("tag_id", req.TagId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateTag failed", zap.Int64("tag_id", req.TagId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoTag(result), nil
 }
 
-// DeleteTag 删除某一个标签
+// DeleteTag removes a tag.
 func (s *NoteServer) DeleteTag(ctx context.Context, req *notepb.DeleteTagRequest) (*notepb.DeleteTagResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -435,7 +435,7 @@ func (s *NoteServer) DeleteTag(ctx context.Context, req *notepb.DeleteTagRequest
 	}
 
 	if err := s.tagSvc.Delete(ctx, userID, req.TagId); err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC DeleteTag 失败", zap.Int64("tag_id", req.TagId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC DeleteTag failed", zap.Int64("tag_id", req.TagId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -443,10 +443,10 @@ func (s *NoteServer) DeleteTag(ctx context.Context, req *notepb.DeleteTagRequest
 }
 
 // =========================================================================
-// 模板与附件上传 (Templates & Uploads)
+// Templates and attachment uploads
 // =========================================================================
 
-// ListTemplates 获取系统或个人可用的模板列表
+// ListTemplates returns system and personal templates available to the user.
 func (s *NoteServer) ListTemplates(ctx context.Context, req *notepb.ListTemplatesRequest) (*notepb.ListTemplatesResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -455,7 +455,7 @@ func (s *NoteServer) ListTemplates(ctx context.Context, req *notepb.ListTemplate
 
 	results, err := s.templateSvc.List(ctx, userID, req.Category)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC ListTemplates 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC ListTemplates failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -466,11 +466,11 @@ func (s *NoteServer) ListTemplates(ctx context.Context, req *notepb.ListTemplate
 	return &notepb.ListTemplatesResponse{Templates: templates}, nil
 }
 
-// GetTemplate 获取单个模板的内容和详细信息
+// GetTemplate returns the content and details of a single template.
 func (s *NoteServer) GetTemplate(ctx context.Context, req *notepb.GetTemplateRequest) (*notepb.TemplateResponse, error) {
 	id, err := parseTemplateID(req.TemplateId)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "无效的模板 ID")
+		return nil, status.Error(codes.InvalidArgument, "invalid template ID")
 	}
 
 	result, err := s.templateSvc.GetByID(ctx, id)
@@ -481,7 +481,7 @@ func (s *NoteServer) GetTemplate(ctx context.Context, req *notepb.GetTemplateReq
 	return toProtoTemplate(result), nil
 }
 
-// CreateTemplate 创建个人模板
+// CreateTemplate creates a personal template.
 func (s *NoteServer) CreateTemplate(ctx context.Context, req *notepb.CreateTemplateRequest) (*notepb.TemplateResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -496,14 +496,14 @@ func (s *NoteServer) CreateTemplate(ctx context.Context, req *notepb.CreateTempl
 		Category:    req.Category,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateTemplate 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateTemplate failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoTemplate(result), nil
 }
 
-// UpdateTemplate 更新个人模板
+// UpdateTemplate updates a personal template.
 func (s *NoteServer) UpdateTemplate(ctx context.Context, req *notepb.UpdateTemplateRequest) (*notepb.TemplateResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -512,7 +512,7 @@ func (s *NoteServer) UpdateTemplate(ctx context.Context, req *notepb.UpdateTempl
 
 	id, err := parseTemplateID(req.TemplateId)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "无效的模板 ID")
+		return nil, status.Error(codes.InvalidArgument, "invalid template ID")
 	}
 
 	result, err := s.templateSvc.Update(ctx, userID, id, &templatecontract.UpdateTemplateCommand{
@@ -523,14 +523,14 @@ func (s *NoteServer) UpdateTemplate(ctx context.Context, req *notepb.UpdateTempl
 		Category:    req.Category,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateTemplate 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateTemplate failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoTemplate(result), nil
 }
 
-// DeleteTemplate 删除个人模板
+// DeleteTemplate removes a personal template.
 func (s *NoteServer) DeleteTemplate(ctx context.Context, req *notepb.DeleteTemplateRequest) (*notepb.DeleteTemplateResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -539,18 +539,18 @@ func (s *NoteServer) DeleteTemplate(ctx context.Context, req *notepb.DeleteTempl
 
 	id, err := parseTemplateID(req.TemplateId)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "无效的模板 ID")
+		return nil, status.Error(codes.InvalidArgument, "invalid template ID")
 	}
 
 	if err := s.templateSvc.Delete(ctx, userID, id); err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC DeleteTemplate 失败", zap.Int64("id", id), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC DeleteTemplate failed", zap.Int64("id", id), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return &notepb.DeleteTemplateResponse{Id: req.TemplateId}, nil
 }
 
-// CreateShare 创建新的分享链接。
+// CreateShare creates a new share link.
 func (s *NoteServer) CreateShare(ctx context.Context, req *notepb.CreateShareRequest) (*notepb.ShareResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -564,14 +564,14 @@ func (s *NoteServer) CreateShare(ctx context.Context, req *notepb.CreateShareReq
 		ExpiresAt: req.ExpiresAt,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateShare 失败", zap.Int64("snippet_id", req.SnippetId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateShare failed", zap.Int64("snippet_id", req.SnippetId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
 	return toProtoShare(result), nil
 }
 
-// ListMyShares 获取当前用户创建的分享列表。
+// ListMyShares returns shares created by the current user.
 func (s *NoteServer) ListMyShares(ctx context.Context, req *notepb.ListMySharesRequest) (*notepb.ListSharesResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -591,7 +591,7 @@ func (s *NoteServer) ListMyShares(ctx context.Context, req *notepb.ListMySharesR
 	return &notepb.ListSharesResponse{Shares: items}, nil
 }
 
-// DeleteShare 删除分享。
+// DeleteShare removes a share.
 func (s *NoteServer) DeleteShare(ctx context.Context, req *notepb.DeleteShareRequest) (*notepb.DeleteShareResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -605,11 +605,11 @@ func (s *NoteServer) DeleteShare(ctx context.Context, req *notepb.DeleteShareReq
 	return &notepb.DeleteShareResponse{Id: req.ShareId}, nil
 }
 
-// GetPublicShareByToken 匿名读取公开分享。
+// GetPublicShareByToken returns a public share anonymously by token.
 func (s *NoteServer) GetPublicShareByToken(ctx context.Context, req *notepb.GetPublicShareByTokenRequest) (*notepb.PublicShareResponse, error) {
 	result, err := s.shareSvc.GetPublicByToken(ctx, req.Token, req.Password)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Warn("gRPC GetPublicShareByToken 失败", zap.String("token", req.Token), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Warn("gRPC GetPublicShareByToken failed", zap.String("token", req.Token), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -619,7 +619,7 @@ func (s *NoteServer) GetPublicShareByToken(ctx context.Context, req *notepb.GetP
 	}, nil
 }
 
-// PresignUpload 生成浏览器直传 MinIO 的预签名 URL。
+// PresignUpload generates a presigned URL for direct browser uploads to MinIO.
 func (s *NoteServer) PresignUpload(ctx context.Context, req *notepb.PresignUploadRequest) (*notepb.PresignUploadResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -633,7 +633,7 @@ func (s *NoteServer) PresignUpload(ctx context.Context, req *notepb.PresignUploa
 		ContentType: req.MimeType,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC PresignUpload 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC PresignUpload failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -646,7 +646,7 @@ func (s *NoteServer) PresignUpload(ctx context.Context, req *notepb.PresignUploa
 	}, nil
 }
 
-// CompleteUpload 确认浏览器直传已完成。
+// CompleteUpload confirms that a direct browser upload has finished.
 func (s *NoteServer) CompleteUpload(ctx context.Context, req *notepb.CompleteUploadRequest) (*notepb.CompleteUploadResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -662,7 +662,7 @@ func (s *NoteServer) CompleteUpload(ctx context.Context, req *notepb.CompleteUpl
 		SnippetID:   req.SnippetId,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC CompleteUpload 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC CompleteUpload failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -676,7 +676,7 @@ func (s *NoteServer) CompleteUpload(ctx context.Context, req *notepb.CompleteUpl
 	}, nil
 }
 
-// UploadFile 基于 gRPC 实现的文件字节流上传入口。
+// UploadFile uploads file bytes over gRPC.
 func (s *NoteServer) UploadFile(ctx context.Context, req *notepb.UploadFileRequest) (*notepb.UploadFileResponse, error) {
 	userID, err := interceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -693,7 +693,7 @@ func (s *NoteServer) UploadFile(ctx context.Context, req *notepb.UploadFileReque
 
 	result, err := s.uploadSvc.Upload(ctx, cmd, bytes.NewReader(req.FileData))
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC UploadFile 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC UploadFile failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -749,7 +749,7 @@ func (s *NoteServer) GetSnippetAIMetadata(ctx context.Context, req *notepb.GetSn
 	}
 
 	if md.OwnerID != userID {
-		return nil, status.Error(codes.PermissionDenied, "无权访问该片段的 AI 数据")
+		return nil, status.Error(codes.PermissionDenied, "no permission to access AI data for this snippet")
 	}
 
 	todos := make([]*notepb.AITodoItem, 0, len(md.ExtractedTodos))

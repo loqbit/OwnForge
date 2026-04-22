@@ -13,10 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
-// GinLogger 返回一个记录 HTTP 请求信息的 Gin 中间件
+// GinLogger returns a Gin middleware that logs HTTP request details.
 func GinLogger(log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 将 logger 存储到 context 中，供 response.Error 使用
+		// Store the logger in the context so response.Error can reuse it.
 		c.Set("logger", log)
 
 		start := time.Now()
@@ -30,7 +30,7 @@ func GinLogger(log *zap.Logger) gin.HandlerFunc {
 
 		if len(c.Errors) > 0 {
 			for _, e := range c.Errors {
-				log.Error("请求错误",
+				log.Error("request error",
 					zap.Int("status", status),
 					zap.String("method", c.Request.Method),
 					zap.String("path", path),
@@ -42,7 +42,7 @@ func GinLogger(log *zap.Logger) gin.HandlerFunc {
 				)
 			}
 		} else {
-			log.Info("请求",
+			log.Info("request",
 				zap.Int("status", status),
 				zap.String("method", c.Request.Method),
 				zap.String("path", path),
@@ -54,7 +54,7 @@ func GinLogger(log *zap.Logger) gin.HandlerFunc {
 	}
 }
 
-// GinRecovery recover 掉项目可能出现的 panic，并使用 zap 记录相关日志
+// GinRecovery recovers from panics and records the details with zap.
 func GinRecovery(log *zap.Logger, stack bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {

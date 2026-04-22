@@ -70,14 +70,14 @@ func writeErrorEnvelope(w http.ResponseWriter, httpStatus int, body []byte) {
 	var gwErr grpcGatewayError
 	if err := json.Unmarshal(body, &gwErr); err != nil {
 		w.WriteHeader(httpStatus)
-		_, _ = w.Write([]byte(fmt.Sprintf(`{"code":%d,"msg":"系统繁忙","data":null}`, errs.ServerErr)))
+		_, _ = w.Write([]byte(fmt.Sprintf(`{"code":%d,"msg":"system busy","data":null}`, errs.ServerErr)))
 		return
 	}
 
 	errCode := mapGRPCStatusToCode(gwErr.Code)
 	errMsg := gwErr.Message
 	if errMsg == "" {
-		errMsg = "系统繁忙"
+		errMsg = "system busy"
 	}
 
 	w.WriteHeader(httpStatus)

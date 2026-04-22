@@ -7,7 +7,7 @@ import (
 	sharedrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/shared"
 )
 
-// ConvertToCustomError 将领域层和存储层错误转换为面向 HTTP 的业务错误。
+// ConvertToCustomError converts domain or storage errors into HTTP-facing business errors.
 func ConvertToCustomError(err error) *pkgerrs.CustomError {
 	if err == nil {
 		return nil
@@ -20,23 +20,23 @@ func ConvertToCustomError(err error) *pkgerrs.CustomError {
 
 	switch {
 	case errors.Is(err, sharedrepo.ErrUsernameDuplicate):
-		return pkgerrs.NewParamErr("用户名已存在", err)
+		return pkgerrs.NewParamErr("username already exists", err)
 	case errors.Is(err, sharedrepo.ErrEmailDuplicate):
-		return pkgerrs.NewParamErr("邮箱已存在", err)
+		return pkgerrs.NewParamErr("email already exists", err)
 	case errors.Is(err, sharedrepo.ErrDuplicateKey):
-		return pkgerrs.NewParamErr("记录已存在", err)
+		return pkgerrs.NewParamErr("record already exists", err)
 	case errors.Is(err, sharedrepo.ErrNoRows):
-		return pkgerrs.New(pkgerrs.NotFound, "记录不存在", err)
+		return pkgerrs.New(pkgerrs.NotFound, "record not found", err)
 	case errors.Is(err, sharedrepo.ErrForeignKey):
-		return pkgerrs.NewParamErr("关联记录不存在", err)
+		return pkgerrs.NewParamErr("related record not found", err)
 	case errors.Is(err, sharedrepo.ErrCheckViolation):
-		return pkgerrs.NewParamErr("数据校验失败", err)
+		return pkgerrs.NewParamErr("data validation failed", err)
 	case errors.Is(err, sharedrepo.ErrNotNullViolation):
-		return pkgerrs.NewParamErr("必填字段缺失", err)
+		return pkgerrs.NewParamErr("required field missing", err)
 	case errors.Is(err, sharedrepo.ErrInvalidData):
-		return pkgerrs.NewParamErr("数据格式错误", err)
+		return pkgerrs.NewParamErr("invalid data format", err)
 	case errors.Is(err, sharedrepo.ErrConnection):
-		return pkgerrs.New(pkgerrs.ServerErr, "数据库连接失败，请稍后重试", err)
+		return pkgerrs.New(pkgerrs.ServerErr, "database connection failed, please try again later", err)
 	}
 
 	return pkgerrs.NewServerErr(err)

@@ -13,7 +13,7 @@ import (
 	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/handler"
 )
 
-// Container 承载应用运行所需的核心服务与传输层适配器。
+// Container holds the core services and transport adapters required to run the application.
 type Container struct {
 	UserService    accountservice.UserService
 	ProfileService accountservice.ProfileService

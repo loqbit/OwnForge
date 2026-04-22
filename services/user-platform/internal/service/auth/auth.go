@@ -28,11 +28,11 @@ import (
 )
 
 var (
-	ErrInvalidCredentials   = pkgerrs.NewParamErr("用户名或密码错误", nil)
-	ErrTokenGeneration      = pkgerrs.NewServerErr(errors.New("生成 Token 失败"))
-	ErrAccountAbnormal      = pkgerrs.New(pkgerrs.Forbidden, "账号异常或已被封禁", nil)
-	ErrAppNotFound          = pkgerrs.NewParamErr("应用不存在", nil)
-	ErrTooManyLoginAttempts = pkgerrs.NewParamErr("尝试登录次数过多，请15分钟后再试", nil)
+	ErrInvalidCredentials   = pkgerrs.NewParamErr("invalid username or password", nil)
+	ErrTokenGeneration      = pkgerrs.NewServerErr(errors.New("failed to generate token"))
+	ErrAccountAbnormal      = pkgerrs.New(pkgerrs.Forbidden, "account is abnormal or banned", nil)
+	ErrAppNotFound          = pkgerrs.NewParamErr("application not found", nil)
+	ErrTooManyLoginAttempts = pkgerrs.NewParamErr("too many login attempts, please try again in 15 minutes", nil)
 )
 
 type AuthService interface {
@@ -66,7 +66,7 @@ type authService struct {
 	topicUserRegistered string
 }
 
-// AuthDependencies 描述认证服务所需的依赖集合。
+// AuthDependencies groups the dependencies required by the auth service.
 type AuthDependencies struct {
 	TM                  infrarepo.TransactionManager
 	UserRepo            accountrepo.UserRepository
@@ -86,7 +86,7 @@ type AuthDependencies struct {
 	TopicUserRegistered string
 }
 
-// NewAuthService 创建认证服务。
+// NewAuthService creates the auth service.
 func NewAuthService(deps AuthDependencies) AuthService {
 	return &authService{
 		tm:                  deps.TM,
@@ -110,26 +110,26 @@ func NewAuthService(deps AuthDependencies) AuthService {
 }
 
 func (s *authService) Login(ctx context.Context, req *LoginCommand) (*LoginResult, error) {
-	// 限制同一个 Username 的高频尝试
+	// Limit repeated login attempts for the same username.
 	limiterKey := fmt.Sprintf("rl:login:user:%s", req.Username)
-	if err := s.limiter.Allow(ctx, limiterKey, 5, 15*60*1000000000); err != nil { // 15分钟(纳秒)
+	if err := s.limiter.Allow(ctx, limiterKey, 5, 15*60*1000000000); err != nil { // 15 minutes (nanoseconds)
 		if errors.Is(err, ratelimiter.ErrRateLimitExceeded) {
-			commonlogger.Ctx(ctx, s.logger).Warn("防止暴力破解, 账号登录被限流", zap.String("username", req.Username))
+			commonlogger.Ctx(ctx, s.logger).Warn("rate-limited account login to prevent brute-force attacks", zap.String("username", req.Username))
 			return nil, ErrTooManyLoginAttempts
 		}
-		return nil, fmt.Errorf("限流器验证失败: %w", err)
+		return nil, fmt.Errorf("rate limiter check failed: %w", err)
 	}
 
-	// 1. 解析登录身份并获取用户
+	// 1. Resolve the login identity and load the user.
 	user, identity, err := s.resolvePasswordLogin(ctx, req.Username)
 	if err != nil {
 		if sharedrepo.IsNotFoundError(err) {
 			return nil, ErrInvalidCredentials
 		}
-		return nil, fmt.Errorf("查询用户失败: %w", err)
+		return nil, fmt.Errorf("failed to query user: %w", err)
 	}
 
-	// 2. 比较密码
+	// 2. Compare the password.
 	passwordHash := ""
 	if identity != nil && identity.CredentialHash != nil && strings.TrimSpace(*identity.CredentialHash) != "" {
 		passwordHash = strings.TrimSpace(*identity.CredentialHash)
@@ -140,7 +140,7 @@ func (s *authService) Login(ctx context.Context, req *LoginCommand) (*LoginResul
 
 	if identity != nil {
 		if err := s.identityRepo.TouchLogin(ctx, identity.ID, time.Now()); err != nil {
-			return nil, fmt.Errorf("更新登录身份最近登录时间失败: %w", err)
+			return nil, fmt.Errorf("failed to update identity last-login time: %w", err)
 		}
 	}
 
@@ -148,12 +148,12 @@ func (s *authService) Login(ctx context.Context, req *LoginCommand) (*LoginResul
 		if errors.Is(err, sharedrepo.ErrNoRows) {
 			return nil, ErrAppNotFound
 		}
-		return nil, fmt.Errorf("应用授权处理失败 (uid:%d, app_code:%s): %w", user.ID, req.AppCode, err)
+		return nil, fmt.Errorf("failed to process application authorization (uid:%d, app_code:%s): %w", user.ID, req.AppCode, err)
 	}
-	// 4. 签发双 Token
+	// 4. Issue the access and refresh tokens.
 	view, err := s.loadIdentityView(ctx, user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("加载用户身份视图失败: %w", err)
+		return nil, fmt.Errorf("failed to load user identity view: %w", err)
 	}
 
 	result, err := s.issueTokens(ctx, user.ID, view.Username, user.UserVersion, req.AppCode, req.DeviceID)
@@ -164,7 +164,7 @@ func (s *authService) Login(ctx context.Context, req *LoginCommand) (*LoginResul
 	ssoToken, err := s.persistLoginSessions(ctx, user.ID, user.UserVersion, req.AppCode, req.DeviceID, result.RefreshToken, identityIDPtr(identity))
 	if err != nil {
 		s.cleanupIssuedRefreshToken(ctx, user.ID, req.AppCode, req.DeviceID, result.RefreshToken)
-		return nil, fmt.Errorf("创建应用会话失败: %w", err)
+		return nil, fmt.Errorf("failed to create app session: %w", err)
 	}
 	result.SSOToken = ssoToken
 
@@ -174,14 +174,14 @@ func (s *authService) Login(ctx context.Context, req *LoginCommand) (*LoginResul
 func (s *authService) VerifyToken(ctx context.Context, req *VerifyTokenCommand) (*VerifyTokenResult, error) {
 	claims, err := s.jwtManager.VerifyToken(req.Token)
 	if err != nil {
-		return nil, pkgerrs.New(pkgerrs.Unauthorized, "无效的访问凭证或已过期", err)
+		return nil, pkgerrs.New(pkgerrs.Unauthorized, "invalid or expired access token", err)
 	}
 	currentVersion, err := s.repo.GetUserVersion(ctx, claims.UserID)
 	if err != nil {
-		return nil, pkgerrs.New(pkgerrs.Unauthorized, "无效的访问凭证或已过期", err)
+		return nil, pkgerrs.New(pkgerrs.Unauthorized, "invalid or expired access token", err)
 	}
 	if err := validateUserVersion(currentVersion, claims.UserVersion); err != nil {
-		return nil, pkgerrs.New(pkgerrs.Unauthorized, "无效的访问凭证或已过期", err)
+		return nil, pkgerrs.New(pkgerrs.Unauthorized, "invalid or expired access token", err)
 	}
 	return &VerifyTokenResult{
 		UserID:   claims.UserID,
@@ -190,7 +190,7 @@ func (s *authService) VerifyToken(ctx context.Context, req *VerifyTokenCommand) 
 }
 
 func (s *authService) RefreshToken(ctx context.Context, req *RefreshTokenCommand) (*RefreshTokenResult, error) {
-	// 先查 Redis 极速通道（是否有 grace period 保护）
+	// Check the fast Redis path first to see whether grace-period protection applies.
 	if result, found := s.session.CheckGracePeriod(ctx, req.Token); found {
 		return &RefreshTokenResult{
 			AccessToken:  result.AccessToken,
@@ -198,7 +198,7 @@ func (s *authService) RefreshToken(ctx context.Context, req *RefreshTokenCommand
 		}, nil
 	}
 
-	// 使用 Singleflight 避免同一台机器上的重复击穿
+	// Use singleflight to avoid duplicate cache misses on the same machine.
 	v, err, _ := s.requestGroup.Do(req.Token, func() (interface{}, error) {
 		lockKey := fmt.Sprintf("lock:refresh:%s", req.Token)
 
@@ -222,7 +222,7 @@ func (s *authService) RefreshToken(ctx context.Context, req *RefreshTokenCommand
 			}
 			user, err := s.repo.GetByID(ctx, record.UserID)
 			if err != nil {
-				return nil, fmt.Errorf("试图刷新Token但用户(uid:%d)不存在: %w", record.UserID, ErrAccountAbnormal)
+				return nil, fmt.Errorf("attempted to refresh token but user(uid:%d) does not exist: %w", record.UserID, ErrAccountAbnormal)
 			}
 			if err := validateUserVersion(user.UserVersion, record.UserVersion); err != nil {
 				return nil, err
@@ -238,7 +238,7 @@ func (s *authService) RefreshToken(ctx context.Context, req *RefreshTokenCommand
 
 			view, err := s.loadIdentityView(ctx, user.ID)
 			if err != nil {
-				return nil, fmt.Errorf("加载用户身份视图失败: %w", err)
+				return nil, fmt.Errorf("failed to load user identity view: %w", err)
 			}
 
 			result, err := s.issueTokens(ctx, user.ID, view.Username, user.UserVersion, record.AppCode, deviceID)
@@ -274,7 +274,7 @@ func (s *authService) RefreshToken(ctx context.Context, req *RefreshTokenCommand
 			}, 15*time.Second)
 			return res, nil
 		}
-		// 锁被占用
+		// Lock already held.
 		time.Sleep(200 * time.Millisecond)
 		if graceRes, ok := s.session.CheckGracePeriod(ctx, req.Token); ok {
 			return &RefreshTokenResult{
@@ -290,7 +290,7 @@ func (s *authService) RefreshToken(ctx context.Context, req *RefreshTokenCommand
 	return v.(*RefreshTokenResult), nil
 }
 
-// ExchangeSSO 使用浏览器携带的 SSO Cookie 为当前应用换取新的双 Token。
+// ExchangeSSO exchanges the browser-carried SSO cookie for a new token pair for the current app.
 func (s *authService) ExchangeSSO(ctx context.Context, req *ExchangeSSOCommand) (*LoginResult, error) {
 	if strings.TrimSpace(req.SSOToken) == "" {
 		return nil, sharedrepo.ErrInvalidOrExpiredToken
@@ -305,7 +305,7 @@ func (s *authService) ExchangeSSO(ctx context.Context, req *ExchangeSSOCommand) 
 	}
 	user, err := s.repo.GetByID(ctx, ssoRecord.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("试图通过 SSO 换取应用会话但用户(uid:%d)不存在: %w", ssoRecord.UserID, ErrAccountAbnormal)
+		return nil, fmt.Errorf("attempted to exchange SSO for an app session but user(uid:%d) does not exist: %w", ssoRecord.UserID, ErrAccountAbnormal)
 	}
 	if err := validateUserVersion(user.UserVersion, ssoRecord.UserVersion); err != nil {
 		return nil, err
@@ -315,12 +315,12 @@ func (s *authService) ExchangeSSO(ctx context.Context, req *ExchangeSSOCommand) 
 		if errors.Is(err, sharedrepo.ErrNoRows) {
 			return nil, ErrAppNotFound
 		}
-		return nil, fmt.Errorf("应用授权处理失败 (uid:%d, app_code:%s): %w", user.ID, req.AppCode, err)
+		return nil, fmt.Errorf("failed to process application authorization (uid:%d, app_code:%s): %w", user.ID, req.AppCode, err)
 	}
 
 	view, err := s.loadIdentityView(ctx, user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("加载用户身份视图失败: %w", err)
+		return nil, fmt.Errorf("failed to load user identity view: %w", err)
 	}
 
 	result, err := s.issueTokens(ctx, user.ID, view.Username, user.UserVersion, req.AppCode, req.DeviceID)
@@ -330,7 +330,7 @@ func (s *authService) ExchangeSSO(ctx context.Context, req *ExchangeSSOCommand) 
 
 	if err := s.persistAppSessionFromSSO(ctx, user.ID, user.UserVersion, ssoRecord.ID, req.AppCode, req.DeviceID, result.RefreshToken, ssoRecord.IdentityID); err != nil {
 		s.cleanupIssuedRefreshToken(ctx, user.ID, req.AppCode, req.DeviceID, result.RefreshToken)
-		return nil, fmt.Errorf("创建应用会话失败: %w", err)
+		return nil, fmt.Errorf("failed to create app session: %w", err)
 	}
 	if err := s.ssoSessionRepo.Touch(ctx, ssoRecord.ID, time.Now()); err != nil {
 		s.cleanupIssuedRefreshToken(ctx, user.ID, req.AppCode, req.DeviceID, result.RefreshToken)
@@ -340,18 +340,18 @@ func (s *authService) ExchangeSSO(ctx context.Context, req *ExchangeSSOCommand) 
 	return result, nil
 }
 
-// issueTokens 统一处理双 Token 的签发与 Redis 设备级存储。
+// issueTokens centralizes token-pair issuance and device-level Redis storage.
 func (s *authService) issueTokens(ctx context.Context, userID int64, username string, userVersion int64, appCode string, deviceID string) (*LoginResult, error) {
 	accessToken, err := s.jwtManager.GenerateAccessToken(userID, username, userVersion)
 	if err != nil {
-		return nil, fmt.Errorf("生成 Access Token 失败 (uid:%d, cause:%v): %w", userID, err, ErrTokenGeneration)
+		return nil, fmt.Errorf("failed to generate access token (uid:%d, cause:%v): %w", userID, err, ErrTokenGeneration)
 	}
 
 	refreshToken := uuid.New().String()
 
 	err = s.session.SaveDeviceSession(ctx, userID, appCode, deviceID, refreshToken, auth.RefreshTokenDuration)
 	if err != nil {
-		return nil, fmt.Errorf("存储 Session 失败 (uid:%d): %w", userID, err)
+		return nil, fmt.Errorf("failed to store session (uid:%d): %w", userID, err)
 	}
 
 	return &LoginResult{
@@ -362,7 +362,7 @@ func (s *authService) issueTokens(ctx context.Context, userID int64, username st
 	}, nil
 }
 
-// resolvePasswordLogin 按身份表解析用户名密码登录。
+// resolvePasswordLogin resolves username-and-password login through the identity table.
 func (s *authService) resolvePasswordLogin(ctx context.Context, login string) (*accountrepo.User, *accountrepo.UserIdentity, error) {
 	login = strings.TrimSpace(login)
 	provider := detectLoginProvider(login)
@@ -378,7 +378,7 @@ func (s *authService) resolvePasswordLogin(ctx context.Context, login string) (*
 	return user, identity, nil
 }
 
-// ensureAppAuthorization 维护用户在指定应用下的授权关系。
+// ensureAppAuthorization maintains the user's authorization relationship for the specified app.
 func (s *authService) ensureAppAuthorization(ctx context.Context, userID int64, appCode string, identityID *int) error {
 	authz, err := s.authzRepo.Ensure(ctx, applicationrepo.EnsureUserAppAuthorizationParams{
 		UserID:           userID,
@@ -396,7 +396,7 @@ func (s *authService) ensureAppAuthorization(ctx context.Context, userID int64, 
 	return nil
 }
 
-// persistLoginSessions 在签发 refresh token 后补建全局登录态和应用会话。
+// persistLoginSessions creates the global SSO session and app session after issuing the refresh token.
 func (s *authService) persistLoginSessions(ctx context.Context, userID int64, userVersion int64, appCode string, deviceID string, refreshToken string, identityID *int) (string, error) {
 	var deviceIDPtr *string
 	if strings.TrimSpace(deviceID) != "" {
@@ -435,7 +435,7 @@ func (s *authService) persistLoginSessions(ctx context.Context, userID int64, us
 	return ssoSeed, nil
 }
 
-// persistAppSessionFromSSO 为已存在的全局登录态补建应用会话。
+// persistAppSessionFromSSO creates an app session for an existing global SSO session.
 func (s *authService) persistAppSessionFromSSO(ctx context.Context, userID int64, userVersion int64, ssoSessionID uuid.UUID, appCode string, deviceID string, refreshToken string, identityID *int) error {
 	var deviceIDPtr *string
 	if strings.TrimSpace(deviceID) != "" {
@@ -455,7 +455,7 @@ func (s *authService) persistAppSessionFromSSO(ctx context.Context, userID int64
 	return err
 }
 
-// validateActiveAppSession 校验应用会话是否仍可用于 refresh。
+// validateActiveAppSession checks whether the app session is still valid for refresh.
 func validateActiveAppSession(record *sessionrepo.SessionRecord) error {
 	if record == nil {
 		return sharedrepo.ErrInvalidOrExpiredToken
@@ -469,7 +469,7 @@ func validateActiveAppSession(record *sessionrepo.SessionRecord) error {
 	return nil
 }
 
-// validateActiveSsoSession 校验全局登录态是否仍然有效。
+// validateActiveSsoSession checks whether the global SSO session is still valid.
 func validateActiveSsoSession(record *sessionrepo.SsoSession) error {
 	if record == nil {
 		return sharedrepo.ErrInvalidOrExpiredToken
@@ -483,7 +483,7 @@ func validateActiveSsoSession(record *sessionrepo.SsoSession) error {
 	return nil
 }
 
-// validateUserVersion 校验当前用户版本和会话快照是否一致。
+// validateUserVersion checks whether the current user version matches the session snapshot.
 func validateUserVersion(current int64, snapshot int64) error {
 	if current != snapshot {
 		return sharedrepo.ErrInvalidOrExpiredToken
@@ -491,7 +491,7 @@ func validateUserVersion(current int64, snapshot int64) error {
 	return nil
 }
 
-// detectLoginProvider 基于输入内容推断登录身份提供方。
+// detectLoginProvider infers the login identity provider from the input.
 func detectLoginProvider(login string) string {
 	if strings.Contains(login, "@") {
 		return "email"
@@ -502,7 +502,7 @@ func detectLoginProvider(login string) string {
 	return "username"
 }
 
-// looksLikePhone 用极轻量规则识别手机号风格输入，避免干扰用户名登录。
+// looksLikePhone uses a very lightweight rule set to detect phone-like input without interfering with username login.
 func looksLikePhone(login string) bool {
 	if len(login) < 6 || len(login) > 20 {
 		return false
@@ -515,13 +515,13 @@ func looksLikePhone(login string) bool {
 	return true
 }
 
-// hashToken 对敏感 token 做单向哈希后再落库。
+// hashToken applies a one-way hash to sensitive tokens before storing them.
 func hashToken(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
 }
 
-// identityIDPtr 提取身份主键，方便传给授权和会话层。
+// identityIDPtr extracts the identity primary key for passing into authorization and session layers.
 func identityIDPtr(identity *accountrepo.UserIdentity) *int {
 	if identity == nil {
 		return nil
@@ -529,7 +529,7 @@ func identityIDPtr(identity *accountrepo.UserIdentity) *int {
 	return &identity.ID
 }
 
-// loadIdentityView 加载用户身份并聚合出登录展示信息。
+// loadIdentityView loads user identities and aggregates the login display information.
 func (s *authService) loadIdentityView(ctx context.Context, userID int64) (accountservice.IdentityView, error) {
 	identities, err := s.identityRepo.ListByUserID(ctx, userID)
 	if err != nil {
@@ -538,7 +538,7 @@ func (s *authService) loadIdentityView(ctx context.Context, userID int64) (accou
 	return accountservice.BuildIdentityView(userID, identities), nil
 }
 
-// validateParentSsoSession 校验应用会话挂载的全局登录态是否有效。
+// validateParentSsoSession checks whether the global SSO session attached to the app session is valid.
 func (s *authService) validateParentSsoSession(ctx context.Context, currentUserVersion int64, record *sessionrepo.SessionRecord) error {
 	if record == nil || record.SsoSessionID == nil {
 		return nil
@@ -553,16 +553,16 @@ func (s *authService) validateParentSsoSession(ctx context.Context, currentUserV
 	return validateUserVersion(currentUserVersion, ssoRecord.UserVersion)
 }
 
-// cleanupIssuedRefreshToken 在持久化失败时尽量回收已写入 Redis 的 refresh token。
+// cleanupIssuedRefreshToken best-effort cleans up the refresh token already written to Redis when persistence fails.
 func (s *authService) cleanupIssuedRefreshToken(ctx context.Context, userID int64, appCode string, deviceID string, refreshToken string) {
 	if refreshToken == "" {
 		return
 	}
 	if err := s.session.DeleteTokenIndex(ctx, refreshToken); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Warn("清理 refresh token 索引失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Warn("failed to clean up refresh-token index", zap.Error(err))
 	}
 	if _, err := s.session.DeleteAppSession(ctx, userID, appCode, deviceID); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Warn("清理设备会话缓存失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Warn("failed to clean up device session cache", zap.Error(err))
 	}
 }
 
@@ -570,25 +570,25 @@ func timePtr(t time.Time) *time.Time {
 	return &t
 }
 
-// Logout 登出功能：只删除特定设备的 Session 信息，不影响当前用户的其他设备。
+// Logout signs out only the specified device session and does not affect the user's other devices.
 func (s *authService) Logout(ctx context.Context, req *LogoutCommand) error {
 	oldToken, err := s.session.DeleteAppSession(ctx, req.UserID, req.AppCode, req.DeviceID)
 	if err != nil {
-		return fmt.Errorf("注销设备失败: %w", err)
+		return fmt.Errorf("failed to log out device: %w", err)
 	}
 	if oldToken != "" {
 		s.session.DeleteTokenIndex(ctx, oldToken)
 		record, getErr := s.appSessionRepo.GetByTokenHash(ctx, hashToken(oldToken))
 		if getErr == nil {
 			if err := s.appSessionRepo.Revoke(ctx, record.ID, time.Now()); err != nil {
-				return fmt.Errorf("撤销应用会话失败: %w", err)
+				return fmt.Errorf("failed to revoke app sessions: %w", err)
 			}
 		} else if !sharedrepo.IsNotFoundError(getErr) {
-			return fmt.Errorf("查询应用会话失败: %w", getErr)
+			return fmt.Errorf("failed to query app sessions: %w", getErr)
 		}
 	}
 
-	commonlogger.Ctx(ctx, s.logger).Info("用户退出应用设备",
+	commonlogger.Ctx(ctx, s.logger).Info("user logged out from app device",
 		zap.Int64("user_id", req.UserID),
 		zap.String("app_code", req.AppCode),
 		zap.String("device_id", req.DeviceID),

@@ -28,58 +28,58 @@ func (s *server) NextID(ctx context.Context, in *pb.NextIDRequest) (*pb.NextIDRe
 	if err != nil {
 		return nil, err
 	}
-	// 发号器为极度高频接口，这里为保证性能不打印每条请求的日志
+	// The ID generator is an extremely high-frequency endpoint, so it does not log every request for performance reasons.
 	return &pb.NextIDResponse{Id: id}, nil
 }
 
 func main() {
-	// 1. 初始化结构化日志
+	// 1. initialize structured logging
 	logg := logger.NewLogger("id-generator")
 	defer logg.Sync()
 
-	// 2. 加载 Viper 设置
+	// 2. load Viper settings
 	cfg := config.LoadConfig()
 
-	// 3. 初始化雪花算法节点
+	// 3. initialize the Snowflake node
 	if err := idgen.Init(cfg.Snowflake.NodeID); err != nil {
-		logg.Fatal("初始化雪花算法失败", zap.Error(err), zap.Int64("node_id", cfg.Snowflake.NodeID))
+		logg.Fatal("failed to initialize Snowflake", zap.Error(err), zap.Int64("node_id", cfg.Snowflake.NodeID))
 	}
 
-	// 4. 监听端口
+	// 4. listen on the port
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		logg.Fatal("无法建立监听端口", zap.Error(err), zap.String("addr", addr))
+		logg.Fatal("failed to bind listening port", zap.Error(err), zap.String("addr", addr))
 	}
 
-	// 5. 组装并注册 gRPC
+	// 5. assemble and register gRPC
 	s := grpc.NewServer()
 	pb.RegisterIDGeneratorServer(s, &server{log: logg})
 	reflection.Register(s)
 
-	// 6. 异步启动与优雅停机
+	// 6. start asynchronously and shut down gracefully
 	go func() {
-		logg.Info("ID Generator 服务已启动",
+		logg.Info("ID Generator service started",
 			zap.Int("port", cfg.Server.Port),
 			zap.Int64("node_id", cfg.Snowflake.NodeID),
 		)
 		if err := s.Serve(lis); err != nil {
-			logg.Fatal("发号器服务异常终止", zap.Error(err))
+			logg.Fatal("ID generator service terminated unexpectedly", zap.Error(err))
 		}
 	}()
 
-	// 7. 探针管理端口：/healthz, /readyz, /metrics
+	// 7. probe admin port: /healthz, /readyz, /metrics
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	probeShutdown := probe.Serve(ctx, ":9096", logg)
 	defer probeShutdown()
 
-	// 拦截终止信号实现优雅停机
+	// intercept termination signals to implement graceful shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 
-	logg.Info("收到进程终止信号，开始优雅停机...")
+	logg.Info("received process termination signal, starting graceful shutdown...")
 	s.GracefulStop()
-	logg.Info("ID Generator 服务已安全退出")
+	logg.Info("ID Generator service exited safely")
 }

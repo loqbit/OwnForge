@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ToGRPCError 将领域层和存储层错误转换为 gRPC 状态错误。
+// ToGRPCError converts domain and storage errors into gRPC status errors.
 func ToGRPCError(err error) error {
 	if err == nil {
 		return nil
@@ -33,7 +33,7 @@ func ToGRPCError(err error) error {
 
 	switch {
 	case errors.Is(err, sharedrepo.ErrInvalidOrExpiredToken):
-		return status.Error(codes.Unauthenticated, "无效的刷新凭证或已过期")
+		return status.Error(codes.Unauthenticated, "invalid or expired refresh token")
 	case errors.Is(err, sharedrepo.ErrUsernameDuplicate),
 		errors.Is(err, sharedrepo.ErrEmailDuplicate),
 		errors.Is(err, sharedrepo.ErrDuplicateKey),
@@ -43,9 +43,9 @@ func ToGRPCError(err error) error {
 		errors.Is(err, sharedrepo.ErrInvalidData):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, sharedrepo.ErrNoRows):
-		return status.Error(codes.NotFound, "记录不存在")
+		return status.Error(codes.NotFound, "record not found")
 	case errors.Is(err, sharedrepo.ErrConnection):
-		return status.Error(codes.Unavailable, "数据库连接失败，请稍后重试")
+		return status.Error(codes.Unavailable, "database connection failed, please try again later")
 	default:
 		return status.Error(codes.Internal, "internal error")
 	}

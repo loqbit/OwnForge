@@ -9,7 +9,7 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/service/ai/prompt"
 )
 
-// EnrichStats 一次 enrich 调用的观测数据（给 eval harness 用）。
+// EnrichStats holds observability data for one enrich call and is used by the evaluation harness.
 type EnrichStats struct {
 	InputTokens  int
 	OutputTokens int
@@ -18,13 +18,13 @@ type EnrichStats struct {
 	PromptVer    string
 }
 
-// EnrichOnce 执行一次文档增值的纯函数版本：不依赖 DB / idgen / lock / call log。
+// EnrichOnce runs a pure-function version of document enrichment with no DB, idgen, lock, or call log dependencies.
 //
-// 仅用于：
-//   - ai-eval harness：golden set 回归测试
-//   - 手动调试 prompt 时的一次性验证
+// It is only used for:
+//   - the ai-eval harness for golden-set regression tests
+//   - one-off validation while manually debugging prompts
 //
-// 生产路径请使用 EnrichService.Enrich（带幂等、trace、锁）。
+// Production code should use EnrichService.Enrich, which includes idempotency, tracing, and locking.
 func EnrichOnce(
 	ctx context.Context,
 	client llm.Client,

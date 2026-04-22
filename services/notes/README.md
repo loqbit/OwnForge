@@ -1,80 +1,80 @@
 # go-note
 
-`go-note` 是一个提供笔记管理功能的微服务。它作为核心业务服务之一，同时提供 gRPC 与 HTTP 两种入口，但业务契约以 proto 为单一真相源：标准业务接口通过 gRPC 实现，再由 `grpc-gateway` 暴露 HTTP；少量 HTTP-only 场景（如 upload / public share / group tree）保留手写路由。
+`go-note` is a microservice for note management. As one of the core business services, it provides both gRPC and HTTP entrypoints, while keeping proto as the single source of truth for business contracts: standard business APIs are implemented over gRPC and exposed over HTTP through `grpc-gateway`, while a few HTTP-only cases such as upload, public share, and group tree remain handwritten routes.
 
-## 架构
+## Architecture
 
 ```text
-浏览器 → api-gateway → grpc-gateway → go-note gRPC
-                        └──────────────→ go-note HTTP-only 路由
-内部服务 → go-note gRPC Server → 获取 / 操作笔记数据
+Browser -> api-gateway -> grpc-gateway -> go-note gRPC
+                        └──────────────-> go-note HTTP-only routes
+Internal services -> go-note gRPC Server -> query / modify note data
 ```
 
-- **协议**：一个主进程同时监听 HTTP 与 gRPC；标准业务 HTTP 通过 `grpc-gateway` 自动翻译
-- **认证**：网关向 go-note 透传 `X-User-Id` / gRPC metadata，go-note 不重复做 JWT 验签
-- **其它依赖**：通过 gRPC 调用 id-generator 服务进行 ID 生成
-- **ORM**：ent（与 user-platform 一致）
-- **配置**：Viper + godotenv（env-first）
-- **共享模块**：`github.com/luckysxx/common`（logger、errs、postgres、redis 连接池、otel 等）
+- **Protocol**: A single process listens on both HTTP and gRPC; standard business HTTP is translated automatically through `grpc-gateway`
+- **Authentication**: The gateway forwards `X-User-Id` / gRPC metadata to go-note, and go-note does not validate JWT again
+- **Other dependencies**: ID generation is handled by calling the `id-generator` service over gRPC
+- **ORM**: Ent, consistent with `user-platform`
+- **Configuration**: Viper + godotenv, with an environment-first approach
+- **Shared modules**: `github.com/luckysxx/common` (logger, errs, postgres, Redis pools, OTel, and related infrastructure)
 
-## 技术栈
+## Tech Stack
 
-- Go、Gin、ent、PostgreSQL、Redis
-- gRPC、grpc-gateway、Gin
-- Viper（配置管理）
-- `common` 基础设施支持（含 Redis 与 PostgreSQL 统一连接池及监控、OpenTelemetry链路追踪）
+- Go, Gin, Ent, PostgreSQL, Redis
+- gRPC, grpc-gateway
+- Viper for configuration management
+- Shared infrastructure support from `common`, including Redis and PostgreSQL pools, monitoring, and OpenTelemetry tracing
 
-## 目录结构
+## Directory Structure
 
 ```text
 go-note/
 ├── cmd/
-│   ├── server/main.go            # 推荐主入口：同时启动 HTTP + gRPC
-│   ├── http/main.go              # 过渡期旧 HTTP 入口
-│   └── grpc/main.go              # 过渡期旧 gRPC 入口
-├── .env.example                  # 环境变量模板
+│   ├── server/main.go            # recommended main entrypoint: start both HTTP and gRPC
+│   ├── http/main.go              # legacy HTTP entrypoint kept during the transition
+│   └── grpc/main.go              # legacy gRPC entrypoint kept during the transition
+├── .env.example                  # environment variable template
 ├── internal/
-│   ├── ent/schema/*              # Ent Schema
+│   ├── ent/schema/*              # Ent schema
 │   ├── platform/{config,database,idgen,storage}
-│   ├── repository/*              # 仓储层
-│   ├── service/*                 # 业务服务层
+│   ├── repository/*              # repository layer
+│   ├── service/*                 # service layer
 │   └── transport/
-│       ├── grpc/                 # gRPC Server 与 interceptor
+│       ├── grpc/                 # gRPC server and interceptors
 │       └── http/
-│           ├── server/router     # 仅 HTTP-only 路由
+│           ├── server/router     # HTTP-only routes
 │           ├── server/handler    # upload / public share / group tree
-│           └── codec/*           # response / errs / validator 等
+│           └── codec/*           # response / errs / validator and related codecs
 ├── docker-compose.yaml
 ├── Dockerfile.server
 └── Makefile
 ```
 
-## 快速开始
+## Quick Start
 
-### 前置条件
+### Prerequisites
 
 - Go 1.25+
-- PostgreSQL、Redis（可通过根目录 docker-compose 启动基础设施）
-- id-generator gRPC 服务运行在 `localhost:50059`
+- PostgreSQL and Redis (infrastructure can be started through the root `docker-compose`)
+- The `id-generator` gRPC service running on `localhost:50059`
 
-### 配置
+### Configuration
 
 ```bash
 cp .env.example .env
-# 编辑 .env，设置数据库、Redis 和下游服务地址
+# Edit `.env` and set the database, Redis, and downstream service addresses
 ```
 
-### 运行
+### Run
 
 ```bash
-# 启动单主进程（推荐）
+# Start the single-process entrypoint (recommended)
 make run
 
-# 如需兼容旧入口
+# For compatibility with legacy entrypoints
 make run-http
 make run-grpc
 
-# 编译后运行
+# Build and run
 make build
 make build-http
 make build-grpc
@@ -83,41 +83,41 @@ make build-grpc
 ./bin/go-note-grpc
 ```
 
-### 常用命令
+### Common Commands
 
 ```bash
-make help           # 查看全部命令
-make run            # 启动单主进程服务
-make run-http       # 启动旧 HTTP 服务
-make run-grpc       # 启动旧 gRPC 服务
-make build          # 编译单主进程二进制
-make build-http     # 编译旧 HTTP 二进制
-make build-grpc     # 编译 gRPC 二进制
-make test           # 运行测试
-make ent-generate   # 重新生成 Ent 代码
-make lint           # 代码检查
+make help           # show all commands
+make run            # start the single-process service
+make run-http       # start the legacy HTTP service
+make run-grpc       # start the legacy gRPC service
+make build          # build the single-process binary
+make build-http     # build the legacy HTTP binary
+make build-grpc     # build the gRPC binary
+make test           # run tests
+make ent-generate   # regenerate Ent code
+make lint           # run code checks
 ```
 
-## API 端点
+## API Endpoints
 
-通过 `api-gateway` 访问时，标准业务接口会统一走 `/api/v1/notes/*`。典型入口包括：
+When accessed through `api-gateway`, standard business APIs are routed uniformly under `/api/v1/notes/*`. Typical entrypoints include:
 
-| 方法 | 路径                 | 说明                 |
-|------|----------------------|----------------------|
-| GET  | `/healthz`             | 存活探针             |
-| GET  | `/readyz`              | 就绪探针             |
-| POST | `/api/v1/notes/snippets`     | 创建笔记       |
-| GET  | `/api/v1/notes/snippets/:id` | 获取笔记       |
-| PUT  | `/api/v1/notes/snippets/:id` | 更新笔记       |
-| GET  | `/api/v1/notes/me/snippets`  | 获取我的笔记列表 |
-| POST | `/api/v1/notes/uploads`      | multipart 上传 |
-| GET  | `/api/v1/notes/public/shares/:token` | 公开分享 |
+| Method | Path | Description |
+|------|------|------|
+| GET  | `/healthz` | liveness probe |
+| GET  | `/readyz` | readiness probe |
+| POST | `/api/v1/notes/snippets` | create note |
+| GET  | `/api/v1/notes/snippets/:id` | get note |
+| PUT  | `/api/v1/notes/snippets/:id` | update note |
+| GET  | `/api/v1/notes/me/snippets` | get my notes list |
+| POST | `/api/v1/notes/uploads` | multipart upload |
+| GET  | `/api/v1/notes/public/shares/:token` | public share |
 
-## 服务端口
+## Service Ports
 
-| 服务               | 端口  |
-|--------------------|-------|
-| go-note HTTP       | 8080  |
-| go-note gRPC       | 9093  |
-| probe/metrics      | HTTP 同进程注册 |
-| id-generator gRPC  | 50059 |
+| Service | Port |
+|------|------|
+| go-note HTTP | 8080 |
+| go-note gRPC | 9093 |
+| probe/metrics | registered in the same HTTP process |
+| id-generator gRPC | 50059 |

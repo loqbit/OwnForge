@@ -11,23 +11,23 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/ent"
 	"github.com/ownforge/ownforge/services/notes/internal/ent/snippet"
 	"github.com/ownforge/ownforge/services/notes/internal/ent/tag"
-	snippetrepo "github.com/ownforge/ownforge/services/notes/internal/repository/snippet"
 	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
+	snippetrepo "github.com/ownforge/ownforge/services/notes/internal/repository/snippet"
 	"github.com/ownforge/ownforge/services/notes/internal/service/snippet/contract"
 	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
 )
 
-// Store 是 snippet Repository 的 Ent 实现。
+// Store is the Ent-backed implementation of the snippet repository.
 type Store struct {
 	client *ent.Client
 }
 
-// New 创建一个基于 Ent 的 snippet Repository。
+// New creates an Ent-backed snippet repository.
 func New(client *ent.Client) snippetrepo.Repository {
 	return &Store{client: client}
 }
 
-// Create 创建一条 Snippet 记录，ID 由外部（id-generator）传入。
+// Create inserts a snippet record. The ID is provided externally by id-generator.
 func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.CreateSnippetCommand) (*snippetrepo.Snippet, error) {
 	builder := s.client.Snippet.Create().
 		SetID(id).
@@ -60,7 +60,7 @@ func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.
 	return mapSnippet(entity), nil
 }
 
-// GetByID 根据 ID 查询单个 Snippet。
+// GetByID looks up a single snippet by ID.
 func (s *Store) GetByID(ctx context.Context, id int64) (*snippetrepo.Snippet, error) {
 	entity, err := s.client.Snippet.Get(ctx, id)
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *Store) GetByID(ctx context.Context, id int64) (*snippetrepo.Snippet, er
 	return mapSnippet(entity), nil
 }
 
-// ListByOwner 按 owner_id 查询用户的所有 Snippet（仅查活着的文档），按更新时间倒序。
+// ListByOwner returns all active snippets for the owner, ordered by last update time descending.
 func (s *Store) ListByOwner(ctx context.Context, ownerID int64) ([]snippetrepo.Snippet, error) {
 	entities, err := s.client.Snippet.
 		Query().
@@ -90,37 +90,36 @@ func (s *Store) ListByOwner(ctx context.Context, ownerID int64) ([]snippetrepo.S
 	return results, nil
 }
 
-// ─── 技术点 4 + 5：复合筛选 + 游标分页 ──────────────────────────
+// ─── Notes 4 + 5: compound filters + cursor pagination ─────────────────────
 //
-// 复合筛选（Predicate 组合）：
-//   Ent 的 Where() 接受 ...predicate.Snippet，多个条件自动 AND。
-//   我们根据用户传了哪些参数，动态构建 predicate 列表：
+// Compound filters (predicate composition):
+//   Ent's Where() accepts ...predicate.Snippet, and multiple conditions are ANDed automatically.
+//   We build the predicate list dynamically based on the request parameters:
 //     predicates := []predicate.Snippet{snippet.OwnerIDEQ(ownerID)}
 //     if groupID != nil { predicates = append(predicates, ...) }
-//     if tagID != nil { predicates = append(predicates, ...) }  ← 这个涉及 JOIN
+//     if tagID != nil { predicates = append(predicates, ...) }  <- this involves a JOIN
 //     query.Where(predicates...)
-//   这比 if/else 层层嵌套清晰得多。
+//   This is much clearer than deeply nested if/else blocks.
 //
-// 游标分页（Cursor-based Pagination）：
-//   排序键: (updated_at DESC, id DESC)  ← 复合键保证唯一性
-//   游标编码: base64(JSON({"updated_at": "...", "id": 123}))
-//   WHERE 条件:
+// Cursor-based pagination:
+//   Sort key: (updated_at DESC, id DESC)  <- the composite key guarantees uniqueness
+//   Cursor encoding: base64(JSON({"updated_at": "...", "id": 123}))
+//   WHERE clause:
 //     updated_at < cursor.updated_at
-//     或者 (updated_at = cursor.updated_at AND id < cursor.id)
-//   这保证了分页的稳定性，即使有新数据插入也不会重复/遗漏。
+//     or (updated_at = cursor.updated_at AND id < cursor.id)
+//   This keeps pagination stable even when new rows are inserted, without duplicates or gaps.
 // ──────────────────────────────────────────────────────────────
 
-// cursorPayload 游标的序列化结构。
-// SortKey 是通用排序键（可以是 updated_at、created_at、title 或 sort_order 的值）。
+// cursorPayload is the serialized cursor shape.
+// SortKey is the generic sort key and may hold updated_at, created_at, title, or sort_order.
 type cursorPayload struct {
 	UpdatedAt time.Time `json:"u"`
 	CreatedAt time.Time `json:"c,omitempty"`
 	Title     string    `json:"t,omitempty"`
 	SortOrder int       `json:"o,omitempty"`
 	ID        int64     `json:"i"`
-	SortBy    string    `json:"s,omitempty"` // 记录游标对应的排序方式
+	SortBy    string    `json:"s,omitempty"` // Records the sort mode used by this cursor.
 }
-
 
 func decodeCursor(cursor string) (*cursorPayload, error) {
 	data, err := base64.URLEncoding.DecodeString(cursor)
@@ -134,7 +133,7 @@ func decodeCursor(cursor string) (*cursorPayload, error) {
 	return &payload, nil
 }
 
-// normalizeSortBy 标准化排序字段名。
+// normalizeSortBy normalizes the sort field name.
 func normalizeSortBy(sortBy string) string {
 	switch strings.TrimSpace(strings.ToLower(sortBy)) {
 	case "created_at":
@@ -148,61 +147,61 @@ func normalizeSortBy(sortBy string) string {
 	}
 }
 
-// ListFiltered 复合筛选 + 游标分页查询。
+// ListFiltered applies compound filters and cursor pagination.
 func (s *Store) ListFiltered(ctx context.Context, ownerID int64, query *contract.ListQuery) ([]snippetrepo.Snippet, error) {
-	// ── 第一步：构建基础查询 + 动态添加 predicates ──
+	// Step 1: build the base query and add predicates dynamically.
 	q := s.client.Snippet.Query().
-		Where(snippet.OwnerIDEQ(ownerID)) // 必有条件：只查自己的
+		Where(snippet.OwnerIDEQ(ownerID)) // Required condition: only query the caller's own snippets.
 
-	// 按分组筛选
+	// Filter by group.
 	if query.GroupID != nil {
 		if *query.GroupID == 0 {
-			q = q.Where(snippet.GroupIDIsNil()) // 0 表示收集箱/未分组
+			q = q.Where(snippet.GroupIDIsNil()) // 0 means inbox / ungrouped.
 		} else {
 			q = q.Where(snippet.GroupIDEQ(*query.GroupID))
 		}
 	}
 
-	// 按类型筛选
+	// Filter by type.
 	if query.Type != "" {
 		q = q.Where(snippet.TypeEQ(snippet.Type(query.Type)))
 	}
 
-	// 按收藏筛选
+	// Filter favorites.
 	if query.OnlyFavorites {
 		q = q.Where(snippet.IsFavoriteEQ(true))
 	}
 
-	// 按状态（活跃/回收站）筛选
+	// Filter by status (active / trash).
 	if query.Status == "trashed" {
 		q = q.Where(snippet.DeletedAtNotNil())
 	} else {
-		// 默认只查活跃记录
+		// Query active records by default.
 		q = q.Where(snippet.DeletedAtIsNil())
 	}
 
-	// 按关键词模糊搜索标题
+	// Fuzzy-match the title by keyword.
 	if query.Keyword != "" {
 		q = q.Where(snippet.TitleContainsFold(query.Keyword))
 	}
 
-	// 按标签筛选（通过桥接表 JOIN）
-	// 这是 Ent 特有的 HasTagsWith：生成 EXISTS (SELECT 1 FROM snippet_tags ...)
+	// Filter by tag through the join table.
+	// Ent's HasTagsWith generates EXISTS (SELECT 1 FROM snippet_tags ...).
 	if query.TagID != nil {
 		q = q.Where(snippet.HasTagsWith(tag.IDEQ(*query.TagID)))
 	}
 
-	// ── 第二步：确定排序方式 ──
+	// Step 2: determine the sort mode.
 	sortBy := normalizeSortBy(query.SortBy)
 
-	// ── 第三步：游标分页（根据排序方式选择不同的游标条件）──
+	// Step 3: apply cursor pagination with sort-specific cursor conditions.
 	if query.Cursor != "" {
 		cur, err := decodeCursor(query.Cursor)
-		if err == nil { // 游标无效时忽略，退化为首页
+		if err == nil { // Ignore invalid cursors and fall back to the first page.
 			switch sortBy {
 			case "created_at":
 				// WHERE (created_at < cursor.created_at)
-				//    或者 (created_at = cursor.created_at AND id < cursor.id)
+				//    or (created_at = cursor.created_at AND id < cursor.id)
 				q = q.Where(
 					snippet.Or(
 						snippet.CreatedAtLT(cur.CreatedAt),
@@ -214,7 +213,7 @@ func (s *Store) ListFiltered(ctx context.Context, ownerID int64, query *contract
 				)
 			case "title":
 				// WHERE (title > cursor.title)
-				//    或者 (title = cursor.title AND id > cursor.id)
+				//    or (title = cursor.title AND id > cursor.id)
 				q = q.Where(
 					snippet.Or(
 						snippet.TitleGT(cur.Title),
@@ -226,7 +225,7 @@ func (s *Store) ListFiltered(ctx context.Context, ownerID int64, query *contract
 				)
 			case "manual":
 				// WHERE (sort_order > cursor.sort_order)
-				//    或者 (sort_order = cursor.sort_order AND id > cursor.id)
+				//    or (sort_order = cursor.sort_order AND id > cursor.id)
 				q = q.Where(
 					snippet.Or(
 						snippet.SortOrderGT(cur.SortOrder),
@@ -238,7 +237,7 @@ func (s *Store) ListFiltered(ctx context.Context, ownerID int64, query *contract
 				)
 			default: // updated_at
 				// WHERE (updated_at < cursor.updated_at)
-				//    或者 (updated_at = cursor.updated_at AND id < cursor.id)
+				//    or (updated_at = cursor.updated_at AND id < cursor.id)
 				q = q.Where(
 					snippet.Or(
 						snippet.UpdatedAtLT(cur.UpdatedAt),
@@ -252,7 +251,7 @@ func (s *Store) ListFiltered(ctx context.Context, ownerID int64, query *contract
 		}
 	}
 
-	// ── 第四步：排序 + 限制条数 ──
+	// Step 4: apply ordering and page size.
 	limit := query.Limit
 	if limit <= 0 || limit > 100 {
 		limit = 20
@@ -270,7 +269,7 @@ func (s *Store) ListFiltered(ctx context.Context, ownerID int64, query *contract
 	}
 
 	entities, err := q.
-		Limit(limit + 1). // 多查一条，用来判断是否还有下一页
+		Limit(limit + 1). // Fetch one extra row to determine whether another page exists.
 		All(ctx)
 	if err != nil {
 		return nil, shared.ParseEntError(err)
@@ -284,8 +283,7 @@ func (s *Store) ListFiltered(ctx context.Context, ownerID int64, query *contract
 	return results, nil
 }
 
-
-// Update 更新指定 Snippet，需要校验 ownerID 所有权。
+// Update updates the specified snippet after verifying ownership.
 func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.UpdateSnippetCommand) (*snippetrepo.Snippet, error) {
 	entity, err := s.client.Snippet.
 		Query().
@@ -314,8 +312,8 @@ func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.
 	return mapSnippet(updated), nil
 }
 
-// Delete 删除指定 Snippet，需要校验 ownerID 所有权。
-// 这里执行硬删除。
+// Delete removes the specified snippet after verifying ownership.
+// This performs a hard delete.
 func (s *Store) Delete(ctx context.Context, ownerID, id int64) error {
 	count, err := s.client.Snippet.
 		Query().
@@ -331,7 +329,7 @@ func (s *Store) Delete(ctx context.Context, ownerID, id int64) error {
 	return shared.ParseEntError(s.client.Snippet.DeleteOneID(id).Exec(ctx))
 }
 
-// SoftDelete 将文档移入回收站
+// SoftDelete moves the document to the trash.
 func (s *Store) SoftDelete(ctx context.Context, ownerID, id int64) error {
 	_, err := s.client.Snippet.
 		Update().
@@ -341,7 +339,7 @@ func (s *Store) SoftDelete(ctx context.Context, ownerID, id int64) error {
 	return shared.ParseEntError(err)
 }
 
-// Restore 将文档从回收站恢复
+// Restore brings the document back from the trash.
 func (s *Store) Restore(ctx context.Context, ownerID, id int64) error {
 	_, err := s.client.Snippet.
 		Update().
@@ -351,7 +349,7 @@ func (s *Store) Restore(ctx context.Context, ownerID, id int64) error {
 	return shared.ParseEntError(err)
 }
 
-// SetFavorite 设置收藏状态
+// SetFavorite updates the favorite flag.
 func (s *Store) SetFavorite(ctx context.Context, ownerID, id int64, isFavorite bool) error {
 	_, err := s.client.Snippet.
 		Update().
@@ -371,8 +369,6 @@ func resolveType(value string) snippet.Type {
 		return snippet.TypeCode
 	}
 }
-
-
 
 func mapSnippet(entity *ent.Snippet) *snippetrepo.Snippet {
 	if entity == nil {
@@ -398,40 +394,40 @@ func mapSnippet(entity *ent.Snippet) *snippetrepo.Snippet {
 	}
 }
 
-// ─── 技术点 3：Ent M2M Edge 操作 ──────────────────────────────
+// ─── Note 3: Ent many-to-many edge operations ─────────────────────────────
 //
-// Ent 的多对多关系通过 Edge 定义（见 schema/snippet.go: edge.To("tags", Tag.Type)）。
-// Ent 自动创建桥接表 snippet_tags(snippet_id, tag_id)，不需要手动管理。
+// Ent defines many-to-many relationships through edges; see schema/snippet.go: edge.To("tags", Tag.Type).
+// Ent automatically creates the snippet_tags(snippet_id, tag_id) join table, so no manual management is needed.
 //
-// 关键 API：
-//   entity.Update().ClearTags()           → 清空所有关联
-//   entity.Update().AddTagIDs(1, 2, 3)    → 添加关联
-//   entity.Update().RemoveTagIDs(1, 2)    → 移除关联
-//   entity.QueryTags()                    → 查询关联的 Tag 实体
+// Key APIs:
+//   entity.Update().ClearTags()           -> clear all associations
+//   entity.Update().AddTagIDs(1, 2, 3)    -> add associations
+//   entity.Update().RemoveTagIDs(1, 2)    -> remove associations
+//   entity.QueryTags()                    -> query associated Tag entities
 //
-// SetTags 的实现选择 "先 Clear 再 Add" 而不是 diff：
-//   优点：逻辑简单，无状态比较
-//   代价：多一条 DELETE 语句，但桥接表行数极少（<100），可忽略
+// SetTags intentionally uses "clear first, then add" instead of diffing:
+//   Benefit: simple logic with no state comparison
+//   Cost: one extra DELETE statement, which is negligible because the join table is tiny (<100 rows)
 // ───────────────────────────────────────────────────────────────
 
-// SetTags 替换片段的所有标签关联。
-// 实现：先 ClearTags（删除桥接表中该 snippet 的所有行）→ 再 AddTagIDs（插入新行）
+// SetTags replaces all tag associations on a snippet.
+// Implementation: call ClearTags first to remove all join-table rows for the snippet, then AddTagIDs to insert the new ones.
 func (s *Store) SetTags(ctx context.Context, snippetID int64, tagIDs []int64) error {
 	builder := s.client.Snippet.UpdateOneID(snippetID).
-		ClearTags() // 第一步：DELETE FROM snippet_tags WHERE snippet_id = ?
+		ClearTags() // Step 1: DELETE FROM snippet_tags WHERE snippet_id = ?
 
 	if len(tagIDs) > 0 {
-		builder.AddTagIDs(tagIDs...) // 第二步：INSERT INTO snippet_tags (snippet_id, tag_id) VALUES ...
+		builder.AddTagIDs(tagIDs...) // Step 2: INSERT INTO snippet_tags (snippet_id, tag_id) VALUES ...
 	}
 
 	_, err := builder.Save(ctx)
 	return shared.ParseEntError(err)
 }
 
-// Move 将 Snippet 移动到目标分组并写入新的 sort_order。
-// groupID 为 nil 表示移动到收集箱（清除 group_id）。
+// Move sends the snippet to the target group and writes the new sort_order.
+// groupID == nil moves the snippet to the inbox by clearing group_id.
 func (s *Store) Move(ctx context.Context, ownerID, id int64, groupID *int64, sortOrder int) (*snippetrepo.Snippet, error) {
-	// 1. 先校验归属
+	// 1. Verify ownership first.
 	entity, err := s.client.Snippet.
 		Query().
 		Where(snippet.IDEQ(id), snippet.OwnerIDEQ(ownerID)).
@@ -440,7 +436,7 @@ func (s *Store) Move(ctx context.Context, ownerID, id int64, groupID *int64, sor
 		return nil, shared.ParseEntError(err)
 	}
 
-	// 2. 构造更新
+	// 2. Build the update.
 	builder := entity.Update().SetSortOrder(sortOrder)
 	if groupID != nil && *groupID != 0 {
 		builder.SetGroupID(*groupID)
@@ -455,7 +451,7 @@ func (s *Store) Move(ctx context.Context, ownerID, id int64, groupID *int64, sor
 	return mapSnippet(updated), nil
 }
 
-// MaxSortOrderInGroup 返回目标分组内当前最大的 sort_order。分组为空返回 0。
+// MaxSortOrderInGroup returns the current maximum sort_order in the target group. It returns 0 when the group is empty.
 func (s *Store) MaxSortOrderInGroup(ctx context.Context, ownerID int64, groupID *int64) (int, error) {
 	q := s.client.Snippet.
 		Query().
@@ -476,10 +472,10 @@ func (s *Store) MaxSortOrderInGroup(ctx context.Context, ownerID int64, groupID 
 	return entity.SortOrder, nil
 }
 
-// GetTagIDs 查询片段关联的所有标签 ID。
-// 通过 Ent 的 Edge Query 实现，不需要手写 JOIN。
+// GetTagIDs returns all tag IDs associated with the snippet.
+// This uses Ent edge queries, so no manual JOIN is needed.
 func (s *Store) GetTagIDs(ctx context.Context, snippetID int64) ([]int64, error) {
-	// entity.QueryTags() 生成：
+	// entity.QueryTags() generates:
 	// SELECT tag.id FROM tags JOIN snippet_tags ON ... WHERE snippet_tags.snippet_id = ?
 	tags, err := s.client.Snippet.
 		Query().

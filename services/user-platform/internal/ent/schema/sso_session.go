@@ -21,41 +21,41 @@ func (SsoSession) Fields() []ent.Field {
 		field.String("sso_token_hash").
 			Unique().
 			NotEmpty().
-			Comment("全局登录态令牌哈希，主要承载 Cookie SSO"),
+			Comment("global login-state token hash, mainly used for cookie-based SSO"),
 		field.String("device_id").
 			Optional().
 			Nillable().
 			MaxLen(128).
-			Comment("设备标识"),
+			Comment("device identifier"),
 		field.String("user_agent").
 			Optional().
 			Nillable().
 			MaxLen(512).
-			Comment("用户 agent / 客户端标识"),
+			Comment("user agent / client identifier"),
 		field.String("ip").
 			Optional().
 			Nillable().
-			Comment("客户端 IP"),
+			Comment("client IP"),
 		field.Enum("status").
 			Values("active", "revoked", "expired").
 			Default("active").
-			Comment("全局登录态状态"),
+			Comment("global login-state status"),
 		field.Int64("sso_version").
 			Default(1).
-			Comment("当前全局登录态版本"),
+			Comment("current global login-state version"),
 		field.Int64("user_version").
 			Default(1).
-			Comment("创建该全局登录态时的用户全局版本快照"),
+			Comment("snapshot of the user global version when the global login state was created"),
 		field.Time("expires_at").
-			Comment("全局登录态过期时间"),
+			Comment("global login-state expiration time"),
 		field.Time("last_seen_at").
 			Default(time.Now).
 			UpdateDefault(time.Now).
-			Comment("最近一次心跳时间"),
+			Comment("last heartbeat time"),
 		field.Time("revoked_at").
 			Optional().
 			Nillable().
-			Comment("撤销时间"),
+			Comment("revocation time"),
 	}
 }
 

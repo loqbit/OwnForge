@@ -12,27 +12,27 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-// MinIOConfig MinIO 连接配置。
-// 包含了连接 MinIO 服务器所需的各项基础参数，由外部统一注入。
+// MinIOConfig contains the connection settings for MinIO.
+// It includes the base parameters required to connect to the MinIO server and is injected from outside.
 type MinIOConfig struct {
-	Endpoint       string // 内网连接地址 (例如: global-minio:9000)
-	PublicEndpoint string // 浏览器可访问地址 (例如: localhost:9000)
+	Endpoint       string // Internal endpoint, for example global-minio:9000.
+	PublicEndpoint string // Browser-accessible endpoint, for example localhost:9000.
 	AccessKey      string
 	SecretKey      string
 	Bucket         string
 	UseSSL         bool
 }
 
-// MinIOStorage 基于 MinIO 的对象存储实现。
-// 封装了底层的官方 Client SDK，屏蔽了复杂的参数传递，实现了项目内部自定义的 Storage 接口。
+// MinIOStorage is a MinIO-backed implementation of object storage.
+// It wraps the official client SDK behind the project's Storage interface.
 type MinIOStorage struct {
-	client         *minio.Client // 真正负责发送网络请求给 MinIO 的官方客户端
-	bucket         string        // 当前存储实例绑定的 Bucket 名称
-	publicEndpoint string        // 浏览器可访问的公开端点，拼装下载 URL 时使用
-	useSSL         bool          // 记录状态以决定拼装 URL 时是采用 http:// 还是 https://
+	client         *minio.Client // Official client used to send requests to MinIO.
+	bucket         string        // Bucket bound to this storage instance.
+	publicEndpoint string        // Public endpoint used when building download URLs.
+	useSSL         bool          // Tracks whether generated URLs should use http or https.
 }
 
-// NewMinIOStorage 创建 MinIOStorage 实例并确认 bucket 存在。
+// NewMinIOStorage creates a MinIOStorage instance.
 func NewMinIOStorage(cfg MinIOConfig) (*MinIOStorage, error) {
 	client, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
@@ -42,7 +42,7 @@ func NewMinIOStorage(cfg MinIOConfig) (*MinIOStorage, error) {
 		return nil, fmt.Errorf("minio: create client: %w", err)
 	}
 
-	// PublicEndpoint 未配置时回退到内网 Endpoint
+	// Fall back to the internal endpoint when PublicEndpoint is not configured.
 	pubEndpoint := cfg.PublicEndpoint
 	if pubEndpoint == "" {
 		pubEndpoint = cfg.Endpoint
@@ -56,7 +56,7 @@ func NewMinIOStorage(cfg MinIOConfig) (*MinIOStorage, error) {
 	}, nil
 }
 
-// Upload 上传对象，返回公开访问 URL。
+// Upload stores an object and returns a public URL.
 func (s *MinIOStorage) Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) (string, error) {
 	_, err := s.client.PutObject(ctx, s.bucket, key, reader, size, minio.PutObjectOptions{
 		ContentType: contentType,
@@ -67,7 +67,7 @@ func (s *MinIOStorage) Upload(ctx context.Context, key string, reader io.Reader,
 	return s.PublicURL(key), nil
 }
 
-// PresignedPutObject 生成带签名的 PUT URL。
+// PresignedPutObject generates a signed PUT URL.
 func (s *MinIOStorage) PresignedPutObject(ctx context.Context, key string, expiry time.Duration, contentType string, size int64) (string, map[string]string, error) {
 	u, err := s.client.PresignedPutObject(ctx, s.bucket, key, expiry)
 	if err != nil {
@@ -85,7 +85,7 @@ func (s *MinIOStorage) PresignedPutObject(ctx context.Context, key string, expir
 	return u.String(), headers, nil
 }
 
-// GetURL 生成带签名的临时访问 URL。
+// GetURL generates a signed temporary access URL.
 func (s *MinIOStorage) GetURL(ctx context.Context, key string, expiry time.Duration) (string, error) {
 	u, err := s.client.PresignedGetObject(ctx, s.bucket, key, expiry, url.Values{})
 	if err != nil {
@@ -94,7 +94,7 @@ func (s *MinIOStorage) GetURL(ctx context.Context, key string, expiry time.Durat
 	return u.String(), nil
 }
 
-// PublicURL 返回对象公开访问地址。
+// PublicURL returns the public address for an object.
 func (s *MinIOStorage) PublicURL(key string) string {
 	scheme := "http"
 	if s.useSSL {
@@ -103,7 +103,7 @@ func (s *MinIOStorage) PublicURL(key string) string {
 	return fmt.Sprintf("%s://%s/%s/%s", scheme, s.publicEndpoint, s.bucket, key)
 }
 
-// Copy 复制对象到新 key。
+// Copy duplicates an object under a new key.
 func (s *MinIOStorage) Copy(ctx context.Context, srcKey, dstKey string) error {
 	src := minio.CopySrcOptions{Bucket: s.bucket, Object: srcKey}
 	dst := minio.CopyDestOptions{Bucket: s.bucket, Object: dstKey}
@@ -113,7 +113,7 @@ func (s *MinIOStorage) Copy(ctx context.Context, srcKey, dstKey string) error {
 	return nil
 }
 
-// Delete 删除对象。
+// Delete removes an object.
 func (s *MinIOStorage) Delete(ctx context.Context, key string) error {
 	err := s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{})
 	if err != nil {

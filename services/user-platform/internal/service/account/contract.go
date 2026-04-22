@@ -1,6 +1,6 @@
 package accountservice
 
-// RegisterCommand 表示用户注册时的输入参数。
+// RegisterCommand contains the input parameters for user registration.
 type RegisterCommand struct {
 	Phone    string
 	Email    string
@@ -8,7 +8,7 @@ type RegisterCommand struct {
 	Password string
 }
 
-// RegisterResult 表示用户注册后的返回结果。
+// RegisterResult is returned after user registration.
 type RegisterResult struct {
 	Phone    string
 	Email    string
@@ -16,61 +16,61 @@ type RegisterResult struct {
 	Username string
 }
 
-// ChangePasswordCommand 表示修改密码时的输入参数。
+// ChangePasswordCommand contains the input parameters for changing a password.
 type ChangePasswordCommand struct {
 	UserID      int64
 	OldPassword string
 	NewPassword string
 }
 
-// ChangePasswordResult 表示修改密码后的返回结果。
+// ChangePasswordResult is returned after a password change.
 type ChangePasswordResult struct {
 	UserID  int64
 	Message string
 }
 
-// LogoutAllSessionsCommand 表示退出全部设备时的输入参数。
+// LogoutAllSessionsCommand contains the input parameters for signing out from all devices.
 type LogoutAllSessionsCommand struct {
 	UserID int64
 }
 
-// LogoutAllSessionsResult 表示退出全部设备后的返回结果。
+// LogoutAllSessionsResult is returned after signing out from all devices.
 type LogoutAllSessionsResult struct {
 	UserID  int64
 	Message string
 }
 
-// BindEmailCommand 表示绑定邮箱时的输入参数。
+// BindEmailCommand contains the input parameters for binding an email address.
 type BindEmailCommand struct {
 	UserID int64
 	Email  string
 }
 
-// BindEmailResult 表示绑定邮箱后的返回结果。
+// BindEmailResult is returned after binding an email address.
 type BindEmailResult struct {
 	UserID  int64
 	Email   string
 	Message string
 }
 
-// SetPasswordCommand 表示设置密码时的输入参数。
+// SetPasswordCommand contains the input parameters for setting a password.
 type SetPasswordCommand struct {
 	UserID      int64
 	NewPassword string
 }
 
-// SetPasswordResult 表示设置密码后的返回结果。
+// SetPasswordResult is returned after setting a password.
 type SetPasswordResult struct {
 	UserID  int64
 	Message string
 }
 
-// GetProfileQuery 表示查询用户资料时的输入参数。
+// GetProfileQuery contains the input parameters for fetching user profile data.
 type GetProfileQuery struct {
 	UserID int64
 }
 
-// GetProfileResult 表示查询用户资料时的返回结果。
+// GetProfileResult is returned when fetching user profile data.
 type GetProfileResult struct {
 	UserID    int64
 	Nickname  string
@@ -80,7 +80,7 @@ type GetProfileResult struct {
 	UpdatedAt string
 }
 
-// UpdateProfileCommand 表示更新用户资料时的输入参数。
+// UpdateProfileCommand contains the input parameters for updating user profile data.
 type UpdateProfileCommand struct {
 	UserID    int64
 	Nickname  string
@@ -89,7 +89,7 @@ type UpdateProfileCommand struct {
 	Birthday  string
 }
 
-// UpdateProfileResult 表示更新用户资料后的返回结果。
+// UpdateProfileResult is returned after updating user profile data.
 type UpdateProfileResult struct {
 	UserID    int64
 	Nickname  string

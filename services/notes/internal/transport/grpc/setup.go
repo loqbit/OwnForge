@@ -1,4 +1,4 @@
-// Package transportgrpc 组装 gRPC Server，对标 HTTP 层的 router.go。
+// Package transportgrpc wires up the gRPC server, mirroring the HTTP router layer.
 package transportgrpc
 
 import (
@@ -25,7 +25,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// SetupServer 组装 gRPC Server（对标 HTTP 的 SetupRouter）
+// SetupServer builds the gRPC server, analogous to HTTP's SetupRouter.
 func SetupServer(
 	snippetSvc snippetsvc.SnippetService,
 	groupSvc groupsvc.GroupService,
@@ -38,7 +38,7 @@ func SetupServer(
 	healthServer healthgrpc.HealthServer,
 	log *zap.Logger,
 ) *grpc.Server {
-	const maxMsgSize = 16 << 20 // 16 MB — 支持最大 10MB 文件上传 + protobuf 编码开销
+	const maxMsgSize = 16 << 20 // 16 MB: supports uploads up to 10 MB plus protobuf overhead.
 
 	s := grpc.NewServer(
 		grpc.MaxRecvMsgSize(maxMsgSize),

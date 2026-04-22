@@ -74,7 +74,7 @@ type SetPasswordResponse struct {
 	Message string `json:"message"`
 }
 
-// ---- 手机认证相关 DTO ----
+// ---- Phone-auth related DTOs ----
 
 type SendPhoneCodeRequest struct {
 	Phone string `json:"phone" binding:"required,min=6,max=20"`
@@ -96,15 +96,15 @@ type PhoneAuthEntryRequest struct {
 }
 
 type PhoneAuthEntryResponse struct {
-	Action         string `json:"action"`
-	AccessToken    string `json:"access_token,omitempty"`
-	RefreshToken   string `json:"refresh_token,omitempty"`
-	UserID         int64  `json:"user_id,omitempty"`
-	Username       string `json:"username,omitempty"`
-	Email          string `json:"email,omitempty"`
-	Phone          string `json:"phone,omitempty"`
-	ShouldBindEmail bool  `json:"should_bind_email,omitempty"`
-	Message        string `json:"message"`
+	Action          string `json:"action"`
+	AccessToken     string `json:"access_token,omitempty"`
+	RefreshToken    string `json:"refresh_token,omitempty"`
+	UserID          int64  `json:"user_id,omitempty"`
+	Username        string `json:"username,omitempty"`
+	Email           string `json:"email,omitempty"`
+	Phone           string `json:"phone,omitempty"`
+	ShouldBindEmail bool   `json:"should_bind_email,omitempty"`
+	Message         string `json:"message"`
 }
 
 type PhonePasswordLoginRequest struct {

@@ -1,4 +1,4 @@
-# 环境变量 & 敏感配置
+# environment variables and sensitive config
 .env
 *.log
 app.log

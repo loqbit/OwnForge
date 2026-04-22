@@ -16,37 +16,37 @@ import (
 type AICallLog struct {
 	config `json:"-"`
 	// ID of the ent.
-	// 雪花 ID
+	// Snowflake ID
 	ID int64 `json:"id,omitempty"`
-	// 归属用户（用于配额、账单、数据隔离）
+	// Owning user, used for quotas, billing, and data isolation
 	OwnerID int64 `json:"owner_id,omitempty"`
-	// 技能名称，如 enrich / weekly_report / smart_search
+	// Skill name, such as enrich, weekly_report, or smart_search
 	Skill string `json:"skill,omitempty"`
-	// 关联的 snippet（如有），方便按文档回溯
+	// Related snippet, when present, for document-level tracing
 	SnippetID *int64 `json:"snippet_id,omitempty"`
 	// openai / anthropic / ollama / ...
 	Provider string `json:"provider,omitempty"`
-	// 具体模型 ID，如 gpt-4o-mini / claude-3-5-sonnet
+	// Concrete model ID, such as gpt-4o-mini or claude-3-5-sonnet
 	Model string `json:"model,omitempty"`
-	// Prompt 版本号，用于回归对比
+	// Prompt version used for regression comparison
 	PromptVersion string `json:"prompt_version,omitempty"`
-	// input messages 的 hash（sha256 前 16 字节 hex）
+	// Hash of the input messages, using the first 16 bytes of sha256 in hex
 	InputHash string `json:"input_hash,omitempty"`
-	// 输入 token 数
+	// Input token count
 	InputTokens int `json:"input_tokens,omitempty"`
-	// 输出 token 数
+	// Output token count
 	OutputTokens int `json:"output_tokens,omitempty"`
-	// 命中 prompt cache 的 token 数
+	// Number of tokens served from the prompt cache
 	CachedTokens int `json:"cached_tokens,omitempty"`
-	// 本次调用估算成本（美元）
+	// Estimated cost of this call in USD
 	CostUsd float64 `json:"cost_usd,omitempty"`
-	// 调用耗时（毫秒）
+	// Call latency in milliseconds
 	LatencyMs int `json:"latency_ms,omitempty"`
-	// 调用结果状态
+	// Call result status
 	Status aicalllog.Status `json:"status,omitempty"`
-	// 错误信息（截断），status != success 时填充
+	// Truncated error message, filled when status != success
 	Error string `json:"error,omitempty"`
-	// 调用时间
+	// Call time
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	selectValues sql.SelectValues
 }

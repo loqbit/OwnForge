@@ -6,44 +6,44 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/platform/llm"
 )
 
-// PromptVersionEnrich 当前 enrich prompt 的版本号。
-// 每次修改 SystemPromptEnrich 都要 bump 这个值，方便：
-//   1. 识别存量数据是哪个 prompt 生成的
-//   2. Prompt A/B 和回归评估
-//   3. 灰度重算历史数据
+// PromptVersionEnrich is the current version of the enrich prompt.
+// Bump this value whenever SystemPromptEnrich changes so it is easier to:
+//  1. identify which prompt produced existing data
+//  2. run prompt A/B tests and regression evaluations
+//  3. gradually recompute historical data
 const PromptVersionEnrich = "enrich-v1"
 
-// PromptVersionWeeklyReport 周报 prompt 版本号。
+// PromptVersionWeeklyReport is the version of the weekly report prompt.
 const PromptVersionWeeklyReport = "weekly-v1"
 
-// SystemPromptEnrich 文档增值的 System Prompt（固定内容，可缓存）。
-const SystemPromptEnrich = `你是一个知识管理助手。用户会给你一篇文档和他已有的标签列表，请你完成以下三件事：
+// SystemPromptEnrich is the fixed, cacheable system prompt used for document enrichment.
+const SystemPromptEnrich = `You are a knowledge management assistant. The user will provide a document and a list of their existing tags. Please complete the following three tasks:
 
-1. **标签**：建议 5-8 个分类标签供用户选择。**优先从用户已有的标签中匹配**，只有确实没有合适的才建议新标签。新标签用简洁的名称（类似 GitHub topics）
-2. **待办**：提取文档中的待办事项（TODO / FIXME / 需要xxx / 待完成 等），如果没有就返回空数组
-3. **摘要**：写一句话摘要（不超过 100 字），概括文档的核心内容
+1. **Tags**: Suggest 5-8 category tags for the user to choose from. **Prefer matching existing user tags first**. Only suggest new tags when there is truly no suitable existing tag. Keep new tag names concise, similar to GitHub topics.
+2. **Todos**: Extract action items from the document (for example TODO, FIXME, "need to ...", "pending", etc.). Return an empty array if none are found.
+3. **Summary**: Write a one-sentence summary in no more than 100 words that captures the core content of the document.
 
-严格返回以下 JSON 格式，不要包含其他文字：
+Return strictly the following JSON format and nothing else:
 {
-  "tags": ["标签1", "标签2", "标签3"],
+  "tags": ["tag1", "tag2", "tag3"],
   "todos": [
-    {"text": "待办事项描述", "priority": "high"},
-    {"text": "另一个待办", "priority": "medium"}
+    {"text": "todo description", "priority": "high"},
+    {"text": "another todo", "priority": "medium"}
   ],
-  "summary": "一句话摘要"
+  "summary": "one-sentence summary"
 }
 
-priority 取值：high / medium / low。如果无法判断优先级，默认 medium。`
+priority must be one of: high / medium / low. If priority cannot be determined, default to medium.`
 
-// BuildEnrichMessages 构建文档增值的完整消息列表。
-// existingTags 是用户已有的标签名称列表，AI 会优先从中匹配。
+// BuildEnrichMessages builds the full message list for document enrichment.
+// existingTags is the list of the user's current tag names; the AI should prefer matching from it.
 func BuildEnrichMessages(title, content string, existingTags []string) []llm.Message {
-	tagsInfo := "无"
+	tagsInfo := "none"
 	if len(existingTags) > 0 {
 		tagsInfo = fmt.Sprintf("%v", existingTags)
 	}
 
-	userContent := fmt.Sprintf("用户已有的标签：%s\n\n标题：%s\n\n内容：\n%s", tagsInfo, title, content)
+	userContent := fmt.Sprintf("Existing user tags: %s\n\ntitle: %s\n\ncontent:\n%s", tagsInfo, title, content)
 
 	return []llm.Message{
 		{Role: "system", Content: SystemPromptEnrich},
@@ -51,19 +51,19 @@ func BuildEnrichMessages(title, content string, existingTags []string) []llm.Mes
 	}
 }
 
-// SystemPromptWeeklyReport 周报生成的 System Prompt。
-const SystemPromptWeeklyReport = `你是一个生产力助手。用户会给你本周所有文档的摘要和标签信息。
-请你基于这些信息，生成一份结构化的 Markdown 周报。
+// SystemPromptWeeklyReport is the system prompt for weekly report generation.
+const SystemPromptWeeklyReport = `You are a productivity assistant. The user will provide summaries and tag information for all documents created this week.
+Based on this information, generate a structured Markdown weekly report.
 
-周报应包含：
-1. **本周概览**：一段话总结本周的工作重点
-2. **主要工作**：按主题/项目分组，列出具体做了什么
-3. **待办跟进**：如果摘要中提到了遗留问题，列出来
-4. **下周计划**：基于本周工作推断可能的下一步（简要即可）
+The report should include:
+1. **Weekly Overview**: A short paragraph summarizing the main focus of the week.
+2. **Key Work**: Group concrete work items by topic or project.
+3. **Todo Follow-up**: List unresolved items if they appear in the summaries.
+4. **Next Week Plan**: Briefly infer likely next steps based on this week's work.
 
-使用 Markdown 格式，标题用 ##，列表用 -。语言简洁专业。`
+Use Markdown format with ## for headings and - for lists. Keep the language concise and professional.`
 
-// BuildWeeklyReportMessages 构建周报生成的消息列表。
+// BuildWeeklyReportMessages builds the message list for weekly report generation.
 func BuildWeeklyReportMessages(summaries string) []llm.Message {
 	return []llm.Message{
 		{Role: "system", Content: SystemPromptWeeklyReport},

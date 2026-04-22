@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Success 统一成功响应
+// Success sends the standard success response.
 func Success(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": errs.Success,
@@ -19,9 +19,9 @@ func Success(c *gin.Context, data interface{}) {
 	})
 }
 
-// Error 统一错误响应
+// Error sends the standard error response.
 func Error(c *gin.Context, err error) {
-	// 获取logger（如果存在）
+	// Fetch the logger if present.
 	logger, exists := c.Get("logger")
 	var zapLogger *zap.Logger
 	if exists {
@@ -30,11 +30,11 @@ func Error(c *gin.Context, err error) {
 
 	var customErr *errs.CustomError
 	if errors.As(err, &customErr) {
-		// 记录详细的错误信息到日志
+		// Record detailed error information in the logs.
 		if zapLogger != nil {
-			// 记录详细错误（包含原始错误）
+			// Record detailed errors including the original error.
 			if customErr.Err != nil {
-				zapLogger.Error("业务错误",
+				zapLogger.Error("business error",
 					zap.Int("code", customErr.Code),
 					zap.String("msg", customErr.Msg),
 					zap.Error(customErr.Err),
@@ -42,7 +42,7 @@ func Error(c *gin.Context, err error) {
 					zap.String("method", c.Request.Method),
 				)
 			} else {
-				zapLogger.Warn("业务错误",
+				zapLogger.Warn("business error",
 					zap.Int("code", customErr.Code),
 					zap.String("msg", customErr.Msg),
 					zap.String("path", c.Request.URL.Path),
@@ -58,9 +58,9 @@ func Error(c *gin.Context, err error) {
 		return
 	}
 
-	// 未知错误 - 记录完整的错误信息
+	// unknown error: record the full error details
 	if zapLogger != nil {
-		zapLogger.Error("未知错误",
+		zapLogger.Error("unknown error",
 			zap.Error(err),
 			zap.String("path", c.Request.URL.Path),
 			zap.String("method", c.Request.Method),
@@ -70,12 +70,12 @@ func Error(c *gin.Context, err error) {
 	_ = c.Error(err)
 	c.JSON(http.StatusInternalServerError, gin.H{
 		"code": errs.ServerErr,
-		"msg":  "系统繁忙",
+		"msg":  "system busy",
 		"data": nil,
 	})
 }
 
-// BadRequest 参数错误响应
+// BadRequest parametererror response
 func BadRequest(c *gin.Context, msg string) {
 	c.JSON(http.StatusBadRequest, gin.H{
 		"code": errs.ParamErr,
@@ -84,7 +84,7 @@ func BadRequest(c *gin.Context, msg string) {
 	})
 }
 
-// NotFound 资源未找到响应
+// NotFound sends a resource-not-found response.
 func NotFound(c *gin.Context, msg string) {
 	c.JSON(http.StatusNotFound, gin.H{
 		"code": errs.NotFound,
@@ -93,7 +93,7 @@ func NotFound(c *gin.Context, msg string) {
 	})
 }
 
-// Unauthorized 未授权响应
+// Unauthorized sends an unauthorized response
 func Unauthorized(c *gin.Context, msg string) {
 	c.JSON(http.StatusUnauthorized, gin.H{
 		"code": errs.Unauthorized,
@@ -102,7 +102,7 @@ func Unauthorized(c *gin.Context, msg string) {
 	})
 }
 
-// Forbidden 禁止访问响应
+// Forbidden sends a forbidden response.
 func Forbidden(c *gin.Context, msg string) {
 	c.JSON(http.StatusForbidden, gin.H{
 		"code": errs.Forbidden,

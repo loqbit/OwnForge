@@ -32,20 +32,20 @@ func main() {
 
 	cfg := config.LoadConfig()
 
-	// 初始化底层基础设施
+	// Initialize the underlying infrastructure.
 	entClient, redisClient, idgenClient := initInfra(cfg, log)
 	defer entClient.Close()
 	defer redisClient.Close()
 	defer idgenClient.Close()
 
-	// 初始化 OpenTelemetry 链路追踪
+	// Initialize OpenTelemetry tracing.
 	otelShutdown, err := commonOtel.InitTracer(cfg.OTel)
 	if err != nil {
-		log.Fatal("初始化 OpenTelemetry 失败", zap.Error(err))
+		log.Fatal("failed to initialize OpenTelemetry", zap.Error(err))
 	}
 	defer otelShutdown(context.Background())
 
-	// 探针：独立管理端口 + gRPC Health 同步
+	// Probes: dedicated admin port plus synchronized gRPC health reporting.
 	grpcHealthServer := grpchealth.NewServer()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -60,7 +60,7 @@ func main() {
 	)
 	defer probeShutdown()
 
-	// 依赖注入与组件装配
+	// Wire dependencies and assemble components.
 	container := buildContainer(cfg, entClient, redisClient, idgenClient, log)
 	grpcServer := transportgrpc.SetupServer(transportgrpc.ServerDependencies{
 		UserService:    container.UserService,
@@ -70,42 +70,41 @@ func main() {
 		Logger:         log,
 	})
 
-	// 阻塞运行与优雅停机
+	// Run and handle graceful shutdown.
 	runServer(grpcServer, grpcHealthServer, cfg.GRPCServer.Port, log)
 }
 
-// initInfra 初始化基础设施
+// initInfra initializes the infrastructure.
 func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client, platformidgen.Client) {
 	idgenClient, err := platformidgen.New(cfg.IDGenerator.Addr)
 	if err != nil {
-		log.Fatal("初始化 ID 生成器客户端失败", zap.Error(err))
+		log.Fatal("failed to initialize ID generator client", zap.Error(err))
 	}
-
 	entClient := database.InitEntClient(cfg.Database.Driver, cfg.Database.Source, cfg.Database.AutoMigrate, log)
 	if err := bootstrap.EnsureDefaultApps(context.Background(), entClient, log, bootstrap.DefaultApps); err != nil {
-		log.Fatal("初始化默认应用失败", zap.Error(err))
+		log.Fatal("failed to initialize default apps", zap.Error(err))
 	}
 	redisClient := commonRedis.Init(cfg.Redis, log)
 
 	return entClient, redisClient, idgenClient
 }
 
-// buildContainer 构建应用运行容器。
+// buildContainer builds the application runtime container.
 func buildContainer(cfg *config.Config, entClient *ent.Client, redisClient *redis.Client, idgenClient platformidgen.Client, log *zap.Logger) *appcontainer.Container {
 	return appcontainer.Build(cfg, entClient, redisClient, idgenClient, log)
 }
 
-// runServer 启动 gRPC 服务器，监听停机信号后优雅退出
+// runServer starts the gRPC server and shuts it down gracefully after receiving a stop signal.
 func runServer(s *grpc.Server, healthServer *grpchealth.Server, port string, log *zap.Logger) {
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		log.Fatal("gRPC 端口监听失败", zap.Error(err))
+		log.Fatal("failed to listen on gRPC port", zap.Error(err))
 	}
 
 	go func() {
-		log.Info("gRPC 服务已启动", zap.String("port", port))
+		log.Info("gRPC server started", zap.String("port", port))
 		if err := s.Serve(lis); err != nil {
-			log.Fatal("gRPC 服务异常终止", zap.Error(err))
+			log.Fatal("gRPC server terminated unexpectedly", zap.Error(err))
 		}
 	}()
 
@@ -113,9 +112,9 @@ func runServer(s *grpc.Server, healthServer *grpchealth.Server, port string, log
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 
-	log.Info("收到停机信号，开始优雅退出...")
+	log.Info("received shutdown signal, starting graceful shutdown...")
 	probe.GRPCShutdown(healthServer, "user.UserService", "user.AuthService")
 	s.GracefulStop()
 
-	log.Info("gRPC 服务已安全退出")
+	log.Info("gRPC server exited safely")
 }

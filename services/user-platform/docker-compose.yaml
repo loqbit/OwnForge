@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.http
-    # 不暴露端口到宿主机，只通过网关访问（网络隔离）
+    # Do not expose ports to the host; access only through the gateway (network isolation)
     env_file:
       - .env
     environment:
@@ -54,7 +54,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.grpc
-    # 不暴露端口到宿主机，只通过内网访问
+    # Do not expose ports to the host; internal network access only
     env_file:
       - .env
     environment:

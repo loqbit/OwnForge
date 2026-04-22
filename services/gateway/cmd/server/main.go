@@ -36,42 +36,42 @@ import (
 )
 
 func main() {
-	// 规范化配置
+	// Normalize configuration
 	cfg := config.LoadConfig()
 
-	// 规范化日志
+	// Normalize logging
 	log := logger.NewLogger("api-gateway")
 	defer log.Sync()
 
-	// 初始化 Redis
+	// Initialize Redis
 	redisClient := redis.Init(cfg.Redis, log)
 	defer redisClient.Close()
 
-	// 初始化 gRPC 客户端（使用纯 host:port 格式的 gRPC 地址）
+	// Initialize gRPC clients using plain host:port addresses
 	authClient, err := grpcclient.NewAuthClient(cfg.Routes.UserPlatformGRPC)
 	if err != nil {
-		log.Fatal("初始化 Auth gRPC 客户端失败", zap.Error(err))
+		log.Fatal("failed to initialize Auth gRPC client", zap.Error(err))
 	}
 	userClient, err := grpcclient.NewUserClient(cfg.Routes.UserPlatformGRPC)
 	if err != nil {
-		log.Fatal("初始化 User gRPC 客户端失败", zap.Error(err))
+		log.Fatal("failed to initialize User gRPC client", zap.Error(err))
 	}
 
-	// 初始化 Note gRPC 客户端（用于公开端点等不走 gRPC-Gateway 的场景）
+	// Initialize the Note gRPC client for public endpoints and other flows that do not go through gRPC-Gateway
 	noteClientGrpc, err := grpcclient.NewNoteClient(cfg.Routes.GoNoteGRPC)
 	if err != nil {
-		log.Fatal("初始化 Note gRPC 客户端失败", zap.Error(err))
+		log.Fatal("failed to initialize Note gRPC client", zap.Error(err))
 	}
 
-	// 初始化 gRPC-Gateway 反向代理（自动代理所有 CRUD 路由）
+	// Initialize the gRPC-Gateway reverse proxy for automatic CRUD routing
 	noteMux, err := gwproxy.NewNoteMux(context.Background(), cfg.Routes.GoNoteGRPC)
 	if err != nil {
-		log.Fatal("初始化 Note gRPC-Gateway 失败", zap.Error(err))
+		log.Fatal("failed to initialize Note gRPC-Gateway", zap.Error(err))
 	}
 
 	chatProxy := proxy.NewReverseProxy(cfg.Routes.GoChat)
 
-	// 初始化 handler
+	// Initialize handlers
 	configHandler := handler.NewConfigHandler(cfg.Client)
 	dashboardHandler := handler.NewDashboardHandler(userClient, noteClientGrpc, log)
 	authHandler := handler.NewAuthHandler(authClient, cfg.SSOCookie, log)
@@ -80,34 +80,34 @@ func main() {
 	uploadHandler := handler.NewUploadHandler(noteClientGrpc, log)
 	chatHandler := handler.NewChatHandler(chatProxy)
 
-	// 初始化限流器
+	// Initialize rate limiters
 	BBRLimiter := ratelimiter.NewBBRLimiter(100, 10*time.Second, 80)
 	IPLimiter := ratelimiter.NewSlidingWindowLimiter(redisClient, log)
 	RouteLimiter := ratelimiter.NewTokenBucketLimiter(redisClient, log)
 	UserLimiter := ratelimiter.NewSlidingWindowLimiter(redisClient, log)
 
-	// 初始化鉴权依赖 (拿配置的 Secret 生成网关的 JWT 管理器)
+	// Initialize auth dependencies using the configured secret to build the gateway JWT manager
 	jwtManager := auth.NewJWTManager(cfg.JWT.Secret)
 
-	// 设置 Gin 运行模式：Release 模式关闭 GIN 自带的 debug 日志
-	// 所有请求日志由我们的 zap 中间件统一管理
+	// Set Gin mode: Release disables Gin's built-in debug logging
+	// All request logs are handled uniformly by our zap middleware
 	if cfg.AppEnv == "production" || cfg.AppEnv == "prod" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
-		gin.SetMode(gin.ReleaseMode) // 即使开发环境也用 Release，避免 GIN debug 输出干扰 zap 日志
+		gin.SetMode(gin.ReleaseMode) // Use Release even in development to avoid Gin debug output polluting zap logs
 	}
 
-	// [Bug 5 修复] 初始化 OpenTelemetry — 必须在注册 otelgin 中间件之前
+	// [Bug 5 fix] Initialize OpenTelemetry before registering the otelgin middleware
 	shutdown, err := otel.InitTracer(cfg.OTel)
 	if err != nil {
-		log.Fatal("初始化 OpenTelemetry 失败", zap.Error(err))
+		log.Fatal("failed to initialize OpenTelemetry", zap.Error(err))
 	}
 	defer shutdown(context.Background())
 
 	r := gin.New()
 
-	// 设置受信任的代理，消除 "You trusted all proxies" 警告
-	// 仅信任内网代理（Docker 网络、K8s 集群内网、本机）
+	// Set trusted proxies to eliminate the "You trusted all proxies" warning
+	// Trust only internal proxies (Docker network, K8s cluster network, localhost)
 	r.SetTrustedProxies([]string{
 		"127.0.0.1",
 		"10.0.0.0/8",
@@ -115,24 +115,24 @@ func main() {
 		"192.168.0.0/16",
 	})
 
-	// [Bug 3 修复] 全局注入 logger 到每个请求的 context，确保所有路径都能记录日志
+	// [Bug 3 fix] Inject the logger into each request context globally so every code path can log
 	r.Use(func(c *gin.Context) {
 		c.Set("logger", log)
 		c.Next()
 	})
 
-	// 探针端点：/healthz, /readyz, /metrics（注册在所有中间件之前）
+	// Probe endpoints: /healthz, /readyz, /metrics (registered before all middleware)
 	probe.Register(r, log,
 		probe.WithRedis(redisClient),
 	)
 
-	// 下游依赖单独暴露，避免单个业务服务抖动时把整个网关摘出流量。
+	// Expose downstream dependency health separately so one unstable service does not remove the entire gateway from traffic.
 	dependencyChecker := health.NewChecker()
 	dependencyChecker.AddCheck("go-note", newGRPCReadyCheck(cfg.Routes.GoNoteGRPC))
 	dependencyChecker.AddCheck("go-chat", newHTTPReadyCheck(cfg.Routes.GoChat+"/readyz"))
 	registerDependencyHealthRoute(r, dependencyChecker)
 
-	// [CORS 防御层] — 从配置中读取白名单
+	// [CORS defense layer] read the allowlist from config
 	if len(cfg.Server.CorsOrigins) > 0 {
 		r.Use(cors.New(cors.Config{
 			AllowOrigins:     cfg.Server.CorsOrigins,
@@ -144,17 +144,17 @@ func main() {
 		}))
 	}
 
-	// [全局前置拦截器]
-	r.Use(otelgin.Middleware("api-gateway")) // 把每一条来到网关的请求打上 TraceID
-	r.Use(logger.GinLogger(log))             // 记录响应时长和 TraceID（来自 common/logger）
-	r.Use(logger.GinRecovery(log, true))     // 崩溃接管防闪退
-	// 路由设计：
+	// [Global pre-processing interceptors]
+	r.Use(otelgin.Middleware("api-gateway")) // Attach a TraceID to every request reaching the gateway
+	r.Use(logger.GinLogger(log))             // Record response time and TraceID (from common/logger)
+	r.Use(logger.GinRecovery(log, true))     // Recover from panics to prevent crashes
+	// Routing design:
 	api := r.Group("/api/v1")
-	// Layer 1: IP 限流 (滑动窗口) - 所有请求都过
+	// Layer 1: IP rate limiting (sliding window) - applies to all requests
 	api.Use(ratelimit.IPrateLimit(IPLimiter, 50, time.Second, log))
-	// Layer 2: BBR 自适应限流 - 所有请求都过
+	// Layer 2: BBR adaptive rate limiting - applies to all requests
 	api.Use(ratelimit.BBRMiddleware(BBRLimiter, log))
-	// 公共接口（无需 JWT 鉴权）
+	// Public endpoints (no JWT authentication required)
 	api.GET("/config/client", configHandler.GetClientConfig)
 	api.POST("/users/register", userHandler.Register)
 	api.POST("/users/login", authHandler.Login)
@@ -163,17 +163,17 @@ func main() {
 	api.POST("/users/phone/code", authHandler.SendPhoneCode)
 	api.POST("/users/phone/entry", authHandler.PhoneAuthEntry)
 	api.POST("/users/phone/password-login", authHandler.PhonePasswordLogin)
-	// 公开笔记端点（无需鉴权）
+	// Public note endpoints (no authentication required)
 	api.GET("/notes/public/snippets/:id", publicNoteHandler.GetPublic)
 	api.GET("/notes/public/shares/:token", publicNoteHandler.GetPublicShare)
 
 	{
-		// 用户模块路由组（需 JWT 鉴权）
+		// User route group (JWT authentication required)
 		usersGroup := api.Group("/users")
-		// Layer 3: 路由限流 (令牌桶) - 单个服务级别
+		// Layer 3: Route-level rate limiting (token bucket) - per service
 		usersGroup.Use(ratelimit.RouteRateLimit(RouteLimiter, 200, 10*time.Second, log))
 		usersGroup.Use(middleware.JWTAuth(jwtManager, log))
-		// Layer 4: 用户限流 (滑动窗口) - 登录用户过
+		// Layer 4: User-level rate limiting (sliding window) - for authenticated users
 		usersGroup.Use(ratelimit.UserRateLimit(UserLimiter, 20, time.Second, log))
 		usersGroup.GET("/dashboard", dashboardHandler.GetDashboard)
 		usersGroup.GET("/me/profile", userHandler.GetProfile)
@@ -185,17 +185,17 @@ func main() {
 		usersGroup.POST("/logout-all", userHandler.LogoutAllSessions)
 	}
 	{
-		// 笔记模块路由组（需 JWT 鉴权）
-		// gRPC-Gateway 自动代理所有 CRUD、分组、标签、模板路由
+		// Note route group (JWT authentication required)
+		// gRPC-Gateway automatically proxies CRUD, group, tag, and template routes
 		notesGroup := api.Group("/notes")
 		notesGroup.Use(ratelimit.RouteRateLimit(RouteLimiter, 200, 10*time.Second, log))
 		notesGroup.Use(middleware.JWTAuth(jwtManager, log))
 		notesGroup.Use(ratelimit.UserRateLimit(UserLimiter, 20, time.Second, log))
 
-		// 文件上传保留为手写 handler（二进制流不适合 JSON gRPC-Gateway）
+		// Keep file uploads in a handwritten handler because binary streams do not fit JSON gRPC-Gateway well
 		notesGroup.POST("/uploads", uploadHandler.Upload)
 
-		// gRPC-Gateway 透传路由。显式按方法注册，避免和手写上传路由冲突。
+		// Pass-through routes for gRPC-Gateway. Register them explicitly by method to avoid conflicts with the handwritten upload route.
 		noteGatewayHandler := gin.WrapH(gwproxy.WrapHandler(noteMux))
 
 		notesGroup.GET("/me/snippets", noteGatewayHandler)
@@ -246,33 +246,33 @@ func main() {
 		chatGroup.Any("/*path", chatHandler.Proxy)
 	}
 
-	// 启动网关服务
+	// Start the gateway service
 	srv := &http.Server{
 		Addr:    ":" + cfg.Server.Port,
 		Handler: r,
 	}
 
 	go func() {
-		log.Info("API Gateway 启动成功",
+		log.Info("API Gateway started successfully",
 			zap.String("port", cfg.Server.Port),
 		)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("API网关运行异常: %v", zap.Error(err))
+			log.Fatal("API Gateway runtime error: %v", zap.Error(err))
 		}
 	}()
 
-	// 优雅停机,拦截系统的停机信号（如 Ctrl+C）
+	// Graceful shutdown: intercept system shutdown signals such as Ctrl+C
 	quit := make(chan os.Signal, 1)
-	// [Bug 4 修复] 同时监听 SIGINT(Ctrl+C) 和 SIGTERM(Docker/K8s 停止信号)
+	// [Bug 4 fix] Listen to both SIGINT (Ctrl+C) and SIGTERM (Docker/K8s stop signal)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
-	log.Info("API Gateway 正在关闭...")
+	log.Info("API Gateway is shutting down...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("API网关强制关闭", zap.Error(err))
+		log.Fatal("API Gateway forced shutdown", zap.Error(err))
 	}
-	log.Info("API Gateway 已关闭")
+	log.Info("API Gateway closed")
 }
 
 func newHTTPReadyCheck(url string) health.CheckFunc {

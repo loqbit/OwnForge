@@ -11,17 +11,17 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
 )
 
-// Store 是 template Repository 的 Ent 实现。
+// Store is the Ent-backed implementation of the template repository.
 type Store struct {
 	client *ent.Client
 }
 
-// New 创建一个基于 Ent 的 template Repository。
+// New creates an Ent-backed template repository.
 func New(client *ent.Client) templaterepo.Repository {
 	return &Store{client: client}
 }
 
-// Create 创建一条 Template 记录。
+// Create inserts a template record.
 func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.CreateTemplateCommand) (*templaterepo.Template, error) {
 	entity, err := s.client.Template.Create().
 		SetID(id).
@@ -39,7 +39,7 @@ func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.
 	return mapTemplate(entity), nil
 }
 
-// GetByID 根据 ID 查询单个 Template。
+// GetByID looks up a single template by ID.
 func (s *Store) GetByID(ctx context.Context, id int64) (*templaterepo.Template, error) {
 	entity, err := s.client.Template.Get(ctx, id)
 	if err != nil {
@@ -49,12 +49,12 @@ func (s *Store) GetByID(ctx context.Context, id int64) (*templaterepo.Template, 
 	return mapTemplate(entity), nil
 }
 
-// List 返回系统模板 + 指定用户的个人模板，可按 category 过滤。
+// List returns system templates plus personal templates for the given user, optionally filtered by category.
 func (s *Store) List(ctx context.Context, ownerID int64, category string) ([]templaterepo.Template, error) {
 	query := s.client.Template.
 		Query().
 		Where(
-			// 系统模板 OR 自己的模板
+			// System templates OR the user's own templates.
 			enttemplate.Or(
 				enttemplate.IsSystem(true),
 				enttemplate.OwnerIDEQ(ownerID),
@@ -79,7 +79,7 @@ func (s *Store) List(ctx context.Context, ownerID int64, category string) ([]tem
 	return results, nil
 }
 
-// Update 更新指定模板，需要校验 ownerID 所有权。
+// Update updates a template after verifying ownership.
 func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.UpdateTemplateCommand) (*templaterepo.Template, error) {
 	entity, err := s.client.Template.
 		Query().
@@ -104,7 +104,7 @@ func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.
 	return mapTemplate(updated), nil
 }
 
-// Delete 删除指定模板，需要校验 ownerID（系统模板不可删除，owner_id=0）。
+// Delete removes a template after verifying ownership; system templates (owner_id=0) cannot be deleted.
 func (s *Store) Delete(ctx context.Context, ownerID, id int64) error {
 	count, err := s.client.Template.
 		Query().
@@ -122,7 +122,7 @@ func (s *Store) Delete(ctx context.Context, ownerID, id int64) error {
 	return shared.ParseEntError(s.client.Template.DeleteOneID(id).Exec(ctx))
 }
 
-// CountSystem 统计系统预置模板数量，用于判断是否需要 seed。
+// CountSystem returns the number of built-in system templates to decide whether seeding is needed.
 func (s *Store) CountSystem(ctx context.Context) (int, error) {
 	count, err := s.client.Template.
 		Query().
@@ -134,7 +134,7 @@ func (s *Store) CountSystem(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-// CreateBatch 批量创建模板（用于 seed 系统模板）。
+// CreateBatch inserts templates in bulk, mainly for seeding system templates.
 func (s *Store) CreateBatch(ctx context.Context, templates []templaterepo.Template) error {
 	builders := make([]*ent.TemplateCreate, 0, len(templates))
 	for _, t := range templates {

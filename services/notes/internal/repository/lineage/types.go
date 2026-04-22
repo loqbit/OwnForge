@@ -2,7 +2,7 @@ package lineagerepo
 
 import "time"
 
-// Lineage 是 snippet_lineage 的仓储层模型。
+// Lineage is the repository-layer model for snippet_lineage.
 type Lineage struct {
 	ID              int64
 	SnippetID       int64

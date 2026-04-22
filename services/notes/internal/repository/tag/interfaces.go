@@ -6,7 +6,7 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/service/tag/contract"
 )
 
-// Repository 定义 tag 数据访问接口。
+// Repository defines the tag data access interface.
 type Repository interface {
 	Create(ctx context.Context, id, ownerID int64, params *contract.CreateTagCommand) (*Tag, error)
 	GetByID(ctx context.Context, id int64) (*Tag, error)

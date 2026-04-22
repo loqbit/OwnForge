@@ -20,20 +20,20 @@ var (
 	ErrSendFrequency       = errors.New("sms auth frequency limited")
 )
 
-// SendVerifyCodeInput 表示发送手机验证码时需要的业务参数。
+// SendVerifyCodeInput contains the business parameters required to send a phone verification code.
 type SendVerifyCodeInput struct {
 	Phone string
 	Scene string
 }
 
-// SendVerifyCodeResult 表示验证码发送成功后返回的服务商侧元信息。
+// SendVerifyCodeResult contains provider-side metadata returned after a verification code is sent successfully.
 type SendVerifyCodeResult struct {
 	BizID           string
 	DebugCode       string
 	CooldownSeconds int
 }
 
-// CheckVerifyCodeInput 表示校验手机验证码时需要的业务参数。
+// CheckVerifyCodeInput contains the business parameters required to verify a phone code.
 type CheckVerifyCodeInput struct {
 	Phone string
 	Code  string
@@ -41,18 +41,18 @@ type CheckVerifyCodeInput struct {
 	Scene string
 }
 
-// CheckVerifyCodeResult 表示服务商是否认可本次验证码校验请求。
+// CheckVerifyCodeResult reports whether the provider accepts this verification request.
 type CheckVerifyCodeResult struct {
 	Passed bool
 }
 
-// Sender 抽象上游短信验证码服务商的发送与校验能力。
+// Sender abstracts the send and verify capabilities of upstream SMS verification providers.
 type Sender interface {
 	SendVerifyCode(ctx context.Context, input SendVerifyCodeInput) (*SendVerifyCodeResult, error)
 	CheckVerifyCode(ctx context.Context, input CheckVerifyCodeInput) (*CheckVerifyCodeResult, error)
 }
 
-// AliyunSender 通过阿里云 Dypnsapi 实现验证码发送与校验。
+// AliyunSender implements code sending and verification through Aliyun Dypnsapi.
 type AliyunSender struct {
 	cfg     config.SMSAuthConfig
 	log     *zap.Logger
@@ -61,7 +61,7 @@ type AliyunSender struct {
 	initErr error
 }
 
-// NewAliyunSender 根据应用配置构造阿里云短信验证码发送器。
+// NewAliyunSender builds an Aliyun SMS verification sender from application configuration.
 func NewAliyunSender(cfg config.SMSAuthConfig, log *zap.Logger) Sender {
 	sender := &AliyunSender{
 		cfg:     cfg,
@@ -76,7 +76,7 @@ func NewAliyunSender(cfg config.SMSAuthConfig, log *zap.Logger) Sender {
 	if err != nil {
 		sender.initErr = err
 		if log != nil {
-			log.Error("初始化阿里云短信认证客户端失败", zap.Error(err))
+			log.Error("failed to initialize Alibaba Cloud SMS auth client", zap.Error(err))
 		}
 		return sender
 	}
@@ -85,7 +85,7 @@ func NewAliyunSender(cfg config.SMSAuthConfig, log *zap.Logger) Sender {
 	return sender
 }
 
-// SendVerifyCode 调用阿里云向目标手机号发送验证码短信。
+// SendVerifyCode asks Aliyun to send a verification code SMS to the target phone number.
 func (s *AliyunSender) SendVerifyCode(ctx context.Context, input SendVerifyCodeInput) (*SendVerifyCodeResult, error) {
 	_ = ctx
 
@@ -100,7 +100,7 @@ func (s *AliyunSender) SendVerifyCode(ctx context.Context, input SendVerifyCodeI
 
 	resp, err := s.client.SendSmsVerifyCodeWithOptions(request, s.runtime)
 	if err != nil {
-		return nil, fmt.Errorf("调用阿里云发送验证码接口失败: %w", err)
+		return nil, fmt.Errorf("failed to call Alibaba Cloud send-code API: %w", err)
 	}
 	if err := validateSendResponse(resp); err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (s *AliyunSender) SendVerifyCode(ctx context.Context, input SendVerifyCodeI
 	return result, nil
 }
 
-// CheckVerifyCode 调用阿里云校验提交的短信验证码是否有效。
+// CheckVerifyCode asks Aliyun to validate whether the submitted SMS verification code is valid.
 func (s *AliyunSender) CheckVerifyCode(ctx context.Context, input CheckVerifyCodeInput) (*CheckVerifyCodeResult, error) {
 	_ = ctx
 
@@ -136,7 +136,7 @@ func (s *AliyunSender) CheckVerifyCode(ctx context.Context, input CheckVerifyCod
 
 	resp, err := s.client.CheckSmsVerifyCodeWithOptions(request, s.runtime)
 	if err != nil {
-		return nil, fmt.Errorf("调用阿里云校验验证码接口失败: %w", err)
+		return nil, fmt.Errorf("failed to call Alibaba Cloud verify-code API: %w", err)
 	}
 	if err := validateCheckResponse(resp); err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (s *AliyunSender) CheckVerifyCode(ctx context.Context, input CheckVerifyCod
 	}, nil
 }
 
-// validateReady 确保发送器已启用且底层客户端初始化成功。
+// validateReady makes sure the sender is enabled and the underlying client is initialized.
 func (s *AliyunSender) validateReady() error {
 	if !s.cfg.Enabled {
 		return ErrSenderDisabled
@@ -161,7 +161,7 @@ func (s *AliyunSender) validateReady() error {
 	return nil
 }
 
-// buildSendRequest 根据配置和运行时输入组装阿里云发码请求。
+// buildSendRequest assembles the Aliyun send-code request from configuration and runtime input.
 func (s *AliyunSender) buildSendRequest(input SendVerifyCodeInput) (*dypnsclient.SendSmsVerifyCodeRequest, error) {
 	templateParam, err := s.templateParamJSON()
 	if err != nil {
@@ -189,11 +189,11 @@ func (s *AliyunSender) buildSendRequest(input SendVerifyCodeInput) (*dypnsclient
 	return request, nil
 }
 
-// templateParamJSON 返回阿里云短信模板所需的 JSON 参数串。
+// templateParamJSON returns the JSON parameter string required by the Aliyun SMS template.
 func (s *AliyunSender) templateParamJSON() (string, error) {
 	if value := strings.TrimSpace(s.cfg.TemplateParamJSON); value != "" {
 		if !json.Valid([]byte(value)) {
-			return "", fmt.Errorf("%w: template_param_json 不是合法 JSON", ErrSenderMisconfigured)
+			return "", fmt.Errorf("%w: template_param_json is not valid JSON", ErrSenderMisconfigured)
 		}
 		return value, nil
 	}
@@ -204,52 +204,52 @@ func (s *AliyunSender) templateParamJSON() (string, error) {
 	}
 	raw, err := json.Marshal(payload)
 	if err != nil {
-		return "", fmt.Errorf("序列化默认模板参数失败: %w", err)
+		return "", fmt.Errorf("failed to marshal default template parameters: %w", err)
 	}
 	return string(raw), nil
 }
 
-// validateSendResponse 检查阿里云是否成功受理发码请求。
+// validateSendResponse checks whether Aliyun accepted the send-code request successfully.
 func validateSendResponse(resp *dypnsclient.SendSmsVerifyCodeResponse) error {
 	if resp == nil || resp.Body == nil {
-		return errors.New("阿里云发送验证码响应为空")
+		return errors.New("Alibaba Cloud send-code response is empty")
 	}
 	if !dara.BoolValue(resp.Body.Success) || !strings.EqualFold(dara.StringValue(resp.Body.Code), "OK") {
 		if strings.EqualFold(dara.StringValue(resp.Body.Code), "biz.FREQUENCY") {
 			return fmt.Errorf("%w(code=%s, message=%s)", ErrSendFrequency, dara.StringValue(resp.Body.Code), dara.StringValue(resp.Body.Message))
 		}
-		return fmt.Errorf("阿里云发送验证码失败(code=%s, message=%s)", dara.StringValue(resp.Body.Code), dara.StringValue(resp.Body.Message))
+		return fmt.Errorf("Alibaba Cloud send-code failed(code=%s, message=%s)", dara.StringValue(resp.Body.Code), dara.StringValue(resp.Body.Message))
 	}
 	return nil
 }
 
-// validateCheckResponse 检查阿里云是否返回了有效的验码结果。
+// validateCheckResponse checks whether Aliyun returned a valid verification result.
 func validateCheckResponse(resp *dypnsclient.CheckSmsVerifyCodeResponse) error {
 	if resp == nil || resp.Body == nil {
-		return errors.New("阿里云校验验证码响应为空")
+		return errors.New("Alibaba Cloud verify-code response is empty")
 	}
 	if !dara.BoolValue(resp.Body.Success) || !strings.EqualFold(dara.StringValue(resp.Body.Code), "OK") {
-		return fmt.Errorf("阿里云校验验证码失败(code=%s, message=%s)", dara.StringValue(resp.Body.Code), dara.StringValue(resp.Body.Message))
+		return fmt.Errorf("Alibaba Cloud verify-code failed(code=%s, message=%s)", dara.StringValue(resp.Body.Code), dara.StringValue(resp.Body.Message))
 	}
 	if resp.Body.Model == nil {
-		return errors.New("阿里云校验验证码响应缺少 Model")
+		return errors.New("Alibaba Cloud verify-code response is missing Model")
 	}
 	return nil
 }
 
-// newAliyunClient 根据短信配置创建底层阿里云 Dypnsapi 客户端。
+// newAliyunClient creates the underlying Aliyun Dypnsapi client from SMS configuration.
 func newAliyunClient(cfg config.SMSAuthConfig) (*dypnsclient.Client, error) {
 	if strings.TrimSpace(cfg.AccessKeyID) == "" || strings.TrimSpace(cfg.AccessKeySecret) == "" {
-		return nil, fmt.Errorf("%w: access key 未配置", ErrSenderMisconfigured)
+		return nil, fmt.Errorf("%w: access key is not configured", ErrSenderMisconfigured)
 	}
 	if strings.TrimSpace(cfg.Region) == "" {
-		return nil, fmt.Errorf("%w: region 未配置", ErrSenderMisconfigured)
+		return nil, fmt.Errorf("%w: region is not configured", ErrSenderMisconfigured)
 	}
 	if strings.TrimSpace(cfg.SignName) == "" {
-		return nil, fmt.Errorf("%w: sign_name 未配置", ErrSenderMisconfigured)
+		return nil, fmt.Errorf("%w: sign_name is not configured", ErrSenderMisconfigured)
 	}
 	if strings.TrimSpace(cfg.TemplateCode) == "" {
-		return nil, fmt.Errorf("%w: template_code 未配置", ErrSenderMisconfigured)
+		return nil, fmt.Errorf("%w: template_code is not configured", ErrSenderMisconfigured)
 	}
 
 	openapiCfg := &openapiutil.Config{
@@ -261,7 +261,7 @@ func newAliyunClient(cfg config.SMSAuthConfig) (*dypnsclient.Client, error) {
 	return dypnsclient.NewClient(openapiCfg)
 }
 
-// countryCode 返回配置中的国家码，默认回退为中国大陆区号。
+// countryCode returns the configured country code and falls back to mainland China by default.
 func (s *AliyunSender) countryCode() string {
 	if value := strings.TrimSpace(s.cfg.CountryCode); value != "" {
 		return value
@@ -269,37 +269,37 @@ func (s *AliyunSender) countryCode() string {
 	return "86"
 }
 
-// codeLength 返回配置中的验证码长度，未配置时使用默认值。
+// codeLength returns the configured code length, or the default when not set.
 func (s *AliyunSender) codeLength() int64 {
 	return defaultInt64(s.cfg.CodeLength, 6)
 }
 
-// intervalSeconds 返回配置中的重发冷却秒数。
+// intervalSeconds returns the configured resend cooldown in seconds.
 func (s *AliyunSender) intervalSeconds() int64 {
 	return defaultInt64(s.cfg.IntervalSeconds, 60)
 }
 
-// validTimeSeconds 返回配置中的验证码有效期秒数。
+// validTimeSeconds returns the configured code validity period in seconds.
 func (s *AliyunSender) validTimeSeconds() int64 {
 	return defaultInt64(s.cfg.ValidTimeSeconds, 300)
 }
 
-// codeType 返回配置中的验证码字符类型策略。
+// codeType returns the configured character-type policy for verification codes.
 func (s *AliyunSender) codeType() int64 {
 	return defaultInt64(s.cfg.CodeType, 1)
 }
 
-// duplicatePolicy 返回有效期内重复发码时的处理策略。
+// duplicatePolicy returns the configured behavior for repeated sends during the valid window.
 func (s *AliyunSender) duplicatePolicy() int64 {
 	return defaultInt64(s.cfg.DuplicatePolicy, 1)
 }
 
-// autoRetry 返回配置中的阿里云自动重试策略。
+// autoRetry returns the configured Aliyun automatic retry policy.
 func (s *AliyunSender) autoRetry() int64 {
 	return defaultInt64(s.cfg.AutoRetry, 1)
 }
 
-// defaultInt64 在配置值未设置或非法时返回回退值。
+// defaultInt64 returns a fallback value when the configured value is missing or invalid.
 func defaultInt64(value int64, fallback int64) int64 {
 	if value > 0 {
 		return value
@@ -307,7 +307,7 @@ func defaultInt64(value int64, fallback int64) int64 {
 	return fallback
 }
 
-// maxInt64 返回两个 int64 中更大的那个值。
+// maxInt64 returns the larger of two int64 values.
 func maxInt64(a int64, b int64) int64 {
 	if a > b {
 		return a

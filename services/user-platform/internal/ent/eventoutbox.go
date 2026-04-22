@@ -18,17 +18,17 @@ type EventOutbox struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// 聚合类型，如 user / paste；主要用于表达这条事件属于哪个聚合
+	// Aggregate type, such as user or paste, indicating which aggregate the event belongs to
 	Aggregatetype *string `json:"aggregatetype,omitempty"`
-	// 聚合根 ID，如 userID / pasteID；当前会被 Debezium Outbox Router 映射为 Kafka message key
+	// Aggregate root ID, such as userID or pasteID, currently mapped by Debezium Outbox Router to the Kafka message key
 	Aggregateid *string `json:"aggregateid,omitempty"`
-	// 领域事件类型，如 user.registered；当前会被 Debezium Outbox Router 用作 Kafka topic 路由字段
+	// Domain event type, such as user.registered, currently used by Debezium Outbox Router as the Kafka topic routing field
 	Type *string `json:"type,omitempty"`
-	// 事件消息体；当前会被 Debezium Outbox Router 映射为 Kafka message value
+	// Event payload, currently mapped by Debezium Outbox Router to the Kafka message value
 	Payload json.RawMessage `json:"payload,omitempty"`
-	// 可选事件头；当前会被 Debezium Outbox Router 映射为 Kafka headers，预留给 trace/source 等元数据
+	// Optional event headers, currently mapped by Debezium Outbox Router to Kafka headers, reserved for trace/source metadata and similar fields
 	Headers json.RawMessage `json:"headers,omitempty"`
-	// Outbox 记录创建时间；主要用于审计、排查和按时间维度查询
+	// Outbox record creation time, mainly used for auditing, debugging, and time-based queries
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	selectValues sql.SelectValues
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Repository 定义 share 数据访问接口。
+// Repository defines the share data access interface.
 type Repository interface {
 	Create(ctx context.Context, share *Share) (*Share, error)
 	GetByID(ctx context.Context, id int64) (*Share, error)

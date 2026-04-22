@@ -85,7 +85,7 @@ func main() {
 
 	otelShutdown, err := commonOtel.InitTracer(cfg.OTel)
 	if err != nil {
-		log.Fatal("初始化 OpenTelemetry 失败", zap.Error(err))
+		log.Fatal("failed to initialize OpenTelemetry", zap.Error(err))
 	}
 	defer otelShutdown(context.Background())
 
@@ -93,7 +93,7 @@ func main() {
 	hs := buildHandlers(svcs, log)
 
 	if err := svcs.templateSvc.SeedSystemTemplates(context.Background()); err != nil {
-		log.Error("seed 系统模板失败", zap.Error(err))
+		log.Error("failed to seed system templates", zap.Error(err))
 	}
 
 	grpcHealthServer := grpchealth.NewServer()
@@ -118,13 +118,13 @@ func main() {
 	grpcAddr := ":" + cfg.GRPCServer.Port
 	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
-		log.Fatal("gRPC 端口监听失败", zap.Error(err))
+		log.Fatal("failed to listen on gRPC port", zap.Error(err))
 	}
 
 	go func() {
-		log.Info("gRPC 服务已启动", zap.String("port", cfg.GRPCServer.Port))
+		log.Info("gRPC server started", zap.String("port", cfg.GRPCServer.Port))
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatal("gRPC 服务异常终止", zap.Error(err))
+			log.Fatal("gRPC server terminated unexpectedly", zap.Error(err))
 		}
 	}()
 
@@ -145,7 +145,7 @@ func main() {
 		gwAddr,
 		[]grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
 	); err != nil {
-		log.Fatal("注册 grpc-gateway 失败", zap.Error(err))
+		log.Fatal("failed to register grpc-gateway", zap.Error(err))
 	}
 
 	r := gin.New()
@@ -180,9 +180,9 @@ func main() {
 	}
 
 	go func() {
-		log.Info("HTTP 服务已启动", zap.String("port", cfg.Server.Port))
+		log.Info("HTTP server started", zap.String("port", cfg.Server.Port))
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("HTTP 服务监听失败", zap.Error(err))
+			log.Fatal("HTTP server failed to listen", zap.Error(err))
 		}
 	}()
 
@@ -190,18 +190,18 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 
-	log.Info("收到停机信号，开始优雅退出...")
+	log.Info("received shutdown signal, starting graceful shutdown...")
 	cancel()
 	probe.GRPCShutdown(grpcHealthServer, "note.NoteService")
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
-		log.Error("HTTP 服务关闭失败", zap.Error(err))
+		log.Error("failed to shut down HTTP server", zap.Error(err))
 	}
 
 	grpcServer.GracefulStop()
-	log.Info("go-note 单主进程已安全退出")
+	log.Info("go-note single-process server exited safely")
 }
 
 func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client, platformidgen.Client) {
@@ -209,7 +209,7 @@ func initInfra(cfg *config.Config, log *zap.Logger) (*ent.Client, *redis.Client,
 	redisClient := commonRedis.Init(cfg.Redis, log)
 	idgenClient, err := platformidgen.New(cfg.IDGenerator.Addr)
 	if err != nil {
-		log.Fatal("初始化 id-generator 客户端失败", zap.Error(err))
+		log.Fatal("failed to initialize id-generator client", zap.Error(err))
 	}
 
 	return entClient, redisClient, idgenClient
@@ -233,7 +233,7 @@ func buildServices(cfg *config.Config, redisClient *redis.Client, entClient *ent
 		UseSSL:         cfg.MinIO.UseSSL,
 	})
 	if err != nil {
-		log.Fatal("初始化 MinIO 客户端失败", zap.Error(err))
+		log.Fatal("failed to initialize MinIO client", zap.Error(err))
 	}
 
 	publisher := event.NewRedisStreamPublisher(redisClient, log)

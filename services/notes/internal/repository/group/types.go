@@ -2,7 +2,7 @@ package grouprepo
 
 import "time"
 
-// Group 是 group 的仓储层领域模型。
+// Group is the repository-layer domain model for group.
 type Group struct {
 	ID          int64
 	OwnerID     int64

@@ -35,34 +35,34 @@ func NewDashboardHandler(
 	}
 }
 
-// GetDashboard 异构聚合演示端点
+// GetDashboard is a heterogeneous aggregation demo endpoint.
 func (h *DashboardHandler) GetDashboard(c *gin.Context) {
 	val, exists := c.Get("userID")
 	if !exists {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 	userID := val.(int64)
 
-	// 定义网关专用的超级 DTO 面板结构
+	// Define the gateway-specific aggregate DTO shape.
 	var dashResponse struct {
-		Profile  *dto.GetProfileResponse    `json:"profile"`
-		Snippets []*notepb.SnippetResponse  `json:"recent_snippets"`
+		Profile  *dto.GetProfileResponse   `json:"profile"`
+		Snippets []*notepb.SnippetResponse `json:"recent_snippets"`
 	}
 
-	// 第一部分：创建一个带 2 秒超时的 并发上下文，并注入网关身份信息
+	// Part 1: create a concurrent context with a 2-second timeout and inject gateway identity.
 	grpcCtx := grpcclient.WithUserID(c.Request.Context(), userID)
 	egCtx, cancel := context.WithTimeout(grpcCtx, 2*time.Second)
 	defer cancel()
-	eg, egCtx := errgroup.WithContext(egCtx) // 原生标准库：errgroup 并发组
+	eg, egCtx := errgroup.WithContext(egCtx) // Standard-library style concurrent errgroup
 
-	// 第二部分：并发任务 A (走 gRPC 获取高优主数据)
+	// Part 2: concurrent task A (fetch primary high-priority data over gRPC)
 	eg.Go(func() error {
 		resp, err := h.userClient.GetProfile(egCtx, &userpb.GetProfileRequest{
 			UserId: userID,
 		})
 		if err != nil {
-			// Profile 是该页面的核心，若它挂了直接返回 error 阻断
+			// Profile is core to this page; if it fails, return the error directly.
 			return err
 		}
 
@@ -76,14 +76,14 @@ func (h *DashboardHandler) GetDashboard(c *gin.Context) {
 		return nil
 	})
 
-	// 第三部分：并发任务 B (走 gRPC 获取笔记数据)
+	// Part 3: concurrent task B (fetch note data over gRPC)
 	eg.Go(func() error {
 		resp, err := h.noteClient.ListRecentSnippets(egCtx, &notepb.ListSnippetsRequest{})
 		if err != nil {
-			// 核心：部分降级
-			// 发生错误千万不要 return err，否则整个请求 500 崩溃
-			// 只记录 Warn 日志，返回一个空数组给前台兜底
-			commonlogger.Ctx(egCtx, h.log).Warn("Dashboard-获取边缘笔记链路故障，已执行降级策略", zap.Error(err))
+			// Key point: partial degradation
+			// Do not return err here, or the whole request will crash with a 500.
+			// Only log a warning and return an empty array as a fallback for the frontend.
+			commonlogger.Ctx(egCtx, h.log).Warn("Dashboard: edge-note dependency failed, degradation strategy applied", zap.Error(err))
 			dashResponse.Snippets = []*notepb.SnippetResponse{}
 			return nil
 		}
@@ -94,14 +94,14 @@ func (h *DashboardHandler) GetDashboard(c *gin.Context) {
 		return nil
 	})
 
-	// 第四部分：阻塞等待所有协程全部落位
+	// Part 4: wait for all goroutines to complete
 	if err := eg.Wait(); err != nil {
-		// 如果接收到 err，说明某条要求保证一致性的链路（如主数据）断裂了
-		commonlogger.Ctx(egCtx, h.log).Error("并发组装 Dashboard 遭遇核心系统熔断", zap.Error(err))
+		// If err is returned, a consistency-critical dependency path such as primary data has failed.
+		commonlogger.Ctx(egCtx, h.log).Error("Concurrent dashboard assembly hit a core-system circuit break", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
 
-	// 整合完毕，统一吐出
+	// Once everything is assembled, return the unified response
 	response.Success(c, dashResponse)
 }

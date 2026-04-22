@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Build 基于基础设施客户端构建应用运行容器。
+// Build constructs the application runtime container from infrastructure clients.
 func Build(cfg *config.Config, entClient *ent.Client, redisClient *redis.Client, idgenClient platformidgen.Client, log *zap.Logger) *Container {
 	stores := buildStores(entClient, redisClient, idgenClient)
 	support := buildSupport(cfg, redisClient, log)

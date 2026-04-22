@@ -21,17 +21,17 @@ type UserAppAuthorization struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// 授权状态
+	// Authorization status
 	Status userappauthorization.Status `json:"status,omitempty"`
-	// 授权范围
+	// Authorization scope
 	Scopes []string `json:"scopes,omitempty"`
-	// 应用级扩展资料
+	// App-level extended metadata
 	ExtProfile map[string]interface{} `json:"ext_profile,omitempty"`
-	// 首次授权时间
+	// First authorized at
 	FirstAuthorizedAt time.Time `json:"first_authorized_at,omitempty"`
-	// 最近一次登录时间
+	// Last login time
 	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
-	// 最近一次活跃时间
+	// Last active time
 	LastActiveAt time.Time `json:"last_active_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserAppAuthorizationQuery when eager-loading is set.

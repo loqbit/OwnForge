@@ -20,25 +20,25 @@ type SsoSession struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// 全局登录态令牌哈希，主要承载 Cookie SSO
+	// Global SSO token hash, used mainly for cookie-based SSO
 	SSOTokenHash string `json:"sso_token_hash,omitempty"`
-	// 设备标识
+	// Device identifier
 	DeviceID *string `json:"device_id,omitempty"`
-	// 用户 agent / 客户端标识
+	// User agent / client identifier
 	UserAgent *string `json:"user_agent,omitempty"`
-	// 客户端 IP
+	// Client IP
 	IP *string `json:"ip,omitempty"`
-	// 全局登录态状态
+	// Global SSO session status
 	Status ssosession.Status `json:"status,omitempty"`
-	// 当前全局登录态版本
+	// Current global SSO session version
 	SSOVersion int64 `json:"sso_version,omitempty"`
-	// 创建该全局登录态时的用户全局版本快照
+	// Snapshot of the user's global version when this global SSO session was created
 	UserVersion int64 `json:"user_version,omitempty"`
-	// 全局登录态过期时间
+	// Global SSO session expiration time
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
-	// 最近一次心跳时间
+	// Most recent heartbeat time
 	LastSeenAt time.Time `json:"last_seen_at,omitempty"`
-	// 撤销时间
+	// Revoked at
 	RevokedAt *time.Time `json:"revoked_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SsoSessionQuery when eager-loading is set.

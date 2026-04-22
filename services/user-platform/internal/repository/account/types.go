@@ -2,14 +2,14 @@ package accountrepo
 
 import "time"
 
-// User 是用户主体的领域模型。
+// User is the domain model for the user aggregate.
 type User struct {
 	ID          int64
 	Status      string
 	UserVersion int64
 }
 
-// Profile 是用户资料的领域模型。
+// Profile is the domain model for user profile data.
 type Profile struct {
 	ID        int64
 	UserID    int64
@@ -20,7 +20,7 @@ type Profile struct {
 	UpdatedAt time.Time
 }
 
-// UserIdentity 是用户登录身份的领域模型。
+// UserIdentity is the domain model for a user login identity.
 type UserIdentity struct {
 	ID              int
 	UserID          int64
@@ -35,10 +35,10 @@ type UserIdentity struct {
 	Meta            map[string]any
 }
 
-// CreateUserParams 是创建用户主体的参数。
+// CreateUserParams contains parameters for creating a user aggregate.
 type CreateUserParams struct{}
 
-// CreateUserIdentityParams 是创建用户身份的参数。
+// CreateUserIdentityParams contains parameters for creating a user identity.
 type CreateUserIdentityParams struct {
 	UserID          int64
 	Provider        string

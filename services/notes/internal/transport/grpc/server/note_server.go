@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// NoteServer 实现 NoteServiceServer 接口。
+// NoteServer implements the NoteServiceServer interface.
 type NoteServer struct {
 	notepb.UnimplementedNoteServiceServer
 	snippetSvc     snippetsvc.SnippetService
@@ -33,7 +33,7 @@ type NoteServer struct {
 	log            *zap.Logger
 }
 
-// NewNoteServer 创建一个 NoteService gRPC 服务实现。
+// NewNoteServer creates a gRPC implementation of NoteService.
 func NewNoteServer(
 	snippetSvc snippetsvc.SnippetService,
 	groupSvc groupsvc.GroupService,
@@ -76,7 +76,7 @@ func (s *NoteServer) CreateSnippet(ctx context.Context, req *notepb.CreateSnippe
 
 	result, err := s.snippetSvc.Create(ctx, userID, cmd)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateSnippet 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC CreateSnippet failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 	return toProto(result), nil
@@ -90,7 +90,7 @@ func (s *NoteServer) GetSnippet(ctx context.Context, req *notepb.GetSnippetReque
 
 	result, err := s.snippetSvc.GetMineByID(ctx, userID, req.SnippetId)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC GetSnippet 失败", zap.Int64("snippet_id", req.SnippetId), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC GetSnippet failed", zap.Int64("snippet_id", req.SnippetId), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 	return toProto(result), nil
@@ -120,7 +120,7 @@ func (s *NoteServer) ListSnippets(ctx context.Context, req *notepb.ListSnippetsR
 
 	result, err := s.snippetSvc.ListMineFiltered(ctx, userID, query)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC ListSnippets 失败", zap.Int64("user_id", userID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC ListSnippets failed", zap.Int64("user_id", userID), zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 
@@ -147,13 +147,13 @@ func (s *NoteServer) UpdateSnippet(ctx context.Context, req *notepb.UpdateSnippe
 		Language: req.Language,
 	})
 	if err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateSnippet 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC UpdateSnippet failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 	return toProto(result), nil
 }
 
-// toProto 将业务层结果转为 protobuf 响应。
+// toProto converts a service-layer result into a protobuf response.
 func toProto(r *contract.SnippetResult) *notepb.SnippetResponse {
 	resp := &notepb.SnippetResponse{
 		Id:         r.ID,
@@ -185,7 +185,7 @@ func (s *NoteServer) SetSnippetTags(ctx context.Context, req *notepb.SetSnippetT
 	}
 
 	if err := s.snippetSvc.SetTags(ctx, userID, req.SnippetId, req.TagIds); err != nil {
-		commonlogger.Ctx(ctx, s.log).Error("gRPC SetSnippetTags 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.log).Error("gRPC SetSnippetTags failed", zap.Error(err))
 		return nil, grpcerrs.ToStatusError(err)
 	}
 

@@ -2,21 +2,21 @@ package event
 
 import "context"
 
-// Handler 事件处理函数。返回 nil 表示处理成功（会 ACK），返回 error 表示处理失败（不 ACK，留待重试）。
+// Handler processes one event. Returning nil marks it successful and ACKs it; returning an error leaves it pending for retry.
 type Handler func(ctx context.Context, data []byte) error
 
-// Subscriber 事件订阅抽象接口。
+// Subscriber abstracts event subscriptions.
 //
-// 当前实现：RedisStreamSubscriber（基于 Redis Stream 消费者组）。
-// 未来 Phase 6 可替换为 MemorySubscriber（基于 Go channel）。
+// Current implementation: RedisStreamSubscriber based on Redis Stream consumer groups.
+// In a future phase, this can be replaced by MemorySubscriber based on Go channels.
 type Subscriber interface {
-	// Subscribe 以消费者组模式订阅指定 topic。
-	//   - group: 消费者组名称（同一组内的多个消费者不重复消费）
-	//   - consumer: 当前消费者实例名（用于区分同组内的不同 Worker）
-	//   - handler: 消息处理函数
+	// Subscribe consumes the given topic through a consumer group.
+	//   - group: consumer group name; multiple consumers in the same group do not process the same message
+	//   - consumer: current consumer instance name, used to distinguish workers in the same group
+	//   - handler: message handler
 	//
-	// 该方法会阻塞直到 ctx 取消。
+	// This call blocks until ctx is canceled.
 	Subscribe(ctx context.Context, topic Topic, group, consumer string, handler Handler) error
-	// Close 释放资源。
+	// Close releases resources.
 	Close() error
 }

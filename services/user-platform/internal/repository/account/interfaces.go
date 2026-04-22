@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// UserRepository 定义了用户主体的持久化接口。
+// UserRepository defines the persistence interface for the user aggregate.
 type UserRepository interface {
 	Create(ctx context.Context, params CreateUserParams) (*User, error)
 	GetByID(ctx context.Context, id int64) (*User, error)
@@ -13,7 +13,7 @@ type UserRepository interface {
 	BumpUserVersion(ctx context.Context, id int64) (int64, error)
 }
 
-// ProfileRepository 定义了用户资料的持久化接口。
+// ProfileRepository defines the persistence interface for user profile data.
 type ProfileRepository interface {
 	CreateEmpty(ctx context.Context, userID int64) (*Profile, error)
 	GetByUserID(ctx context.Context, userID int64) (*Profile, error)
@@ -21,7 +21,7 @@ type ProfileRepository interface {
 	Update(ctx context.Context, userID int64, nickname, avatarURL, bio, birthday string) (*Profile, error)
 }
 
-// UserIdentityRepository 定义了用户身份的持久化接口。
+// UserIdentityRepository defines the persistence interface for user identities.
 type UserIdentityRepository interface {
 	Create(ctx context.Context, params CreateUserIdentityParams) (*UserIdentity, error)
 	GetByID(ctx context.Context, id int) (*UserIdentity, error)

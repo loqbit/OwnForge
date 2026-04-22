@@ -1,23 +1,23 @@
 {
   "name": "case_02_bug_report",
   "input": {
-    "title": "线上 snippet 保存偶现 500",
-    "content": "现象：用户保存 snippet 时，约 5% 请求返回 500 Internal Server Error。日志显示 pgx 连接池打满。\n\n复现：连续并发 50 次 POST /api/v1/snippets。\n\n怀疑点：\n1. 连接池默认 10 太小\n2. Upsert 长事务占用连接\n3. AI worker 和主服务共用连接池\n\nFIXME: 先把 max_conns 调到 30 止血，再排查事务长度。\nTODO: 给 AI worker 独立连接池。"
+    "title": "Intermittent 500 errors when saving snippets in production",
+    "content": "Symptom: when users save a snippet, about 5% of requests return 500 Internal Server Error. Logs show that the pgx connection pool is saturated.\n\nReproduction: send 50 concurrent POST requests to /api/v1/snippets.\n\nSuspected causes:\n1. The default connection pool size of 10 is too small\n2. Long-running upsert transactions are holding connections\n3. The AI worker and the main service share the same connection pool\n\nFIXME: temporarily raise max_conns to 30 to stop the bleeding, then investigate transaction duration.\nTODO: give the AI worker a dedicated connection pool."
   },
   "expect": {
     "tags": {
       "count_range": [3, 8],
       "must_include_any_of": [
-        ["bug", "故障", "问题", "排查"]
+        ["bug", "incident", "issue", "investigation"]
       ]
     },
     "todos": {
       "min_count": 2,
-      "must_mention_any": ["max_conns", "连接池", "worker"]
+      "must_mention_any": ["max_conns", "connection pool", "worker"]
     },
     "summary": {
       "max_chars": 100,
-      "must_mention_any": ["500", "连接池", "pgx"]
+      "must_mention_any": ["500", "connection pool", "pgx"]
     }
   }
 }

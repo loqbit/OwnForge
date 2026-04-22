@@ -2,7 +2,7 @@ package contract
 
 import snippetcontract "github.com/ownforge/ownforge/services/notes/internal/service/snippet/contract"
 
-// CreateShareCommand 创建分享请求。
+// CreateShareCommand is the input for creating a share.
 type CreateShareCommand struct {
 	SnippetID int64
 	Kind      string
@@ -10,12 +10,12 @@ type CreateShareCommand struct {
 	ExpiresAt string
 }
 
-// ListSharesQuery 分享列表筛选参数。
+// ListSharesQuery contains filters for listing shares.
 type ListSharesQuery struct {
 	Kind string
 }
 
-// ShareResult 服务层输出的分享结构。
+// ShareResult is the share shape returned by the service layer.
 type ShareResult struct {
 	ID          int64
 	Token       string
@@ -29,13 +29,13 @@ type ShareResult struct {
 	CreatedAt   string
 }
 
-// PublicShareResult 公开访问返回的分享数据。
+// PublicShareResult is returned for public share access.
 type PublicShareResult struct {
 	Share   *ShareResult
 	Snippet *snippetcontract.SnippetResult
 }
 
-// ShareSource 用于导入副本时获取来源信息。
+// ShareSource carries source information when importing a copy.
 type ShareSource struct {
 	Share   *ShareResult
 	Snippet *snippetcontract.SnippetResult

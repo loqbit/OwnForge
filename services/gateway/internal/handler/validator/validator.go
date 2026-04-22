@@ -10,61 +10,61 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// TranslateValidationError 将 validator 的错误翻译成友好的中文提示
+// TranslateValidationError converts validator errors into user-friendly messages.
 func TranslateValidationError(err error) string {
-	// 类型断言：判断 err 是否是 validator.ValidationErrors 类型
+	// Type assertion: check whether err is validator.ValidationErrors.
 	validationErrs, ok := err.(validator.ValidationErrors)
 	if !ok {
-		// 如果不是验证错误，返回原始错误信息
+		// If it is not a validation error, return the original error message.
 		return err.Error()
 	}
 
 	var messages []string
 
-	// 遍历每个字段的错误
+	// Iterate over field errors.
 	for _, fieldErr := range validationErrs {
-		// fieldErr.Field() 是字段名，如 "Username"
-		// fieldErr.Tag() 是验证规则，如 "required", "min", "email"
-		// fieldErr.Param() 是规则参数，如 min=3 中的 "3"
+		// fieldErr.Field() is the field name, such as "Username"
+		// fieldErr.Tag() is the validation rule, such as "required", "min", or "email"
+		// fieldErr.Param() is the rule parameter, such as "3" in min=3
 
 		message := translateFieldError(fieldErr)
 		messages = append(messages, message)
 	}
 
-	// 用逗号连接所有错误信息
+	// Join all error messages with commas.
 	return strings.Join(messages, ", ")
 }
 
-// translateFieldError 翻译单个字段的错误
+// translateFieldError translates an error for a single field.
 func translateFieldError(fieldErr validator.FieldError) string {
-	field := fieldErr.Field() // 字段名
-	tag := fieldErr.Tag()     // 验证标签
-	param := fieldErr.Param() // 参数
+	field := fieldErr.Field() // field name
+	tag := fieldErr.Tag()     // validation tag
+	param := fieldErr.Param() // parameter
 
-	// 根据不同的验证标签返回不同的中文提示
+	// Return different user-facing messages for different validation tags.
 	switch tag {
 	case "required":
-		return fmt.Sprintf("%s不能为空", field)
+		return fmt.Sprintf("%s cannot be empty", field)
 	case "min":
-		return fmt.Sprintf("%s长度必须至少为%s个字符", field, param)
+		return fmt.Sprintf("%s must be at least %s characters long", field, param)
 	case "max":
-		return fmt.Sprintf("%s长度不能超过%s个字符", field, param)
+		return fmt.Sprintf("%s cannot exceed %s characters", field, param)
 	case "email":
-		return fmt.Sprintf("%s必须是有效的邮箱地址", field)
+		return fmt.Sprintf("%s must be a valid email address", field)
 	case "alphanum":
-		return fmt.Sprintf("%s只能包含字母和数字", field)
+		return fmt.Sprintf("%s can only contain letters and numbers", field)
 	default:
-		// 如果没有匹配的规则，返回默认提示
-		return fmt.Sprintf("%s格式不正确", field)
+		// If no rule matches, return the default message.
+		return fmt.Sprintf("%s has an invalid format", field)
 	}
 }
 
-// 将 gRPC 错误转换为 HTTP 错误
+// Convert a gRPC error into an HTTP error.
 func ConvertToHTTPError(err error) error {
 	st, ok := status.FromError(err)
 	if !ok {
-		// 不是 gRPC 错误，返回通用服务端错误
-		return errs.New(errs.ServerErr, "系统繁忙", err)
+		// If it is not a gRPC error, return a generic server error.
+		return errs.New(errs.ServerErr, "system busy", err)
 	}
 
 	switch st.Code() {

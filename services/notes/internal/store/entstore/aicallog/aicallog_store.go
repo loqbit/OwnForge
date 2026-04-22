@@ -9,17 +9,17 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
 )
 
-// Store 是 aicallog Repository 的 ent 实现。
+// Store is the Ent-backed implementation of the aicallog repository.
 type Store struct {
 	client *ent.Client
 }
 
-// New 创建一个 aicallog Repository。
+// New creates an aicallog repository.
 func New(client *ent.Client) aicallogrepo.Repository {
 	return &Store{client: client}
 }
 
-// Insert 追加一条 AI 调用日志。
+// Insert appends one AI call log entry.
 func (s *Store) Insert(ctx context.Context, e *aicallogrepo.Entry) error {
 	builder := s.client.AICallLog.Create().
 		SetID(e.ID).

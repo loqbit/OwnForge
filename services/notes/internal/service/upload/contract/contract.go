@@ -1,6 +1,6 @@
 package contract
 
-// UploadCommand 上传请求。
+// UploadCommand is the upload request payload.
 type UploadCommand struct {
 	OwnerID     int64
 	Filename    string
@@ -8,7 +8,7 @@ type UploadCommand struct {
 	ContentType string
 }
 
-// PresignCommand 上传预签名请求。
+// PresignCommand is the presign request payload.
 type PresignCommand struct {
 	OwnerID     int64
 	Filename    string
@@ -16,7 +16,7 @@ type PresignCommand struct {
 	ContentType string
 }
 
-// CompleteUploadCommand 直传完成回调请求。
+// CompleteUploadCommand is the callback payload for completed direct uploads.
 type CompleteUploadCommand struct {
 	OwnerID     int64
 	ObjectKey   string
@@ -26,16 +26,16 @@ type CompleteUploadCommand struct {
 	SnippetID   *int64
 }
 
-// UploadResult 上传结果。
+// UploadResult is returned after an upload.
 type UploadResult struct {
 	URL          string
 	Filename     string
 	Size         int64
 	MimeType     string
-	ThumbnailURL string // 仅图片类型有值
+	ThumbnailURL string // Set only for image uploads.
 }
 
-// PresignResult 上传预签名结果。
+// PresignResult is returned after presigning an upload.
 type PresignResult struct {
 	URL       string
 	ObjectKey string
@@ -44,7 +44,7 @@ type PresignResult struct {
 	Headers   map[string]string
 }
 
-// CompleteUploadResult 直传完成结果。
+// CompleteUploadResult is returned after direct upload completion.
 type CompleteUploadResult struct {
 	URL          string
 	ObjectKey    string

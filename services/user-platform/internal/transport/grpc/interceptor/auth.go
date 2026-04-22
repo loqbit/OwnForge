@@ -13,10 +13,10 @@ import (
 
 type contextKey string
 
-// 定义存储在 Context 中的 Key
+// userIDKey is the context key used to store the authenticated user ID.
 const userIDKey contextKey = "user_id"
 
-// authWhiteList 定义无需鉴权的公共接口白名单
+// authWhiteList contains public methods that do not require authentication.
 var authWhiteList = map[string]bool{
 	"/user.AuthService/Login":              true,
 	"/user.AuthService/RefreshToken":       true,
@@ -28,48 +28,48 @@ var authWhiteList = map[string]bool{
 	"/user.UserService/Register":           true,
 }
 
-// GatewayAuthInterceptor 网关信任模式拦截器。
-// 不再自行验证 JWT，而是信任网关在 gRPC metadata 中注入的 x-user-id。
-// 这与 go-note 的 GatewayAuth（读 HTTP X-User-Id header）保持对称。
+// GatewayAuthInterceptor uses a gateway-trust model.
+// It does not validate JWTs locally and instead trusts x-user-id injected by the gateway into gRPC metadata.
+// This mirrors go-note's GatewayAuth middleware for the HTTP X-User-Id header.
 func GatewayAuthInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// 1. 白名单放行：公共接口无需身份信息
+		// 1. Allowlisted methods do not require identity.
 		if _, ok := authWhiteList[info.FullMethod]; ok {
 			return handler(ctx, req)
 		}
 
-		// 2. 从 gRPC metadata 读取网关传递的 x-user-id
+		// 2. Read x-user-id passed by the gateway through gRPC metadata.
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, status.Error(codes.Unauthenticated, "未找到 metadata")
+			return nil, status.Error(codes.Unauthenticated, "metadata not found")
 		}
 
 		values := md.Get("x-user-id")
 		if len(values) == 0 {
-			return nil, status.Error(codes.Unauthenticated, "未提供 x-user-id")
+			return nil, status.Error(codes.Unauthenticated, "x-user-id not provided")
 		}
 
 		userID, err := strconv.ParseInt(values[0], 10, 64)
 		if err != nil {
-			return nil, status.Error(codes.Unauthenticated, "x-user-id 格式无效")
+			return nil, status.Error(codes.Unauthenticated, "invalid x-user-id format")
 		}
 
-		// 3. 将 userID 注入 context，下游 handler 通过 UserIDFromContext 取用
+		// 3. Inject userID into the context for downstream handlers.
 		newCtx := context.WithValue(ctx, userIDKey, userID)
 
 		return handler(newCtx, req)
 	}
 }
 
-// UserIDFromContext 从 context 中提取 userID，供 gRPC handler 调用。
+// UserIDFromContext extracts userID from context for gRPC handlers.
 func UserIDFromContext(ctx context.Context) (int64, error) {
 	val := ctx.Value(userIDKey)
 	if val == nil {
-		return 0, status.Error(codes.Unauthenticated, "上下文中不存在 UserID")
+		return 0, status.Error(codes.Unauthenticated, "UserID not found in context")
 	}
 	userID, ok := val.(int64)
 	if !ok {
-		return 0, status.Error(codes.Internal, "上下文中的 UserID 类型错误")
+		return 0, status.Error(codes.Internal, "UserID in context has invalid type")
 	}
 	return userID, nil
 }

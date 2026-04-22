@@ -13,17 +13,17 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
 )
 
-// Store 是 group Repository 的 Ent 实现。
+// Store is the Ent-backed implementation of the group repository.
 type Store struct {
 	client *ent.Client
 }
 
-// New 创建一个基于 Ent 的 group Repository。
+// New creates an Ent-backed group repository.
 func New(client *ent.Client) grouprepo.Repository {
 	return &Store{client: client}
 }
 
-// Create 创建一条 Group 记录。
+// Create inserts a group record.
 func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.CreateGroupCommand) (*grouprepo.Group, error) {
 	builder := s.client.Group.Create().
 		SetID(id).
@@ -43,7 +43,7 @@ func (s *Store) Create(ctx context.Context, id, ownerID int64, params *contract.
 	return mapGroup(entity), nil
 }
 
-// GetByID 根据 ID 查询单个 Group。
+// GetByID looks up a single group by ID.
 func (s *Store) GetByID(ctx context.Context, id int64) (*grouprepo.Group, error) {
 	entity, err := s.client.Group.Get(ctx, id)
 	if err != nil {
@@ -53,8 +53,8 @@ func (s *Store) GetByID(ctx context.Context, id int64) (*grouprepo.Group, error)
 	return mapGroup(entity), nil
 }
 
-// ListByOwner 按 owner_id 查询用户的分组，支持按 parentID 筛选。
-// parentID == nil → 返回顶级分组；parentID != nil → 返回指定父级的子分组。
+// ListByOwner returns the owner's groups and optionally filters by parentID.
+// parentID == nil returns top-level groups; parentID != nil returns children of the given parent.
 func (s *Store) ListByOwner(ctx context.Context, ownerID int64, parentID *int64) ([]grouprepo.Group, error) {
 	query := s.client.Group.
 		Query().
@@ -81,8 +81,8 @@ func (s *Store) ListByOwner(ctx context.Context, ownerID int64, parentID *int64)
 	return results, nil
 }
 
-// ListAllByOwner 查询用户的**所有**分组（不区分层级），用于 GetTree 内存建树。
-// 一次查询 O(1) SQL，O(n) 内存，是用户级分组量（<500）下的最优解。
+// ListAllByOwner returns all groups for the owner regardless of hierarchy, for in-memory tree building in GetTree.
+// This uses one SQL query and O(n) memory, which is a good tradeoff for per-user group counts under 500.
 func (s *Store) ListAllByOwner(ctx context.Context, ownerID int64) ([]grouprepo.Group, error) {
 	entities, err := s.client.Group.
 		Query().
@@ -101,7 +101,7 @@ func (s *Store) ListAllByOwner(ctx context.Context, ownerID int64) ([]grouprepo.
 	return results, nil
 }
 
-// Update 更新指定 Group，需要校验 ownerID 所有权。
+// Update updates the specified group after verifying ownership.
 func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.UpdateGroupCommand) (*grouprepo.Group, error) {
 	entity, err := s.client.Group.
 		Query().
@@ -122,7 +122,7 @@ func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.
 	if params.ParentID != nil {
 		builder.SetParentID(*params.ParentID)
 	} else if entity.ParentID != nil {
-		// 显式传 nil 表示移到顶级
+		// An explicit nil moves the group to the top level.
 		builder.ClearParentID()
 	}
 
@@ -134,7 +134,7 @@ func (s *Store) Update(ctx context.Context, ownerID, id int64, params *contract.
 	return mapGroup(updated), nil
 }
 
-// Delete 删除指定 Group，需要校验 ownerID 所有权。
+// Delete removes the specified group after verifying ownership.
 func (s *Store) Delete(ctx context.Context, ownerID, id int64) error {
 	count, err := s.client.Group.
 		Query().
@@ -150,7 +150,7 @@ func (s *Store) Delete(ctx context.Context, ownerID, id int64) error {
 	return shared.ParseEntError(s.client.Group.DeleteOneID(id).Exec(ctx))
 }
 
-// CountChildren 统计分组的子分组数量。
+// CountChildren returns the number of child groups.
 func (s *Store) CountChildren(ctx context.Context, id int64) (int, error) {
 	count, err := s.client.Group.
 		Query().
@@ -162,7 +162,7 @@ func (s *Store) CountChildren(ctx context.Context, id int64) (int, error) {
 	return count, nil
 }
 
-// CountSnippets 统计分组下直属的片段数量。
+// CountSnippets returns the number of direct snippets in the group.
 func (s *Store) CountSnippets(ctx context.Context, id int64) (int, error) {
 	count, err := s.client.Snippet.
 		Query().
@@ -174,7 +174,7 @@ func (s *Store) CountSnippets(ctx context.Context, id int64) (int, error) {
 	return count, nil
 }
 
-// mapGroup 将 Ent 的 Group 实体映射为 Repository 层需要的 Group 结构体。
+// mapGroup converts an Ent Group entity into the repository-layer Group struct.
 func mapGroup(entity *ent.Group) *grouprepo.Group {
 	if entity == nil {
 		return nil

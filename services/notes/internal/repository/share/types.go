@@ -2,7 +2,7 @@ package sharerepo
 
 import "time"
 
-// Share 是 share 的仓储层领域模型。
+// Share is the repository-layer domain model for share.
 type Share struct {
 	ID           int64
 	Token        string

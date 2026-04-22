@@ -18,15 +18,15 @@ type Profile struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
-	// 用户昵称
+	// User nickname
 	Nickname string `json:"nickname,omitempty"`
-	// 用户头像URL
+	// User avatar URL
 	AvatarURL string `json:"avatar_url,omitempty"`
-	// 个性签名
+	// Bio
 	Bio string `json:"bio,omitempty"`
-	// 生日，格式 YYYY-MM-DD
+	// Birthday in YYYY-MM-DD format
 	Birthday string `json:"birthday,omitempty"`
-	// 最后更新时间
+	// Last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProfileQuery when eager-loading is set.

@@ -7,7 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// TranslateValidationError 将 validator 的错误翻译成友好的中文提示
+// TranslateValidationError converts validator errors into user-friendly Chinese messages.
 func TranslateValidationError(err error) string {
 	validationErrs, ok := err.(validator.ValidationErrors)
 	if !ok {
@@ -31,16 +31,16 @@ func translateFieldError(fieldErr validator.FieldError) string {
 
 	switch tag {
 	case "required":
-		return fmt.Sprintf("%s不能为空", field)
+		return fmt.Sprintf("%s cannot be empty", field)
 	case "min":
-		return fmt.Sprintf("%s长度必须至少为%s个字符", field, param)
+		return fmt.Sprintf("%s must be at least %s characters long", field, param)
 	case "max":
-		return fmt.Sprintf("%s长度不能超过%s个字符", field, param)
+		return fmt.Sprintf("%s cannot exceed %s characters", field, param)
 	case "email":
-		return fmt.Sprintf("%s必须是有效的邮箱地址", field)
+		return fmt.Sprintf("%s must be a valid email address", field)
 	case "alphanum":
-		return fmt.Sprintf("%s只能包含字母和数字", field)
+		return fmt.Sprintf("%s can only contain letters and numbers", field)
 	default:
-		return fmt.Sprintf("%s格式不正确", field)
+		return fmt.Sprintf("%s has an invalid format", field)
 	}
 }

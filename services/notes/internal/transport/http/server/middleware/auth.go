@@ -8,31 +8,31 @@ import (
 	"go.uber.org/zap"
 )
 
-// GatewayAuth 信任网关鉴权中间件
-// 网关已完成 JWT 校验，并将 user_id 注入 X-User-Id Header
-// 微服务只需读取 Header，不再重复调用 gRPC 验证 Token
+// GatewayAuth trusts gateway-authenticated requests.
+// The gateway has already validated the JWT and injected user_id into the X-User-Id header.
+// This service only needs to read the header and does not validate the token again over gRPC.
 func GatewayAuth(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userIDStr := c.GetHeader("X-User-Id")
 		if userIDStr == "" {
-			logger.Warn("非法内部直连请求，缺失网关身份标识", zap.String("client_ip", c.ClientIP()))
+			logger.Warn("invalid internal direct request: missing gateway identity marker", zap.String("client_ip", c.ClientIP()))
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"code": 401,
-				"msg":  "非法请求，已被微服务内网隔离",
+				"msg":  "invalid request blocked by internal service network isolation",
 			})
 			return
 		}
 
 		userID, _ := strconv.ParseInt(userIDStr, 10, 64)
 
-		// 将网关传来的 userID 挂载到 Context，业务 Handler 通过 GetUserID 读取
+		// Attach the gateway-provided userID to the context for downstream handlers.
 		c.Set("userID", userID)
 
 		c.Next()
 	}
 }
 
-// GetUserID 从 Context 中安全获取 userID
+// GetUserID safely reads userID from the context.
 func GetUserID(c *gin.Context) (int64, bool) {
 	val, exists := c.Get("userID")
 	if !exists {

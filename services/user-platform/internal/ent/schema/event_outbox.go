@@ -16,30 +16,30 @@ type EventOutbox struct {
 
 func (EventOutbox) Fields() []ent.Field {
 	return []ent.Field{
-		// 当前仍沿用 Ent 默认自增主键。
-		// 如果后续希望事件 ID 完全由业务侧控制，可再评估切换为字符串主键。
+		// This currently still uses Ent's default auto-increment primary key.
+		// If event IDs later need to be fully controlled by the business layer, switching to a string primary key can be reconsidered.
 		field.String("aggregatetype").
 			Optional().
 			Nillable().
-			Comment("聚合类型，如 user / paste；主要用于表达这条事件属于哪个聚合"),
+			Comment("aggregate type, such as user / paste; mainly indicates which aggregate the event belongs to"),
 		field.String("aggregateid").
 			Optional().
 			Nillable().
-			Comment("聚合根 ID，如 userID / pasteID；当前会被 Debezium Outbox Router 映射为 Kafka message key"),
+			Comment("aggregate root ID, such as userID / pasteID; currently mapped to the Kafka message key by Debezium Outbox Router"),
 		field.String("type").
 			Optional().
 			Nillable().
-			Comment("领域事件类型，如 user.registered；当前会被 Debezium Outbox Router 用作 Kafka topic 路由字段"),
+			Comment("domain event type, such as user.registered; currently used as the Kafka topic routing field by Debezium Outbox Router"),
 		field.JSON("payload", json.RawMessage{}).
 			SchemaType(map[string]string{dialect.Postgres: "jsonb"}).
-			Comment("事件消息体；当前会被 Debezium Outbox Router 映射为 Kafka message value"),
+			Comment("event payload; currently mapped to the Kafka message value by Debezium Outbox Router"),
 		field.JSON("headers", json.RawMessage{}).
 			Optional().
 			SchemaType(map[string]string{dialect.Postgres: "jsonb"}).
-			Comment("可选事件头；当前会被 Debezium Outbox Router 映射为 Kafka headers，预留给 trace/source 等元数据"),
+			Comment("optional event headers; currently mapped to Kafka headers by Debezium Outbox Router and reserved for trace/source metadata"),
 		field.Time("created_at").
 			Default(time.Now).
-			Comment("Outbox 记录创建时间；主要用于审计、排查和按时间维度查询"),
+			Comment("outbox record creation time; mainly used for auditing, troubleshooting, and time-based queries"),
 	}
 }
 

@@ -13,14 +13,14 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// SessionStore 是 SessionRepository 的 Redis 实现。
+// SessionStore is the Redis-backed implementation of SessionRepository.
 type SessionStore struct {
 	cli *redis.Client
 }
 
 const sessionFieldSeparator = "|"
 
-// NewSessionStore 创建一个 SessionRepository 实例，直接持有 redis.Client。
+// NewSessionStore creates a SessionRepository backed directly by redis.Client.
 func NewSessionStore(cli *redis.Client) sessionrepo.SessionRepository {
 	return &SessionStore{cli: cli}
 }
@@ -29,19 +29,19 @@ func (s *SessionStore) SaveDeviceSession(ctx context.Context, userID int64, appC
 	hashKey := fmt.Sprintf("user_sessions:%d", userID)
 	fieldKey := sessionFieldKey(appCode, deviceID)
 
-	// 清理旧 session 的逆向索引（防止重新登录后产生 orphan key）
+	// Clean up the old session reverse index to avoid orphaned keys after re-login.
 	if oldToken, err := s.cli.HGet(ctx, hashKey, fieldKey).Result(); err == nil && oldToken != "" {
 		s.cli.Del(ctx, fmt.Sprintf("refresh_token:%s", oldToken))
 	}
 
 	pipe := s.cli.TxPipeline()
 
-	// 逆向索引
+	// Reverse index.
 	redisKey := fmt.Sprintf("refresh_token:%s", refreshToken)
 	val := sessionTokenValue(userID, appCode, deviceID)
 	pipe.Set(ctx, redisKey, val, duration)
 
-	// 正向哈希索引
+	// Forward hash index.
 	pipe.HSet(ctx, hashKey, fieldKey, refreshToken)
 	pipe.Expire(ctx, hashKey, duration)
 

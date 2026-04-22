@@ -6,17 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ChatHandler 负责将聊天相关请求转发到 go-chat 服务。
+// ChatHandler forwards chat-related requests to the go-chat service.
 type ChatHandler struct {
 	proxy *httputil.ReverseProxy
 }
 
-// NewChatHandler 创建一个聊天转发 Handler。
+// NewChatHandler creates a chat forwarding handler.
 func NewChatHandler(proxy *httputil.ReverseProxy) *ChatHandler {
 	return &ChatHandler{proxy: proxy}
 }
 
-// Proxy 将当前请求透传给下游聊天服务。
+// Proxy forwards the current request to the downstream chat service.
 func (h *ChatHandler) Proxy(c *gin.Context) {
 	h.proxy.ServeHTTP(c.Writer, c.Request)
 }

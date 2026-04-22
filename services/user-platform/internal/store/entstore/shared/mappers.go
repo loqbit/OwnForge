@@ -8,7 +8,7 @@ import (
 	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
 )
 
-// MapUser 将 Ent User 映射为仓储层用户模型。
+// MapUser maps an Ent User into the repository-layer user model.
 func MapUser(user *ent.User) *accountrepo.User {
 	if user == nil {
 		return nil
@@ -20,7 +20,7 @@ func MapUser(user *ent.User) *accountrepo.User {
 	}
 }
 
-// MapProfile 将 Ent Profile 映射为仓储层资料模型。
+// MapProfile maps an Ent Profile into the repository-layer profile model.
 func MapProfile(profile *ent.Profile) *accountrepo.Profile {
 	if profile == nil {
 		return nil
@@ -35,7 +35,7 @@ func MapProfile(profile *ent.Profile) *accountrepo.Profile {
 	}
 }
 
-// MapUserIdentity 将 Ent UserIdentity 映射为仓储层身份模型。
+// MapUserIdentity maps an Ent UserIdentity into the repository-layer identity model.
 func MapUserIdentity(identity *ent.UserIdentity) *accountrepo.UserIdentity {
 	if identity == nil {
 		return nil
@@ -62,7 +62,7 @@ func MapUserIdentity(identity *ent.UserIdentity) *accountrepo.UserIdentity {
 	}
 }
 
-// MapUserAppAuthorization 将 Ent UserAppAuthorization 映射为仓储层授权模型。
+// MapUserAppAuthorization maps an Ent UserAppAuthorization into the repository-layer authorization model.
 func MapUserAppAuthorization(authz *ent.UserAppAuthorization) *applicationrepo.UserAppAuthorization {
 	if authz == nil {
 		return nil
@@ -97,7 +97,7 @@ func MapUserAppAuthorization(authz *ent.UserAppAuthorization) *applicationrepo.U
 	}
 }
 
-// MapSsoSession 将 Ent SsoSession 映射为仓储层全局登录态模型。
+// MapSsoSession maps an Ent SsoSession into the repository-layer global SSO session model.
 func MapSsoSession(session *ent.SsoSession) *sessionrepo.SsoSession {
 	if session == nil {
 		return nil
@@ -130,7 +130,7 @@ func MapSsoSession(session *ent.SsoSession) *sessionrepo.SsoSession {
 	}
 }
 
-// MapSession 将 Ent Session 映射为仓储层应用会话模型。
+// MapSession maps an Ent Session into the repository-layer app session model.
 func MapSession(session *ent.Session) *sessionrepo.SessionRecord {
 	if session == nil {
 		return nil
@@ -178,7 +178,7 @@ func MapSession(session *ent.Session) *sessionrepo.SessionRecord {
 	}
 }
 
-// optionalString 将空字符串归一化为 nil，便于仓储层表达“未设置”语义。
+// optionalString normalizes empty strings to nil so the repository layer can express an unset value.
 func optionalString(v string) *string {
 	if v == "" {
 		return nil

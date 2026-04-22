@@ -17,12 +17,12 @@ type UserAppAuthorizationStore struct {
 	client *ent.Client
 }
 
-// NewUserAppAuthorizationStore 创建用户应用授权仓储的 Ent 实现。
+// NewUserAppAuthorizationStore creates the Ent-backed user app authorization repository.
 func NewUserAppAuthorizationStore(client *ent.Client) applicationrepo.UserAppAuthorizationRepository {
 	return &UserAppAuthorizationStore{client: client}
 }
 
-// Ensure 确保用户对指定应用的授权记录存在，不存在时自动创建。
+// Ensure makes sure an authorization record exists for the user and app, creating one when needed.
 func (s *UserAppAuthorizationStore) Ensure(ctx context.Context, params applicationrepo.EnsureUserAppAuthorizationParams) (*applicationrepo.UserAppAuthorization, error) {
 	existing, err := s.GetByUserAndApp(ctx, params.UserID, params.AppCode)
 	if err == nil {
@@ -63,7 +63,7 @@ func (s *UserAppAuthorizationStore) Ensure(ctx context.Context, params applicati
 	return s.getByID(ctx, created.ID)
 }
 
-// GetByUserAndApp 按用户和应用编码查询授权记录。
+// GetByUserAndApp looks up an authorization record by user and app code.
 func (s *UserAppAuthorizationStore) GetByUserAndApp(ctx context.Context, userID int64, appCode string) (*applicationrepo.UserAppAuthorization, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -82,7 +82,7 @@ func (s *UserAppAuthorizationStore) GetByUserAndApp(ctx context.Context, userID 
 	return shared.MapUserAppAuthorization(entity), nil
 }
 
-// ListByUserID 查询某个用户的全部应用授权记录。
+// ListByUserID returns all app authorization records for a user.
 func (s *UserAppAuthorizationStore) ListByUserID(ctx context.Context, userID int64) ([]*applicationrepo.UserAppAuthorization, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -103,7 +103,7 @@ func (s *UserAppAuthorizationStore) ListByUserID(ctx context.Context, userID int
 	return result, nil
 }
 
-// TouchLogin 更新授权记录最近登录时间和活跃时间。
+// TouchLogin updates the last-login and last-active timestamps on the authorization record.
 func (s *UserAppAuthorizationStore) TouchLogin(ctx context.Context, id int, at time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -113,7 +113,7 @@ func (s *UserAppAuthorizationStore) TouchLogin(ctx context.Context, id int, at t
 		Exec(ctx))
 }
 
-// UpdateStatus 更新授权记录的状态。
+// UpdateStatus updates the authorization record status.
 func (s *UserAppAuthorizationStore) UpdateStatus(ctx context.Context, id int, status string) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -122,7 +122,7 @@ func (s *UserAppAuthorizationStore) UpdateStatus(ctx context.Context, id int, st
 		Exec(ctx))
 }
 
-// getByID 按主键查询授权记录。
+// getByID looks up an authorization record by primary key.
 func (s *UserAppAuthorizationStore) getByID(ctx context.Context, id int) (*applicationrepo.UserAppAuthorization, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 

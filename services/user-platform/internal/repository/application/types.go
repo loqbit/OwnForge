@@ -2,7 +2,7 @@ package applicationrepo
 
 import "time"
 
-// UserAppAuthorization 是用户应用授权的领域模型。
+// UserAppAuthorization is the domain model for user app authorization.
 type UserAppAuthorization struct {
 	ID                int
 	UserID            int64
@@ -16,7 +16,7 @@ type UserAppAuthorization struct {
 	LastActiveAt      time.Time
 }
 
-// EnsureUserAppAuthorizationParams 是确保用户应用授权存在的参数。
+// EnsureUserAppAuthorizationParams contains parameters for ensuring user app authorization exists.
 type EnsureUserAppAuthorizationParams struct {
 	UserID           int64
 	AppCode          string

@@ -1,6 +1,6 @@
 package dto
 
-// RegisterRequest 表示用户注册的 HTTP 请求体。
+// RegisterRequest is the HTTP request body for user registration.
 type RegisterRequest struct {
 	Phone    string `json:"phone" binding:"required,min=6,max=20"`
 	Email    string `json:"email" binding:"required,email"`
@@ -8,7 +8,7 @@ type RegisterRequest struct {
 	Password string `json:"password" binding:"required,min=8"`
 }
 
-// LoginRequest 表示用户登录的 HTTP 请求体。
+// LoginRequest is the HTTP request body for user login.
 type LoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -16,13 +16,13 @@ type LoginRequest struct {
 	DeviceID string `json:"device_id" binding:"required"`
 }
 
-// LogoutRequest 表示用户登出的 HTTP 请求体。
+// LogoutRequest is the HTTP request body for user logout.
 type LogoutRequest struct {
 	AppCode  string `json:"app_code" binding:"required"`
 	DeviceID string `json:"device_id" binding:"required"`
 }
 
-// RegisterResponse 表示用户注册的 HTTP 响应体。
+// RegisterResponse is the HTTP response body for user registration.
 type RegisterResponse struct {
 	Phone    string `json:"phone"`
 	Email    string `json:"email"`
@@ -30,7 +30,7 @@ type RegisterResponse struct {
 	Username string `json:"username"`
 }
 
-// LoginResponse 表示用户登录的 HTTP 响应体。
+// LoginResponse is the HTTP response body for user login.
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
@@ -47,42 +47,42 @@ type RefreshTokenResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// ChangePasswordRequest 表示修改密码的 HTTP 请求体。
+// ChangePasswordRequest is the HTTP request body for changing a password.
 type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password" binding:"required,min=8"`
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
-// ChangePasswordResponse 表示修改密码的 HTTP 响应体。
+// ChangePasswordResponse is the HTTP response body for changing a password.
 type ChangePasswordResponse struct {
 	UserID  int64  `json:"user_id"`
 	Message string `json:"message"`
 }
 
-// LogoutAllSessionsResponse 表示退出全部设备的 HTTP 响应体。
+// LogoutAllSessionsResponse is the HTTP response body for signing out from all devices.
 type LogoutAllSessionsResponse struct {
 	UserID  int64  `json:"user_id"`
 	Message string `json:"message"`
 }
 
-// BindEmailRequest 表示绑定邮箱的 HTTP 请求体。
+// BindEmailRequest is the HTTP request body for binding an email address.
 type BindEmailRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-// BindEmailResponse 表示绑定邮箱的 HTTP 响应体。
+// BindEmailResponse is the HTTP response body for binding an email address.
 type BindEmailResponse struct {
 	UserID  int64  `json:"user_id"`
 	Email   string `json:"email"`
 	Message string `json:"message"`
 }
 
-// SetPasswordRequest 表示设置密码的 HTTP 请求体。
+// SetPasswordRequest is the HTTP request body for setting a password.
 type SetPasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
-// SetPasswordResponse 表示设置密码的 HTTP 响应体。
+// SetPasswordResponse is the HTTP response body for setting a password.
 type SetPasswordResponse struct {
 	UserID  int64  `json:"user_id"`
 	Message string `json:"message"`

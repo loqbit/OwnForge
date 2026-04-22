@@ -2,7 +2,7 @@ package aicallog
 
 import "time"
 
-// CallStatus AI 调用的结果状态。
+// CallStatus is the result status of an AI call.
 type CallStatus string
 
 const (
@@ -13,7 +13,7 @@ const (
 	StatusTimeout    CallStatus = "timeout"
 )
 
-// Entry 一条 AI 调用 trace 记录。
+// Entry is one AI call trace record.
 type Entry struct {
 	ID            int64
 	OwnerID       int64

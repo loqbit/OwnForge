@@ -13,31 +13,31 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 )
 
-// circuitBreakerTransport 包装了 http.RoundTripper，在转发请求前检查熔断器状态
+// circuitBreakerTransport wraps http.RoundTripper and checks the circuit-breaker state before forwarding a request
 type circuitBreakerTransport struct {
 	http.RoundTripper
 	Breaker *gobreaker.CircuitBreaker
 }
 
-// 代理转发网络请求时，一定会调用这个 RoundTrip 函数
+// this RoundTrip function is always called when proxying a network request
 func (c *circuitBreakerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// cb.Execute 内部是熔断器的状态机核心：
-	// 如果是断开（跳闸）状态，它压根不会执行大括号里的逻辑，而是直接返回一个特殊的错误
+	// cb.Execute contains the core circuit-breaker state machine:
+	// If the breaker is open, it does not run the enclosed logic at all and returns a special error immediately.
 	res, err := c.Breaker.Execute(func() (interface{}, error) {
 		resp, err := c.RoundTripper.RoundTrip(req)
 		if err != nil {
-			return nil, err // 网络不通，算作失败
+			return nil, err // network failure counts as a failure
 		}
-		// 如果下游服务疯狂抱歉返回 HTTP 500/502/503/504 服务器内部异常，我们也算作失败
+		// If the downstream service repeatedly returns HTTP 500/502/503/504, treat that as a failure too.
 		if resp.StatusCode >= 500 {
-			return resp, errors.New("下游服务发生 5xx 严重异常")
+			return resp, errors.New("downstream service returned a severe 5xx error")
 		}
-		// 正常返回 200 或者 400（业务层面的校验报错不能算宕机算作成功）
+		// A normal 200 or 400 response counts as success because business validation failures are not service outages.
 		return resp, nil
 	})
-	// 熔断器处于保护状态，直接拉闸了！
+	// The circuit breaker is in protection mode and has tripped.
 	if err == gobreaker.ErrOpenState {
-		// 返回一个极其干净快速的 HTTP 503 结构
+		// Return a clean and fast HTTP 503 response.
 		return &http.Response{
 			StatusCode: http.StatusServiceUnavailable,
 			Status:     "503 Service Unavailable (Circuit Breaker OPEN)",
@@ -52,34 +52,34 @@ func (c *circuitBreakerTransport) RoundTrip(req *http.Request) (*http.Response, 
 	return res.(*http.Response), nil
 }
 
-// NewReverseProxy 封装官方库，创建一个带极致性能连接池的反向代理引擎
+// NewReverseProxy Wrap the standard library to create a reverse proxy with a high-performance connection pool.
 func NewReverseProxy(targetHost string) *httputil.ReverseProxy {
-	// 解析目标下游服务的地址
+	// parse the target downstream service address
 	targetURL, err := url.Parse(targetHost)
 	if err != nil {
-		log.Fatalf("解析目标地址失败: %v", err)
+		log.Fatalf("failed to parse target address: %v", err)
 	}
 
-	// 这就是原生反向代理引擎
+	// This is the native reverse-proxy engine.
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
-	// 1. 创建底层的高性能连接池 Transport
+	// 1. Create the underlying high-performance connection-pool transport
 	baseTransport := &http.Transport{
-		MaxIdleConns:        1000,             // 整个连接池最大空闲连接数
-		MaxIdleConnsPerHost: 200,              // 每个下游服务 Host 的最大空闲长连接数
-		IdleConnTimeout:     90 * time.Second, // 长连接空闲多久不断开可以复用
+		MaxIdleConns:        1000,             // maximum idle connections for the entire pool
+		MaxIdleConnsPerHost: 200,              // maximum number of idle keepalive connections per downstream host
+		IdleConnTimeout:     90 * time.Second, // how long an idle keepalive connection can stay open and be reused
 		DisableKeepAlives:   false,
 		ForceAttemptHTTP2:   true,
 	}
 
-	// 2. 初始化索尼阻断器
+	// 2. initialize the Sony circuit breaker
 	cb := gobreaker.NewCircuitBreaker(gobreaker.Settings{
 		Name:        "ProxyBreaker-" + targetHost,
-		MaxRequests: 3,                // 在半开状态下，最多放行 3 个探路请求去试探下游
-		Interval:    10 * time.Second, // 统计时间窗口为 10 秒
-		Timeout:     5 * time.Second,  // 一旦跳闸，等 5 秒后再切换为“半开”状态试探
+		MaxRequests: 3,                // allow at most 3 probe requests while half-open to test the downstream
+		Interval:    10 * time.Second, // the statistics window is 10 seconds
+		Timeout:     5 * time.Second,  // after tripping, wait 5 seconds before switching to half-open for probing
 		ReadyToTrip: func(counts gobreaker.Counts) bool {
-			// 跳闸规则：如果一秒内请求超过 10 次，并且失败率（抛出 err 或 5xx）超过 50%，就咔嚓跳闸断电！
+			// Trip when requests exceed 10 within a second and the failure rate (errors or 5xx) exceeds 50%.
 			failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
 			return counts.Requests >= 10 && failureRatio >= 0.5
 		},

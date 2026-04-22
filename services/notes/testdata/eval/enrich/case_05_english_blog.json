@@ -9,7 +9,7 @@
       "count_range": [3, 8],
       "must_include_any_of": [
         ["redis", "Redis"],
-        ["stream", "streams", "pub/sub", "pubsub", "消息队列"]
+        ["stream", "streams", "pub/sub", "pubsub", "message queue"]
       ]
     },
     "summary": {

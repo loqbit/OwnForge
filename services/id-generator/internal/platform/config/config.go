@@ -25,7 +25,7 @@ type SnowflakeConfig struct {
 	NodeID int64 `mapstructure:"node_id"`
 }
 
-// LoadConfig 从 Viper 加载配置，支持 .env 文件覆盖
+// LoadConfig loads configuration from Viper and supports overrides from .env.
 func LoadConfig() *Config {
 	_ = godotenv.Load()
 
@@ -42,13 +42,13 @@ func LoadConfig() *Config {
 	if err := viper.ReadInConfig(); err != nil {
 		var notFound viper.ConfigFileNotFoundError
 		if !errors.As(err, &notFound) {
-			log.Printf("警告: 读取配置文件失败: %v", err)
+			log.Printf("warning: failed to read config file: %v", err)
 		}
 	}
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-		log.Fatalf("配置反序列化失败: %v", err)
+		log.Fatalf("failed to unmarshal config: %v", err)
 	}
 
 	return &cfg

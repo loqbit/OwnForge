@@ -21,7 +21,7 @@ type UserService interface {
 	LogoutAllSessions(ctx context.Context, req *LogoutAllSessionsCommand) (*LogoutAllSessionsResult, error)
 	BindEmail(ctx context.Context, req *BindEmailCommand) (*BindEmailResult, error)
 	SetPassword(ctx context.Context, req *SetPasswordCommand) (*SetPasswordResult, error)
-	// TODO: 后续补充账号管理接口：身份列表、全局登录态列表、应用会话列表、单设备下线等查询与管理能力。
+	// TODO: Add account-management APIs later, including identity lists, global SSO session lists, app session lists, and per-device sign-out management.
 }
 
 type userService struct {
@@ -36,7 +36,7 @@ type userService struct {
 	topicUserRegistered string
 }
 
-// UserDependencies 描述用户服务所需的依赖集合。
+// UserDependencies groups the dependencies required by the user service.
 type UserDependencies struct {
 	TM                  infrarepo.TransactionManager
 	UserRepo            accountrepo.UserRepository
@@ -49,7 +49,7 @@ type UserDependencies struct {
 	TopicUserRegistered string
 }
 
-// NewUserService 创建用户服务。
+// NewUserService creates the user service.
 func NewUserService(deps UserDependencies) UserService {
 	return &userService{
 		tm:                  deps.TM,
@@ -65,10 +65,10 @@ func NewUserService(deps UserDependencies) UserService {
 }
 
 func (s *userService) Register(ctx context.Context, req *RegisterCommand) (*RegisterResult, error) {
-	// 加密密码
+	// Hash the password.
 	hashedPwd, err := crypto.HashPassword(req.Password)
 	if err != nil {
-		return nil, fmt.Errorf("密码加密失败: %w", err)
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	user, err := RegisterUserWithProfile(ctx, RegistrationDeps{
@@ -96,21 +96,21 @@ func (s *userService) Register(ctx context.Context, req *RegisterCommand) (*Regi
 	}, nil
 }
 
-// ChangePassword 修改当前用户密码，并使历史登录态全部失效。
+// ChangePassword updates the current user's password and invalidates all previous sessions.
 func (s *userService) ChangePassword(ctx context.Context, req *ChangePasswordCommand) (*ChangePasswordResult, error) {
 	if req.UserID == 0 {
-		return nil, errors.New("用户不存在")
+		return nil, errors.New("user not found")
 	}
 	if strings.TrimSpace(req.OldPassword) == "" {
-		return nil, errors.New("旧密码不能为空")
+		return nil, errors.New("old password cannot be empty")
 	}
 	if len(strings.TrimSpace(req.NewPassword)) < 8 {
-		return nil, errors.New("新密码长度不能少于 8 位")
+		return nil, errors.New("new password must be at least 8 characters long")
 	}
 
 	identities, err := s.identityRepo.ListByUserID(ctx, req.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("查询用户身份失败: %w", err)
+		return nil, fmt.Errorf("failed to query user identity: %w", err)
 	}
 
 	oldHash := ""
@@ -125,20 +125,20 @@ func (s *userService) ChangePassword(ctx context.Context, req *ChangePasswordCom
 		}
 	}
 	if oldHash == "" {
-		return nil, errors.New("当前账号未设置密码")
+		return nil, errors.New("the current account has no password set")
 	}
 	if !crypto.CheckPasswordHash(req.OldPassword, oldHash) {
-		return nil, errors.New("旧密码不正确")
+		return nil, errors.New("incorrect old password")
 	}
 
 	newHash, err := crypto.HashPassword(req.NewPassword)
 	if err != nil {
-		return nil, fmt.Errorf("新密码加密失败: %w", err)
+		return nil, fmt.Errorf("failed to hash new password: %w", err)
 	}
 
 	if err := s.tm.WithTx(ctx, func(txCtx context.Context) error {
 		if err := s.identityRepo.UpdatePasswordCredentialsByUserID(txCtx, req.UserID, newHash); err != nil {
-			return fmt.Errorf("更新密码失败: %w", err)
+			return fmt.Errorf("failed to update password: %w", err)
 		}
 		if err := s.revokeAllSessions(txCtx, req.UserID); err != nil {
 			return err
@@ -150,14 +150,14 @@ func (s *userService) ChangePassword(ctx context.Context, req *ChangePasswordCom
 
 	return &ChangePasswordResult{
 		UserID:  req.UserID,
-		Message: "密码修改成功，请重新登录",
+		Message: "password changed successfully, please sign in again",
 	}, nil
 }
 
-// LogoutAllSessions 让当前用户的全部登录态立即失效。
+// LogoutAllSessions immediately invalidates every active session for the current user.
 func (s *userService) LogoutAllSessions(ctx context.Context, req *LogoutAllSessionsCommand) (*LogoutAllSessionsResult, error) {
 	if req.UserID == 0 {
-		return nil, errors.New("用户不存在")
+		return nil, errors.New("user not found")
 	}
 
 	if err := s.tm.WithTx(ctx, func(txCtx context.Context) error {
@@ -168,24 +168,24 @@ func (s *userService) LogoutAllSessions(ctx context.Context, req *LogoutAllSessi
 
 	return &LogoutAllSessionsResult{
 		UserID:  req.UserID,
-		Message: "已退出全部设备，请重新登录",
+		Message: "all devices have been logged out, please sign in again",
 	}, nil
 }
 
-// BindEmail 为当前用户绑定邮箱身份。
+// BindEmail links an email identity to the current user.
 func (s *userService) BindEmail(ctx context.Context, req *BindEmailCommand) (*BindEmailResult, error) {
-	// TODO: 当前先走停服演进期的直接绑定；后续补邮箱验证码校验与所有权验证流程。
+	// TODO: Use direct binding during the transition period for now; add email-code verification and ownership checks later.
 	if req.UserID == 0 {
-		return nil, errors.New("用户不存在")
+		return nil, errors.New("user not found")
 	}
 	email := strings.TrimSpace(req.Email)
 	if email == "" {
-		return nil, errors.New("邮箱不能为空")
+		return nil, errors.New("email cannot be empty")
 	}
 
 	identities, err := s.identityRepo.ListByUserID(ctx, req.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("查询用户身份失败: %w", err)
+		return nil, fmt.Errorf("failed to query user identity: %w", err)
 	}
 	for _, identity := range identities {
 		if identity == nil || identity.Provider != "email" {
@@ -195,10 +195,10 @@ func (s *userService) BindEmail(ctx context.Context, req *BindEmailCommand) (*Bi
 			return &BindEmailResult{
 				UserID:  req.UserID,
 				Email:   email,
-				Message: "邮箱已绑定",
+				Message: "email already bound",
 			}, nil
 		}
-		return nil, errors.New("当前账号已绑定其他邮箱")
+		return nil, errors.New("the current account is already bound to another email")
 	}
 
 	now := time.Now()
@@ -210,28 +210,28 @@ func (s *userService) BindEmail(ctx context.Context, req *BindEmailCommand) (*Bi
 		LoginName:   &loginName,
 		VerifiedAt:  &now,
 	}); err != nil {
-		return nil, fmt.Errorf("绑定邮箱失败: %w", err)
+		return nil, fmt.Errorf("failed to bind email: %w", err)
 	}
 
 	return &BindEmailResult{
 		UserID:  req.UserID,
 		Email:   email,
-		Message: "邮箱绑定成功",
+		Message: "email bound successfully",
 	}, nil
 }
 
-// SetPassword 为当前用户首次设置本地密码。
+// SetPassword lets the current user set a local password for the first time.
 func (s *userService) SetPassword(ctx context.Context, req *SetPasswordCommand) (*SetPasswordResult, error) {
 	if req.UserID == 0 {
-		return nil, errors.New("用户不存在")
+		return nil, errors.New("user not found")
 	}
 	if len(strings.TrimSpace(req.NewPassword)) < 8 {
-		return nil, errors.New("新密码长度不能少于 8 位")
+		return nil, errors.New("new password must be at least 8 characters long")
 	}
 
 	identities, err := s.identityRepo.ListByUserID(ctx, req.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("查询用户身份失败: %w", err)
+		return nil, fmt.Errorf("failed to query user identity: %w", err)
 	}
 
 	hasLocalIdentity := false
@@ -243,40 +243,40 @@ func (s *userService) SetPassword(ctx context.Context, req *SetPasswordCommand) 
 		case "phone", "email", "username":
 			hasLocalIdentity = true
 			if identity.CredentialHash != nil && strings.TrimSpace(*identity.CredentialHash) != "" {
-				return nil, errors.New("当前账号已设置密码，请使用修改密码")
+				return nil, errors.New("the current account already has a password, use change password instead")
 			}
 		}
 	}
 	if !hasLocalIdentity {
-		return nil, errors.New("当前账号不支持设置本地密码")
+		return nil, errors.New("the current account does not support setting a local password")
 	}
 
 	newHash, err := crypto.HashPassword(req.NewPassword)
 	if err != nil {
-		return nil, fmt.Errorf("新密码加密失败: %w", err)
+		return nil, fmt.Errorf("failed to hash new password: %w", err)
 	}
 
 	if err := s.identityRepo.UpdatePasswordCredentialsByUserID(ctx, req.UserID, newHash); err != nil {
-		return nil, fmt.Errorf("设置密码失败: %w", err)
+		return nil, fmt.Errorf("failed to set password: %w", err)
 	}
 
 	return &SetPasswordResult{
 		UserID:  req.UserID,
-		Message: "密码设置成功",
+		Message: "password set successfully",
 	}, nil
 }
 
-// revokeAllSessions 提升用户全局版本并撤销该用户全部登录态。
+// revokeAllSessions bumps the user's global version and revokes all sessions for that user.
 func (s *userService) revokeAllSessions(ctx context.Context, userID int64) error {
 	if _, err := s.userRepo.BumpUserVersion(ctx, userID); err != nil {
-		return fmt.Errorf("更新用户全局版本失败: %w", err)
+		return fmt.Errorf("failed to update user global version: %w", err)
 	}
 	revokedAt := time.Now()
 	if err := s.ssoSessionRepo.RevokeByUserID(ctx, userID, revokedAt); err != nil {
-		return fmt.Errorf("撤销全局登录态失败: %w", err)
+		return fmt.Errorf("failed to revoke global login state: %w", err)
 	}
 	if err := s.appSessionRepo.RevokeByUserID(ctx, userID, revokedAt); err != nil {
-		return fmt.Errorf("撤销应用会话失败: %w", err)
+		return fmt.Errorf("failed to revoke app sessions: %w", err)
 	}
 	return nil
 }

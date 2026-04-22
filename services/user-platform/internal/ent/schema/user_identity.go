@@ -17,40 +17,40 @@ func (UserIdentity) Fields() []ent.Field {
 	return []ent.Field{
 		field.Enum("provider").
 			Values("phone", "email", "username", "github", "qq", "wechat").
-			Comment("身份提供方"),
+			Comment("identity provider"),
 		field.String("provider_uid").
 			NotEmpty().
 			MaxLen(255).
-			Comment("提供方唯一标识：手机号/邮箱/github_id/openid"),
+			Comment("provider unique identifier: phone/email/github_id/openid"),
 		field.String("provider_union_id").
 			Optional().
 			Nillable().
 			MaxLen(255).
-			Comment("微信/QQ 生态联合 ID"),
+			Comment("union ID for the WeChat/QQ ecosystem"),
 		field.String("login_name").
 			Optional().
 			Nillable().
 			MaxLen(255).
-			Comment("可读登录名：username/email"),
+			Comment("readable login name: username/email"),
 		field.String("credential_hash").
 			Optional().
 			Sensitive().
-			Comment("本地密码哈希；第三方登录为空"),
+			Comment("local password hash; empty for third-party login"),
 		field.Time("verified_at").
 			Optional().
 			Nillable().
-			Comment("身份验证通过时间"),
+			Comment("identity verification time"),
 		field.Time("linked_at").
 			Default(time.Now).
 			Immutable().
-			Comment("身份绑定时间"),
+			Comment("identity binding time"),
 		field.Time("last_login_at").
 			Optional().
 			Nillable().
-			Comment("最近一次使用该身份登录的时间"),
+			Comment("last login time using this identity"),
 		field.JSON("meta", map[string]any{}).
 			Default(map[string]any{}).
-			Comment("扩展元数据（如 OAuth scope、avatar_url 等）"),
+			Comment("extended metadata such as OAuth scopes and avatar_url"),
 	}
 }
 

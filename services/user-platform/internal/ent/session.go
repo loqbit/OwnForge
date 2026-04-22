@@ -22,25 +22,25 @@ type Session struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// 会话令牌哈希（当前主要承载 refresh token 哈希）
+	// Session token hash, currently used mainly for refresh token hashes
 	SessionTokenHash string `json:"session_token_hash,omitempty"`
-	// 设备标识
+	// Device identifier
 	DeviceID *string `json:"device_id,omitempty"`
-	// 用户 agent / 客户端标识
+	// User agent / client identifier
 	UserAgent *string `json:"user_agent,omitempty"`
-	// 客户端 IP
+	// Client IP
 	IP *string `json:"ip,omitempty"`
-	// 会话状态
+	// Session status
 	Status session.Status `json:"status,omitempty"`
-	// 当前会话版本，仅影响该 session
+	// Current session version, affecting only this session
 	Version int64 `json:"version,omitempty"`
-	// 创建该应用会话时的用户全局版本快照
+	// Snapshot of the user's global version when this app session was created
 	UserVersion int64 `json:"user_version,omitempty"`
-	// 会话过期时间
+	// Session expiration time
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
-	// 最近一次心跳时间
+	// Most recent heartbeat time
 	LastSeenAt time.Time `json:"last_seen_at,omitempty"`
-	// 撤销时间
+	// Revoked at
 	RevokedAt *time.Time `json:"revoked_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.

@@ -21,41 +21,41 @@ func (Session) Fields() []ent.Field {
 		field.String("session_token_hash").
 			Unique().
 			NotEmpty().
-			Comment("会话令牌哈希（当前主要承载 refresh token 哈希）"),
+			Comment("session token hash (currently mainly stores the refresh token hash)"),
 		field.String("device_id").
 			Optional().
 			Nillable().
 			MaxLen(128).
-			Comment("设备标识"),
+			Comment("device identifier"),
 		field.String("user_agent").
 			Optional().
 			Nillable().
 			MaxLen(512).
-			Comment("用户 agent / 客户端标识"),
+			Comment("user agent / client identifier"),
 		field.String("ip").
 			Optional().
 			Nillable().
-			Comment("客户端 IP"),
+			Comment("client IP"),
 		field.Enum("status").
 			Values("active", "revoked", "expired").
 			Default("active").
-			Comment("会话状态"),
+			Comment("session status"),
 		field.Int64("version").
 			Default(1).
-			Comment("当前会话版本，仅影响该 session"),
+			Comment("current session version, affecting only this session"),
 		field.Int64("user_version").
 			Default(1).
-			Comment("创建该应用会话时的用户全局版本快照"),
+			Comment("snapshot of the user's global version when the app session was created"),
 		field.Time("expires_at").
-			Comment("会话过期时间"),
+			Comment("session expiration time"),
 		field.Time("last_seen_at").
 			Default(time.Now).
 			UpdateDefault(time.Now).
-			Comment("最近一次心跳时间"),
+			Comment("last heartbeat time"),
 		field.Time("revoked_at").
 			Optional().
 			Nillable().
-			Comment("撤销时间"),
+			Comment("revocation time"),
 	}
 }
 
@@ -69,9 +69,9 @@ func (Session) Edges() []ent.Edge {
 			Ref("sessions").
 			Unique().
 			Required(),
-		// 可选关联到某次全局登录态。
-		// 如果应用会话是通过 Cookie SSO / 全局登录态派生出来的，就挂到对应 sso_session；
-		// 如果是应用自身独立登录，则保持为空。
+		// Optionally linked to a global SSO session.
+		// If the app session is derived from cookie SSO or a global SSO session, attach it to the corresponding sso_session.
+		// Leave it empty for an app-specific standalone login.
 		edge.From("sso_session", SsoSession.Type).
 			Ref("sessions").
 			Unique(),

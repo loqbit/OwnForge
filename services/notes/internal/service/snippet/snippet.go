@@ -19,16 +19,16 @@ import (
 	"go.uber.org/zap"
 )
 
-// 领域错误定义
+// Domain errors.
 var (
-	ErrIDGeneration  = pkgerrs.NewServerErr(errors.New("生成片段 ID 失败"))
-	ErrForbidden     = pkgerrs.New(pkgerrs.Forbidden, "无权限操作该代码片段", nil)
-	ErrInvalidTagIDs = pkgerrs.NewParamErr("标签不存在或无权限使用", nil)
-	ErrTrashed       = pkgerrs.New(pkgerrs.Forbidden, "回收站中的文档不可执行该操作", nil)
-	ErrNotTrashed    = pkgerrs.NewParamErr("文档未在回收站中", nil)
+	ErrIDGeneration  = pkgerrs.NewServerErr(errors.New("failed to generate snippet ID"))
+	ErrForbidden     = pkgerrs.New(pkgerrs.Forbidden, "no permission to operate on this snippet", nil)
+	ErrInvalidTagIDs = pkgerrs.NewParamErr("tag does not exist or cannot be used", nil)
+	ErrTrashed       = pkgerrs.New(pkgerrs.Forbidden, "this operation is not allowed on documents in the recycle bin", nil)
+	ErrNotTrashed    = pkgerrs.NewParamErr("document is not in the recycle bin", nil)
 )
 
-// SnippetService 定义 snippet 业务接口。
+// SnippetService defines the snippet service interface.
 type SnippetService interface {
 	Create(ctx context.Context, userID int64, req *contract.CreateSnippetCommand) (*contract.SnippetResult, error)
 	GetMineByID(ctx context.Context, userID, id int64) (*contract.SnippetResult, error)
@@ -46,12 +46,12 @@ type snippetService struct {
 	repo      snippetrepo.Repository
 	tagRepo   tagrepo.Repository
 	idgen     idgen.Client
-	publisher event.Publisher // 事件发布（可为 nil，不影响核心流程）
+	publisher event.Publisher // Event publisher. It may be nil without affecting the core flow.
 	logger    *zap.Logger
 }
 
-// NewSnippetService 创建 SnippetService 实例。
-// publisher 可传 nil（事件发布被跳过，核心 CRUD 不受影响）。
+// NewSnippetService creates a SnippetService instance.
+// publisher may be nil, in which case event publishing is skipped and core CRUD behavior is unaffected.
 func NewSnippetService(repo snippetrepo.Repository, tagRepo tagrepo.Repository, idgenClient idgen.Client, publisher event.Publisher, logger *zap.Logger) SnippetService {
 	return &snippetService{repo: repo, tagRepo: tagRepo, idgen: idgenClient, publisher: publisher, logger: logger}
 }
@@ -64,13 +64,13 @@ func (s *snippetService) Create(ctx context.Context, userID int64, req *contract
 
 	id, err := s.idgen.NextID(ctx)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("生成 snippet ID 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to generate snippet ID", zap.Error(err))
 		return nil, ErrIDGeneration
 	}
 
 	snippet, err := s.repo.Create(ctx, id, userID, params)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("创建 snippet 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to create snippet",
 			zap.Int64("id", id),
 			zap.Int64("userID", userID),
 			zap.Error(err),
@@ -86,7 +86,7 @@ func (s *snippetService) Create(ctx context.Context, userID int64, req *contract
 func (s *snippetService) GetMineByID(ctx context.Context, userID, id int64) (*contract.SnippetResult, error) {
 	snippet, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("查询 snippet 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to query snippet",
 			zap.Int64("id", id),
 			zap.Error(err),
 		)
@@ -105,12 +105,10 @@ func (s *snippetService) GetMineByID(ctx context.Context, userID, id int64) (*co
 	return result, nil
 }
 
-
-
 func (s *snippetService) ListMine(ctx context.Context, userID int64) ([]contract.SnippetResult, error) {
 	list, err := s.repo.ListByOwner(ctx, userID)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("查询用户 snippet 列表失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to query user snippets",
 			zap.Int64("userID", userID),
 			zap.Error(err),
 		)
@@ -142,17 +140,17 @@ func (s *snippetService) ListMineFiltered(ctx context.Context, userID int64, que
 
 	list, err := s.repo.ListFiltered(ctx, userID, query)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("筛选查询 snippet 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to filter snippets",
 			zap.Int64("userID", userID),
 			zap.Error(err),
 		)
 		return nil, err
 	}
 
-	// store 多查了 1 条来判断是否有下一页
+	// The store fetches one extra row to determine whether another page exists.
 	hasMore := len(list) > limit
 	if hasMore {
-		list = list[:limit] // 截掉多余的那一条
+		list = list[:limit] // Trim the extra record used for pagination.
 	}
 
 	items := make([]contract.SnippetResult, 0, len(list))
@@ -194,7 +192,7 @@ func (s *snippetService) Update(ctx context.Context, userID, id int64, req *cont
 
 	snippet, err := s.repo.Update(ctx, userID, id, params)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("更新 snippet 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to update snippet",
 			zap.Int64("id", id),
 			zap.Int64("userID", userID),
 			zap.Error(err),
@@ -217,9 +215,9 @@ func (s *snippetService) Delete(ctx context.Context, userID, id int64) error {
 	}
 
 	if current.DeletedAt != nil {
-		// 已在回收站，执行物理删除
+		// Already in the trash, so perform a hard delete.
 		if err := s.repo.Delete(ctx, userID, id); err != nil {
-			commonlogger.Ctx(ctx, s.logger).Error("物理删除 snippet 失败",
+			commonlogger.Ctx(ctx, s.logger).Error("failed to permanently delete snippet",
 				zap.Int64("id", id),
 				zap.Int64("userID", userID),
 				zap.Error(err),
@@ -229,9 +227,9 @@ func (s *snippetService) Delete(ctx context.Context, userID, id int64) error {
 		return nil
 	}
 
-	// 执行软删除：移入回收站
+	// Perform a soft delete by moving it to the trash.
 	if err := s.repo.SoftDelete(ctx, userID, id); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("软删除 snippet 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to soft-delete snippet",
 			zap.Int64("id", id),
 			zap.Int64("userID", userID),
 			zap.Error(err),
@@ -255,7 +253,7 @@ func (s *snippetService) Restore(ctx context.Context, userID, id int64) error {
 	}
 
 	if err := s.repo.Restore(ctx, userID, id); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("恢复 snippet 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to restore snippet",
 			zap.Int64("id", id),
 			zap.Int64("userID", userID),
 			zap.Error(err),
@@ -278,7 +276,7 @@ func (s *snippetService) SetFavorite(ctx context.Context, userID, snippetID int6
 	}
 
 	if err := s.repo.SetFavorite(ctx, userID, snippetID, isFavorite); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("设置 snippet 收藏状态失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to set snippet favorite state",
 			zap.Int64("id", snippetID),
 			zap.Int64("userID", userID),
 			zap.Bool("isFavorite", isFavorite),
@@ -289,9 +287,9 @@ func (s *snippetService) SetFavorite(ctx context.Context, userID, snippetID int6
 	return nil
 }
 
-// Move 移动 Snippet 到目标分组或在分组内调整排序。
-// - req.GroupID 为 nil 表示移动到收集箱（未分组）
-// - req.SortOrder 为 nil 时自动追加到目标分组末尾（max+1）
+// Move sends a snippet to the target group or adjusts its order within the group.
+// - req.GroupID == nil moves the snippet to the inbox (ungrouped)
+// - req.SortOrder == nil automatically appends the snippet to the end of the target group (max+1)
 func (s *snippetService) Move(ctx context.Context, userID, id int64, req *contract.MoveSnippetCommand) (*contract.SnippetResult, error) {
 	if req == nil {
 		req = &contract.MoveSnippetCommand{}
@@ -305,14 +303,14 @@ func (s *snippetService) Move(ctx context.Context, userID, id int64, req *contra
 		return nil, ErrForbidden
 	}
 
-	// 计算目标 sort_order：未指定则查目标分组内最大值 + 1
+	// Calculate the target sort_order. When unspecified, use the current max in the target group plus 1.
 	targetSortOrder := 0
 	if req.SortOrder != nil {
 		targetSortOrder = *req.SortOrder
 	} else {
 		max, err := s.repo.MaxSortOrderInGroup(ctx, userID, req.GroupID)
 		if err != nil {
-			commonlogger.Ctx(ctx, s.logger).Error("查询分组最大 sort_order 失败",
+			commonlogger.Ctx(ctx, s.logger).Error("failed to query the maximum sort_order in the group",
 				zap.Int64("userID", userID),
 				zap.Error(err),
 			)
@@ -323,7 +321,7 @@ func (s *snippetService) Move(ctx context.Context, userID, id int64, req *contra
 
 	snippet, err := s.repo.Move(ctx, userID, id, req.GroupID, targetSortOrder)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("移动 snippet 失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to move snippet",
 			zap.Int64("id", id),
 			zap.Int64("userID", userID),
 			zap.Error(err),
@@ -338,7 +336,7 @@ func (s *snippetService) Move(ctx context.Context, userID, id int64, req *contra
 	return result, nil
 }
 
-// SetTags 替换片段的所有标签关联。
+// SetTags replaces all tag associations on the snippet.
 func (s *snippetService) SetTags(ctx context.Context, userID, snippetID int64, tagIDs []int64) error {
 	current, err := s.repo.GetByID(ctx, snippetID)
 	if err != nil {
@@ -354,7 +352,7 @@ func (s *snippetService) SetTags(ctx context.Context, userID, snippetID int64, t
 	}
 
 	if err := s.repo.SetTags(ctx, snippetID, normalizedTagIDs); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("设置 snippet 标签失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to set snippet tags",
 			zap.Int64("snippetID", snippetID),
 			zap.Int64s("tagIDs", normalizedTagIDs),
 			zap.Error(err),
@@ -368,8 +366,8 @@ func (s *snippetService) SetTags(ctx context.Context, userID, snippetID int64, t
 func normalizeCreateCommand(req *contract.CreateSnippetCommand) *contract.CreateSnippetCommand {
 	if req == nil {
 		return &contract.CreateSnippetCommand{
-			Type:       "code",
-			Language:   "text",
+			Type:     "code",
+			Language: "text",
 		}
 	}
 
@@ -384,10 +382,10 @@ func normalizeCreateCommand(req *contract.CreateSnippetCommand) *contract.Create
 
 func normalizeUpdateCommand(current *snippetrepo.Snippet, req *contract.UpdateSnippetCommand) *contract.UpdateSnippetCommand {
 	params := &contract.UpdateSnippetCommand{
-		Title:      current.Title,
-		Content:    current.Content,
-		Language:   current.Language,
-		GroupID:    current.GroupID,
+		Title:    current.Title,
+		Content:  current.Content,
+		Language: current.Language,
+		GroupID:  current.GroupID,
 	}
 	if req == nil {
 		return params
@@ -411,16 +409,16 @@ func normalizeUpdateCommand(current *snippetrepo.Snippet, req *contract.UpdateSn
 
 func validateCreateCommand(req *contract.CreateSnippetCommand) error {
 	if strings.TrimSpace(req.Title) == "" {
-		return pkgerrs.NewParamErr("标题不能为空", nil)
+		return pkgerrs.NewParamErr("title cannot be empty", nil)
 	}
 	if !isSupportedType(req.Type) {
-		return pkgerrs.NewParamErr("type 仅支持 code、note、file", nil)
+		return pkgerrs.NewParamErr("type only supports code, note, or file", nil)
 	}
 	if req.Type == "file" && req.FileURL == "" {
-		return pkgerrs.NewParamErr("文件片段必须提供 file_url", nil)
+		return pkgerrs.NewParamErr("file snippets must provide file_url", nil)
 	}
 	if req.Type != "file" && req.Content == "" {
-		return pkgerrs.NewParamErr("文本片段必须提供 content", nil)
+		return pkgerrs.NewParamErr("text snippets must provide content", nil)
 	}
 
 	return nil
@@ -428,7 +426,7 @@ func validateCreateCommand(req *contract.CreateSnippetCommand) error {
 
 func validateUpdateCommand(req *contract.UpdateSnippetCommand) error {
 	if strings.TrimSpace(req.Title) == "" {
-		return pkgerrs.NewParamErr("标题不能为空", nil)
+		return pkgerrs.NewParamErr("title cannot be empty", nil)
 	}
 	return nil
 }
@@ -444,7 +442,6 @@ func normalizeType(t string) string {
 	}
 }
 
-
 func normalizeLanguage(v string) string {
 	if strings.TrimSpace(v) == "" {
 		return "text"
@@ -455,7 +452,6 @@ func normalizeLanguage(v string) string {
 func isSupportedType(v string) bool {
 	return v == "code" || v == "note" || v == "file"
 }
-
 
 func toSnippetResult(item *snippetrepo.Snippet) *contract.SnippetResult {
 	if item == nil {
@@ -482,12 +478,12 @@ func toSnippetResult(item *snippetrepo.Snippet) *contract.SnippetResult {
 	}
 }
 
-// formatTime 将 time.Time 格式化为 RFC3339 字符串。
+// formatTime formats time.Time as an RFC3339 string.
 func formatTime(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
-// formatOptionalTime 将 *time.Time 格式化为 RFC3339 字符串，nil 返回空串。
+// formatOptionalTime formats *time.Time as an RFC3339 string and returns an empty string for nil.
 func formatOptionalTime(t *time.Time) string {
 	if t == nil {
 		return ""
@@ -502,7 +498,7 @@ func (s *snippetService) hydrateTagIDs(ctx context.Context, item *contract.Snipp
 
 	tagIDs, err := s.repo.GetTagIDs(ctx, item.ID)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("查询 snippet 标签失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to query snippet tags",
 			zap.Int64("snippetID", item.ID),
 			zap.Error(err),
 		)
@@ -542,7 +538,7 @@ func (s *snippetService) validateOwnedTagIDs(ctx context.Context, userID int64, 
 
 	tags, err := s.tagRepo.ListByIDs(ctx, userID, normalized)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("校验 snippet 标签失败",
+		commonlogger.Ctx(ctx, s.logger).Error("failed to validate snippet tags",
 			zap.Int64("userID", userID),
 			zap.Int64s("tagIDs", normalized),
 			zap.Error(err),
@@ -556,8 +552,8 @@ func (s *snippetService) validateOwnedTagIDs(ctx context.Context, userID int64, 
 	return normalized, nil
 }
 
-// encodeSnippetCursor 将排序键编码为游标字符串。
-// 使用 base64(JSON) 编码，前端不需要解析，只需原样回传。
+// encodeSnippetCursor encodes the sort key as a cursor string.
+// It uses base64(JSON) encoding. The frontend does not need to parse it and can return it unchanged.
 func encodeSnippetCursor(s *snippetrepo.Snippet, sortBy string) string {
 	payload := map[string]any{
 		"u": s.UpdatedAt.Format(time.RFC3339Nano),
@@ -571,8 +567,8 @@ func encodeSnippetCursor(s *snippetrepo.Snippet, sortBy string) string {
 	return base64.URLEncoding.EncodeToString(data)
 }
 
-// publishSnippetSaved 异步发布 snippet.saved 事件。
-// Publisher 为 nil 或发布失败均不阻塞主流程，仅打日志。
+// publishSnippetSaved emits the snippet.saved event asynchronously.
+// A nil publisher or publish failure does not block the main flow; it is only logged.
 func (s *snippetService) publishSnippetSaved(ctx context.Context, snippetID, ownerID int64, action string) {
 	if s.publisher == nil {
 		return
@@ -583,7 +579,7 @@ func (s *snippetService) publishSnippetSaved(ctx context.Context, snippetID, own
 			OwnerID:   ownerID,
 			Action:    action,
 		}); err != nil {
-			s.logger.Warn("发布 snippet.saved 事件失败（不影响主流程）",
+			s.logger.Warn("failed to publish snippet.saved event (does not affect the main flow)",
 				zap.Int64("snippet_id", snippetID),
 				zap.Error(err),
 			)

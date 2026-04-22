@@ -12,17 +12,17 @@ type App struct {
 
 func (App) Fields() []ent.Field {
 	return []ent.Field{
-		// 比如 "nakama_game", "gopher_paste"
-		field.String("app_code").Unique().NotEmpty().Comment("应用唯一标识"),
-		field.String("app_name").NotEmpty().Comment("应用展示名称"),
+		// For example, "nakama_game" or "gopher_paste"
+		field.String("app_code").Unique().NotEmpty().Comment("unique application identifier"),
+		field.String("app_name").NotEmpty().Comment("application display name"),
 	}
 }
 
 func (App) Edges() []ent.Edge {
 	return []ent.Edge{
-		// 1对多：一个 App 可以有多个新版授权记录
+		// One-to-many: one App can have multiple user app authorization records
 		edge.To("authorizations", UserAppAuthorization.Type),
-		// 1对多：一个 App 可以有多个会话
+		// One-to-many: one App can have multiple sessions
 		edge.To("sessions", Session.Type),
 	}
 }

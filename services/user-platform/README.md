@@ -1,127 +1,132 @@
 # User Platform
 
-Go 微服务中台，提供统一账号注册、多应用登录鉴权、Session 管理，同时暴露 HTTP 和 gRPC 两种协议。
+A Go microservice platform that provides unified account registration, multi-application authentication, and session management, while exposing both HTTP and gRPC protocols.
 
-## 核心特性
+## Core Features
 
-- **账号体系**：手机号必填注册、密码加密、用户名唯一约束
-- **双登录模式**：保留用户名/邮箱 + 密码登录，同时新增手机号验证码登录
-- **多应用鉴权**：携带 `app_code` 登录，签发 Access Token + Refresh Token，首次登录自动建立授权关系
-- **Session 管理**：设备级 Session 追踪、登出、Token 轮换刷新
-- **事件驱动**：Transactional Outbox 模式保证注册事件可靠投递至 Kafka
-- **数据同步**：结合 Debezium CDC 实现 PostgreSQL 变更数据非侵入式同步至下游
-- **基础设施**：基于 `common` 组件库实现 Redis / PostgreSQL 统一连接池管理与 OTel 链路追踪
-- **双协议**：HTTP (Gin) + gRPC (grpc-go) 共享同一套 Service 层
+- **Account system**: phone-required registration, password hashing, and unique-username constraints
+- **Dual login modes**: keep username/email + password login while adding phone verification-code login
+- **Multi-application authentication**: log in with `app_code`, issue Access Token + Refresh Token, and automatically create the authorization relation on first login
+- **Session management**: device-level session tracking, logout, and token rotation
+- **Event-driven architecture**: Transactional Outbox ensures reliable delivery of registration events to Kafka
+- **Data synchronization**: Debezium CDC syncs PostgreSQL change data downstream with minimal intrusion into business logic
+- **Infrastructure**: use the `common` component library for unified Redis / PostgreSQL pool management and OTel tracing
+- **Dual protocol**: HTTP (Gin) + gRPC (grpc-go) share the same service layer
 
-## 技术栈
+## Tech Stack
 
-| 层 | 技术 |
+| Layer | Technology |
 |---|------|
-| Web 框架 | Gin (HTTP) / grpc-go (gRPC) |
+| Web framework | Gin (HTTP) / grpc-go (gRPC) |
 | ORM | Ent |
-| 数据库 | PostgreSQL |
-| 缓存 | Redis |
-| 消息队列 | Kafka (segmentio/kafka-go) |
-| 配置 | Viper + godotenv |
-| 日志 | Zap (结构化 + 彩色) |
-| ID 生成 | 远程 Snowflake (gRPC) |
-| 容器化 | Docker + Docker Compose |
-| 可观测 | Prometheus + Grafana + Loki |
-| 实时同步 | Debezium (CDC) + PostgreSQL 逻辑复制 |
+| Database | PostgreSQL |
+| Cache | Redis |
+| Message queue | Kafka (segmentio/kafka-go) |
+| Configuration | Viper + godotenv |
+| Logging | Zap (structured + colored) |
+| ID generation | Remote Snowflake (gRPC) |
+| Containerization | Docker + Docker Compose |
+| Observability | Prometheus + Grafana + Loki |
+| Real-time sync | Debezium (CDC) + PostgreSQL logical replication |
 
-## 项目结构
+## Project Structure
 
 ```text
 ├── cmd/
-│   ├── http/main.go              # HTTP 入口
-│   └── grpc/main.go              # gRPC 入口
+│   ├── http/main.go              # HTTP entrypoint
+│   └── grpc/main.go              # gRPC entrypoint
 ├── internal/
-│   ├── service/                   # 业务逻辑（注册、登录、鉴权）
-│   ├── repository/                # 数据访问（User、Session、EventOutbox）
+│   ├── service/                  # business logic (registration, login, authentication)
+│   ├── repository/               # data access (User, Session, EventOutbox)
 │   ├── transport/
-│   │   ├── http/                  # Gin 路由 + Handler
-│   │   └── grpc/                  # gRPC Server 实现
-│   ├── ent/                       # Ent 生成代码 + Schema
+│   │   ├── http/                 # Gin routes + handlers
+│   │   └── grpc/                 # gRPC server implementation
+│   ├── ent/                      # Ent generated code + schema
 │   └── platform/
-│       ├── config/                # Viper 配置加载
-│       ├── database/              # PostgreSQL 初始化
-│       └── cache/                 # Redis 初始化
-├── .env.example                   # 环境变量模板
-├── .env                           # 敏感凭证（不提交，见 .env.example）
-└── docker-compose-service.yaml    # 服务编排
+│       ├── config/               # Viper config loading
+│       ├── database/             # PostgreSQL initialization
+│       └── cache/                # Redis initialization
+├── .env.example                  # environment variable template
+├── .env                          # sensitive credentials (do not commit; see `.env.example`)
+└── docker-compose-service.yaml   # service orchestration
 ```
 
-## 快速开始
+## Quick Start
 
-### 1. 配置环境变量
+### 1. Configure Environment Variables
+
 ```bash
 cp .env.example .env
-# 编辑 .env，填入数据库连接、Redis 密码、JWT 密钥
+# Edit `.env` and fill in the database connection, Redis password, and JWT secret
 ```
 
-### 2. 启动基础设施
+### 2. Start Infrastructure
+
 ```bash
-make local-infra-up   # 启动 PostgreSQL + Redis + Kafka
+make local-infra-up   # start PostgreSQL + Redis + Kafka
 ```
 
-### 3. 本地运行
+### 3. Run Locally
+
 ```bash
-make local-run-http   # HTTP 服务 :8081
-make local-run-grpc   # gRPC 服务 :9091
+make local-run-http   # HTTP service :8081
+make local-run-grpc   # gRPC service :9091
 ```
 
-### 4. Docker 一键部署
+### 4. One-Command Docker Deployment
+
 ```bash
-make docker-up        # 构建并启动全部容器
-make docker-logs      # 查看日志
-make docker-down      # 停止并清理
+make docker-up        # build and start all containers
+make docker-logs      # view logs
+make docker-down      # stop and clean up
 ```
 
-## 配置说明
+## Configuration
 
-### .env（运行配置与敏感信息）
-| 变量 | 说明 |
+### .env
+
+| Variable | Description |
 |------|------|
-| `APP_ENV` | 运行环境，影响日志颜色 |
-| `SERVER_PORT` | HTTP 监听端口 |
-| `GRPC_SERVER_PORT` | gRPC 监听端口 |
-| `DATABASE_SOURCE` | PostgreSQL 连接字符串 |
-| `REDIS_PASSWORD` | Redis 密码 |
-| `JWT_SECRET` | JWT 签名密钥 |
-| `KAFKA_BROKERS` | Kafka 地址 |
-| `ID_GENERATOR_ADDR` | 发号器 gRPC 地址 |
+| `APP_ENV` | runtime environment, affects log coloring |
+| `SERVER_PORT` | HTTP listen port |
+| `GRPC_SERVER_PORT` | gRPC listen port |
+| `DATABASE_SOURCE` | PostgreSQL connection string |
+| `REDIS_PASSWORD` | Redis password |
+| `JWT_SECRET` | JWT signing secret |
+| `KAFKA_BROKERS` | Kafka address |
+| `ID_GENERATOR_ADDR` | ID generator gRPC address |
 
 ## HTTP API
 
 Base URL: `http://localhost:8081/api/v1`
 
 ```bash
-# 注册
+# Register
 curl -X POST localhost:8081/api/v1/users/register \
   -H 'Content-Type: application/json' \
   -d '{"phone":"13800138000","email":"alice@example.com","username":"alice123","password":"Password123"}'
 
-# 登录
+# Login
 curl -X POST localhost:8081/api/v1/users/login \
   -H 'Content-Type: application/json' \
   -d '{"username":"alice123","password":"Password123","app_code":"go-note","device_id":"macbook-user-1"}'
 
-# 发送手机号验证码（开发环境会在 debug_code 返回验证码，便于 curl 联调）
+# Send a phone verification code (in development, the code is returned in `debug_code` for easier curl testing)
 curl -X POST localhost:8081/api/v1/users/phone/code \
   -H 'Content-Type: application/json' \
   -d '{"phone":"13800138000","scene":"login"}'
 
-# 手机号验证码登录/注册一体化入口
+# Unified phone verification-code login/registration entrypoint
 curl -X POST localhost:8081/api/v1/users/phone/entry \
   -H 'Content-Type: application/json' \
   -d '{"phone":"13800138000","verification_code":"123456","app_code":"go-note","device_id":"macbook-user-1"}'
 
-# 刷新 Token
+# Refresh Token
 curl -X POST localhost:8081/api/v1/users/refresh \
   -H 'Content-Type: application/json' \
   -d '{"token":"<refresh_token>"}'
 
-# 登出
+# Logout
 curl -X POST localhost:8081/api/v1/users/logout \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <access_token>' \
@@ -130,53 +135,57 @@ curl -X POST localhost:8081/api/v1/users/logout \
 
 ## gRPC API
 
-地址：`localhost:9091`
+Address: `localhost:9091`
 
 ```bash
-# 注册
+# Register
 grpcurl -plaintext -d '{"phone":"13800138000","email":"alice@example.com","username":"alice123","password":"Password123"}' \
   localhost:9091 user.UserService/Register
 
-# 登录
+# Login
 grpcurl -plaintext -d '{"username":"alice123","password":"Password123","app_code":"go-note","device_id":"macbook-user-1"}' \
   localhost:9091 user.AuthService/Login
 
-# 发送手机号验证码
+# Send phone verification code
 grpcurl -plaintext -d '{"phone":"13800138000","scene":"login"}' \
   localhost:9091 user.AuthService/SendPhoneCode
 
-# 手机号验证码登录/注册
+# Phone verification-code login/registration
 grpcurl -plaintext -d '{"phone":"13800138000","verification_code":"123456","app_code":"go-note","device_id":"macbook-user-1"}' \
   localhost:9091 user.AuthService/PhoneAuthEntry
 ```
 
-## 架构亮点
+## Architecture Highlights
 
-### Transactional Outbox 模式
-注册时在同一个数据库事务中写入 `users` 表和 `event_outboxes` 表，由 Debezium CDC 监听 Outbox 表并转发 Kafka，保证数据一致性与低业务侵入。
+### Transactional Outbox Pattern
 
-### Kafka Topic 命名约定
-统一使用全小写 + 点分隔风格，例如 `user.registered`、`user.deleted`。不要混用 `UserRegistered`、`user_registered` 这类 PascalCase 或下划线风格，避免 Kafka 因自动建 Topic 生成多份语义重复的主题。
+During registration, the `users` table and the `event_outboxes` table are written in the same database transaction. Debezium CDC listens to the Outbox table and forwards events to Kafka, preserving data consistency with minimal business-layer intrusion.
 
-### 事件契约治理
-共享事件契约统一收敛在 `common/mq` 中。事件类型与 Topic 统一使用全小写 + 点分隔风格，便于 Outbox、Debezium 和下游消费者保持一致语义；共享事件消息体建议显式携带 `version` 字段，便于后续平滑演进。
+### Kafka Topic Naming Convention
 
-### Bootstrap 三段式入口
-`main.go` 采用 `initInfra` → `buildRouter` → `runServer` 三段式组织，基础设施初始化、依赖注入、服务启动职责清晰分离。
+Use lowercase names with dot separators consistently, such as `user.registered` and `user.deleted`. Do not mix in styles like `UserRegistered` or `user_registered`, which can cause Kafka to auto-create duplicate topics with overlapping meaning.
 
-## 常用 Make 命令
+### Event Contract Governance
 
-| 命令 | 说明 |
+Shared event contracts are centralized in `common/mq`. Event types and topics use lowercase names with dot separators so Outbox, Debezium, and downstream consumers keep consistent semantics. Shared event payloads should explicitly carry a `version` field to support smooth future evolution.
+
+### Three-Stage Bootstrap Entrypoint
+
+`main.go` is organized as `initInfra` -> `buildRouter` -> `runServer`, keeping infrastructure setup, dependency injection, and service startup clearly separated.
+
+## Common Make Commands
+
+| Command | Description |
 |------|------|
-| `make local-infra-up` | 启动本地基础设施 |
-| `make local-run-http` | 本地启动 HTTP |
-| `make local-run-grpc` | 本地启动 gRPC |
-| `make docker-up` | Docker 一键部署 |
-| `make docker-down` | 停止并清理容器 |
-| `make docker-logs` | 查看服务日志 |
-| `make proto-gen` | 重新生成 Protobuf |
-| `make health` | 健康检查 |
+| `make local-infra-up` | start local infrastructure |
+| `make local-run-http` | run HTTP locally |
+| `make local-run-grpc` | run gRPC locally |
+| `make docker-up` | build and start all containers |
+| `make docker-down` | stop and clean up containers |
+| `make docker-logs` | view service logs |
+| `make proto-gen` | regenerate Protobuf |
+| `make health` | health check |
 
 ## License
 
-仅用于学习与内部开发。
+For learning and internal development only.

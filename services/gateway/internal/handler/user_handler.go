@@ -14,14 +14,14 @@ import (
 	"go.uber.org/zap"
 )
 
-// UserHandler 负责处理网关侧的用户相关请求。
+// UserHandler handles user-related requests on the gateway side.
 type UserHandler struct {
 	userClient userpb.UserServiceClient
 	ssoCookie  *ssoCookieManager
 	log        *zap.Logger
 }
 
-// NewUserHandler 创建一个用户 Handler。
+// NewUserHandler creates a user handler.
 func NewUserHandler(userClient userpb.UserServiceClient, cookieCfg config.SSOCookieConfig, log *zap.Logger) *UserHandler {
 	return &UserHandler{
 		userClient: userClient,
@@ -30,13 +30,13 @@ func NewUserHandler(userClient userpb.UserServiceClient, cookieCfg config.SSOCoo
 	}
 }
 
-// Register 用户注册
+// Register handles user registration.
 func (h *UserHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// 使用 validator 翻译验证错误为友好提示
+		// Use the validator helper to translate validation errors into friendly messages.
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -48,8 +48,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Email:    req.Email,
 	})
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.log).Error("用户注册失败", zap.Error(err))
-		// 这里可以直接抛出，因为底层 Service 已经是 Domain Error 了
+		commonlogger.Ctx(c.Request.Context(), h.log).Error("user registration failed", zap.Error(err))
+		// This can be returned directly because the underlying service already returns domain errors.
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -59,12 +59,12 @@ func (h *UserHandler) Register(c *gin.Context) {
 	})
 }
 
-// GetProfile 获取当前登录用户的个人资料
+// GetProfile fetches the current signed-in user's profile.
 func (h *UserHandler) GetProfile(c *gin.Context) {
-	// 从网关 JWT 中间件获取身份
+	// read identity from the gateway JWT middleware
 	userID, ok := getAuthenticatedUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 		UserId: userID,
 	})
 	if err != nil {
-		commonlogger.Ctx(grpcCtx, h.log).Error("获取个人资料失败", zap.Error(err))
+		commonlogger.Ctx(grpcCtx, h.log).Error("failed to fetch profile", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -88,18 +88,18 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	})
 }
 
-// UpdateProfile 修改个人资料
+// UpdateProfile updates the profile.
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userID, ok := getAuthenticatedUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 
 	var req dto.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -113,7 +113,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		Birthday:  req.Birthday,
 	})
 	if err != nil {
-		commonlogger.Ctx(grpcCtx, h.log).Error("更新个人资料失败", zap.Error(err))
+		commonlogger.Ctx(grpcCtx, h.log).Error("failed to update profile", zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -128,18 +128,18 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	})
 }
 
-// ChangePassword 修改当前登录用户密码。
+// ChangePassword changes the current signed-in user's password.
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userID, ok := getAuthenticatedUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 
 	var req dto.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -150,7 +150,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		NewPassword: req.NewPassword,
 	})
 	if err != nil {
-		commonlogger.Ctx(grpcCtx, h.log).Error("修改密码失败", zap.Int64("userID", userID), zap.Error(err))
+		commonlogger.Ctx(grpcCtx, h.log).Error("failed to change password", zap.Int64("userID", userID), zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -162,18 +162,18 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	})
 }
 
-// LogoutAllSessions 让当前用户的全部登录态失效。
+// LogoutAllSessions invalidates all sessions for the current user.
 func (h *UserHandler) LogoutAllSessions(c *gin.Context) {
 	userID, ok := getAuthenticatedUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 
 	grpcCtx := grpcclient.WithUserID(c.Request.Context(), userID)
 	resp, err := h.userClient.LogoutAllSessions(grpcCtx, &userpb.LogoutAllSessionsRequest{})
 	if err != nil {
-		commonlogger.Ctx(grpcCtx, h.log).Error("退出全部设备失败", zap.Int64("userID", userID), zap.Error(err))
+		commonlogger.Ctx(grpcCtx, h.log).Error("failed to log out from all devices", zap.Int64("userID", userID), zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -185,18 +185,18 @@ func (h *UserHandler) LogoutAllSessions(c *gin.Context) {
 	})
 }
 
-// BindEmail 绑定当前登录用户的邮箱身份。
+// BindEmail binds an email identity for the current signed-in user.
 func (h *UserHandler) BindEmail(c *gin.Context) {
 	userID, ok := getAuthenticatedUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 
 	var req dto.BindEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -206,7 +206,7 @@ func (h *UserHandler) BindEmail(c *gin.Context) {
 		Email: req.Email,
 	})
 	if err != nil {
-		commonlogger.Ctx(grpcCtx, h.log).Error("绑定邮箱失败", zap.Int64("userID", userID), zap.Error(err))
+		commonlogger.Ctx(grpcCtx, h.log).Error("failed to bind email", zap.Int64("userID", userID), zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}
@@ -218,18 +218,18 @@ func (h *UserHandler) BindEmail(c *gin.Context) {
 	})
 }
 
-// SetPassword 为当前登录用户设置本地密码。
+// SetPassword sets a local password for the current signed-in user.
 func (h *UserHandler) SetPassword(c *gin.Context) {
 	userID, ok := getAuthenticatedUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未授权")
+		response.Unauthorized(c, "unauthorized")
 		return
 	}
 
 	var req dto.SetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		errMsg := validator.TranslateValidationError(err)
-		commonlogger.Ctx(c.Request.Context(), h.log).Warn("参数验证失败", zap.Error(err), zap.String("message", errMsg))
+		commonlogger.Ctx(c.Request.Context(), h.log).Warn("parameter validation failed", zap.Error(err), zap.String("message", errMsg))
 		response.BadRequest(c, errMsg)
 		return
 	}
@@ -239,7 +239,7 @@ func (h *UserHandler) SetPassword(c *gin.Context) {
 		NewPassword: req.NewPassword,
 	})
 	if err != nil {
-		commonlogger.Ctx(grpcCtx, h.log).Error("设置密码失败", zap.Int64("userID", userID), zap.Error(err))
+		commonlogger.Ctx(grpcCtx, h.log).Error("failed to set password", zap.Int64("userID", userID), zap.Error(err))
 		response.Error(c, validator.ConvertToHTTPError(err))
 		return
 	}

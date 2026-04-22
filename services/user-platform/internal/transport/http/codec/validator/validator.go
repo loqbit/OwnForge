@@ -7,51 +7,51 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// TranslateValidationError 将 validator 的错误翻译成友好的中文提示
+// TranslateValidationError converts validator errors into user-friendly Chinese messages.
 func TranslateValidationError(err error) string {
-	// 类型断言：判断 err 是否是 validator.ValidationErrors 类型
+	// Type assertion: check whether err is validator.ValidationErrors.
 	validationErrs, ok := err.(validator.ValidationErrors)
 	if !ok {
-		// 如果不是验证错误，返回原始错误信息
+		// Return the original error when it is not a validation error.
 		return err.Error()
 	}
 
 	var messages []string
 
-	// 遍历每个字段的错误
+	// Walk through validation errors field by field.
 	for _, fieldErr := range validationErrs {
-		// fieldErr.Field() 是字段名，如 "Username"
-		// fieldErr.Tag() 是验证规则，如 "required", "min", "email"
-		// fieldErr.Param() 是规则参数，如 min=3 中的 "3"
+		// fieldErr.Field() is the field name, for example "Username".
+		// fieldErr.Tag() is the validation rule, for example "required", "min", or "email".
+		// fieldErr.Param() is the rule parameter, for example the "3" in min=3.
 
 		message := translateFieldError(fieldErr)
 		messages = append(messages, message)
 	}
 
-	// 用逗号连接所有错误信息
+	// Join all error messages with commas.
 	return strings.Join(messages, ", ")
 }
 
-// translateFieldError 翻译单个字段的错误
+// translateFieldError translates one field-level validation error.
 func translateFieldError(fieldErr validator.FieldError) string {
-	field := fieldErr.Field() // 字段名
-	tag := fieldErr.Tag()     // 验证标签
-	param := fieldErr.Param() // 参数
+	field := fieldErr.Field() // Field name.
+	tag := fieldErr.Tag()     // Validation tag.
+	param := fieldErr.Param() // Rule parameter.
 
-	// 根据不同的验证标签返回不同的中文提示
+	// Return a Chinese message based on the validation tag.
 	switch tag {
 	case "required":
-		return fmt.Sprintf("%s不能为空", field)
+		return fmt.Sprintf("%s cannot be empty", field)
 	case "min":
-		return fmt.Sprintf("%s长度必须至少为%s个字符", field, param)
+		return fmt.Sprintf("%s must be at least %s characters long", field, param)
 	case "max":
-		return fmt.Sprintf("%s长度不能超过%s个字符", field, param)
+		return fmt.Sprintf("%s cannot exceed %s characters", field, param)
 	case "email":
-		return fmt.Sprintf("%s必须是有效的邮箱地址", field)
+		return fmt.Sprintf("%s must be a valid email address", field)
 	case "alphanum":
-		return fmt.Sprintf("%s只能包含字母和数字", field)
+		return fmt.Sprintf("%s can only contain letters and numbers", field)
 	default:
-		// 如果没有匹配的规则，返回默认提示
-		return fmt.Sprintf("%s格式不正确", field)
+		// Fall back to a default message when no rule matches.
+		return fmt.Sprintf("%s has an invalid format", field)
 	}
 }

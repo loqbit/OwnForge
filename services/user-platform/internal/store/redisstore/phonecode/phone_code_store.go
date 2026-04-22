@@ -9,12 +9,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// PhoneCodeStore 是 PhoneCodeRepository 的 Redis 实现。
+// PhoneCodeStore is the Redis-backed implementation of PhoneCodeRepository.
 type PhoneCodeStore struct {
 	cli *redis.Client
 }
 
-// NewPhoneCodeStore 创建一个 PhoneCodeRepository 实例，直接持有 redis.Client。
+// NewPhoneCodeStore creates a PhoneCodeRepository backed directly by redis.Client.
 func NewPhoneCodeStore(cli *redis.Client) sessionrepo.PhoneCodeRepository {
 	return &PhoneCodeStore{cli: cli}
 }

@@ -15,12 +15,12 @@ type UserIdentityStore struct {
 	client *ent.Client
 }
 
-// NewUserIdentityStore 创建用户身份仓储的 Ent 实现。
+// NewUserIdentityStore creates the Ent-backed user identity repository.
 func NewUserIdentityStore(client *ent.Client) accountrepo.UserIdentityRepository {
 	return &UserIdentityStore{client: client}
 }
 
-// Create 创建一条新的用户身份记录。
+// Create inserts a new user identity record.
 func (s *UserIdentityStore) Create(ctx context.Context, params accountrepo.CreateUserIdentityParams) (*accountrepo.UserIdentity, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -52,7 +52,7 @@ func (s *UserIdentityStore) Create(ctx context.Context, params accountrepo.Creat
 	return s.GetByID(ctx, created.ID)
 }
 
-// GetByID 按主键查询用户身份。
+// GetByID looks up a user identity by primary key.
 func (s *UserIdentityStore) GetByID(ctx context.Context, id int) (*accountrepo.UserIdentity, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -66,7 +66,7 @@ func (s *UserIdentityStore) GetByID(ctx context.Context, id int) (*accountrepo.U
 	return shared.MapUserIdentity(entity), nil
 }
 
-// GetByProvider 按身份提供方和提供方唯一标识查询用户身份。
+// GetByProvider looks up a user identity by provider and provider-specific identifier.
 func (s *UserIdentityStore) GetByProvider(ctx context.Context, provider string, providerUID string) (*accountrepo.UserIdentity, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -83,7 +83,7 @@ func (s *UserIdentityStore) GetByProvider(ctx context.Context, provider string, 
 	return shared.MapUserIdentity(entity), nil
 }
 
-// ListByUserID 查询某个用户绑定的全部身份。
+// ListByUserID returns all identities linked to a user.
 func (s *UserIdentityStore) ListByUserID(ctx context.Context, userID int64) ([]*accountrepo.UserIdentity, error) {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -101,7 +101,7 @@ func (s *UserIdentityStore) ListByUserID(ctx context.Context, userID int64) ([]*
 	return result, nil
 }
 
-// TouchLogin 更新指定身份最近一次登录时间。
+// TouchLogin updates the last-login time for the specified identity.
 func (s *UserIdentityStore) TouchLogin(ctx context.Context, id int, at time.Time) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 
@@ -110,7 +110,7 @@ func (s *UserIdentityStore) TouchLogin(ctx context.Context, id int, at time.Time
 		Exec(ctx))
 }
 
-// UpdatePasswordCredentialsByUserID 批量更新用户本地密码型身份的密码哈希。
+// UpdatePasswordCredentialsByUserID updates password hashes for the user's local password identities in bulk.
 func (s *UserIdentityStore) UpdatePasswordCredentialsByUserID(ctx context.Context, userID int64, credentialHash string) error {
 	c := shared.EntClientFromCtx(ctx, s.client)
 

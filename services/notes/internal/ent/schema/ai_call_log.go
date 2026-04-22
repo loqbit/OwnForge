@@ -8,12 +8,12 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// AICallLog 记录每次 LLM 调用的 trace 信息。
+// AICallLog records trace information for each LLM call.
 //
-// 这是 AI 产品的"黑匣子"：每次调用的入参 hash、模型、token、耗时、成本、结果都落库。
-// 用途：成本分析、prompt A/B、失败排查、用户配额、效果评估。
+// This is the AI product's black box: input hashes, model, token counts, latency, cost, and result are all persisted for every call.
+// It is used for cost analysis, prompt A/B testing, failure investigation, user quotas, and quality evaluation.
 //
-// 保留策略：30 天热数据完整保留；>30 天聚合到 ai_usage_daily 后可清理。
+// Retention policy: keep full hot data for 30 days; after that, once it is aggregated into ai_usage_daily, it can be cleaned up.
 type AICallLog struct {
 	ent.Schema
 }
@@ -23,87 +23,87 @@ func (AICallLog) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").
 			Unique().
-			Comment("雪花 ID"),
+			Comment("Snowflake ID"),
 
 		field.Int64("owner_id").
-			Comment("归属用户（用于配额、账单、数据隔离）"),
+			Comment("owner user (for quota, billing, and data isolation)"),
 
-		// ── 业务上下文 ──
+		// Business context
 		field.String("skill").
 			MaxLen(64).
-			Comment("技能名称，如 enrich / weekly_report / smart_search"),
+			Comment("skill name, for example enrich / weekly_report / smart_search"),
 
 		field.Int64("snippet_id").
 			Optional().
 			Nillable().
-			Comment("关联的 snippet（如有），方便按文档回溯"),
+			Comment("associated snippet if any, for document-level tracing"),
 
-		// ── 模型与 Prompt ──
+		// Model and prompt
 		field.String("provider").
 			MaxLen(32).
 			Comment("openai / anthropic / ollama / ..."),
 
 		field.String("model").
 			MaxLen(100).
-			Comment("具体模型 ID，如 gpt-4o-mini / claude-3-5-sonnet"),
+			Comment("specific model ID, for example gpt-4o-mini / claude-3-5-sonnet"),
 
 		field.String("prompt_version").
 			MaxLen(32).
-			Comment("Prompt 版本号，用于回归对比"),
+			Comment("prompt version, used for regression comparison"),
 
-		// ── 调用指纹（便于命中 prompt cache + 去重分析） ──
+		// Call fingerprint, useful for prompt-cache hits and deduplication analysis
 		field.String("input_hash").
 			MaxLen(64).
-			Comment("input messages 的 hash（sha256 前 16 字节 hex）"),
+			Comment("hash of input messages (first 16 bytes of sha256 as hex)"),
 
-		// ── Token & 成本 ──
+		// Tokens and cost
 		field.Int("input_tokens").
 			Default(0).
-			Comment("输入 token 数"),
+			Comment("input token count"),
 
 		field.Int("output_tokens").
 			Default(0).
-			Comment("输出 token 数"),
+			Comment("output token count"),
 
 		field.Int("cached_tokens").
 			Default(0).
-			Comment("命中 prompt cache 的 token 数"),
+			Comment("prompt cache hit token count"),
 
 		field.Float("cost_usd").
 			Default(0).
-			Comment("本次调用估算成本（美元）"),
+			Comment("estimated cost of this call (USD)"),
 
-		// ── 性能与结果 ──
+		// Performance and result
 		field.Int("latency_ms").
 			Default(0).
-			Comment("调用耗时（毫秒）"),
+			Comment("call latency (ms)"),
 
 		field.Enum("status").
 			Values("success", "parse_error", "llm_error", "skipped", "timeout").
-			Comment("调用结果状态"),
+			Comment("call result status"),
 
 		field.String("error").
 			Optional().
 			MaxLen(500).
-			Comment("错误信息（截断），status != success 时填充"),
+			Comment("truncated error message, populated when status != success"),
 
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable().
-			Comment("调用时间"),
+			Comment("call time"),
 	}
 }
 
 // Indexes of the AICallLog.
 func (AICallLog) Indexes() []ent.Index {
 	return []ent.Index{
-		// 按用户 + 时间查询（账单、配额）
+		// Query by user and time for billing and quotas
 		index.Fields("owner_id", "created_at"),
-		// 按 skill + 时间（效果分析）
+		// Query by skill and time for effectiveness analysis
 		index.Fields("skill", "created_at"),
-		// 按 snippet 回溯
+		// Trace back by snippet
 		index.Fields("snippet_id"),
-		// 按 created_at 单独建索引，方便按时间清理/归档
+		// Add a standalone index on created_at to simplify time-based cleanup and archiving
 		index.Fields("created_at"),
 	}
 }

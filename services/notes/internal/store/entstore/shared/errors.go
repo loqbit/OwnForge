@@ -7,8 +7,8 @@ import (
 	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
 )
 
-// ParseEntError 将 Ent 框架的错误转为 repository 层的哨兵错误。
-// 这是整个项目中唯一需要理解 ent 错误类型的地方。
+// ParseEntError converts Ent errors into repository-layer sentinel errors.
+// This is the only place in the project that needs to understand Ent-specific error types.
 func ParseEntError(err error) error {
 	if err == nil {
 		return nil
@@ -24,7 +24,7 @@ func ParseEntError(err error) error {
 		return parseConstraintError(err)
 	}
 
-	// 系统级/网络级错误
+	// System-level or network-level errors.
 	msg := strings.ToLower(err.Error())
 	if strings.Contains(msg, "connection refused") ||
 		strings.Contains(msg, "broken pipe") ||
@@ -36,7 +36,7 @@ func ParseEntError(err error) error {
 	return err
 }
 
-// parseConstraintError 从 ent 约束错误文本中提取具体业务错误。
+// parseConstraintError extracts the concrete business error from an Ent constraint error string.
 func parseConstraintError(err error) error {
 	msg := strings.ToLower(err.Error())
 	switch {

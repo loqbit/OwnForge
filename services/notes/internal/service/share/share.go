@@ -21,21 +21,21 @@ import (
 )
 
 var (
-	ErrIDGeneration       = pkgerrs.NewServerErr(errors.New("生成分享 ID 失败"))
-	ErrSnippetForbidden   = pkgerrs.New(pkgerrs.Forbidden, "无权限分享该文档", nil)
-	ErrShareForbidden     = pkgerrs.New(pkgerrs.Forbidden, "无权限操作该分享", nil)
-	ErrInvalidKind        = pkgerrs.NewParamErr("kind 仅支持 article 或 template", nil)
-	ErrPasswordRequired   = pkgerrs.New(pkgerrs.Unauthorized, "该分享需要密码", nil)
-	ErrInvalidPassword    = pkgerrs.New(pkgerrs.Unauthorized, "分享密码错误", nil)
-	ErrShareExpired       = pkgerrs.New(pkgerrs.Gone, "分享已过期", nil)
-	ErrSnippetIDRequired  = pkgerrs.NewParamErr("snippet_id 不能为空", nil)
-	ErrPasswordTooLong    = pkgerrs.NewParamErr("分享密码长度不能超过 72 个字符", nil)
-	ErrInvalidExpiresAt   = pkgerrs.NewParamErr("expires_at 格式无效，需要 RFC3339 时间", nil)
-	ErrTokenGeneration    = pkgerrs.NewServerErr(errors.New("生成分享 token 失败"))
-	ErrShareAlreadyExists = pkgerrs.New(pkgerrs.ParamErr, "该文档已存在有效分享", nil)
+	ErrIDGeneration       = pkgerrs.NewServerErr(errors.New("failed to generate share ID"))
+	ErrSnippetForbidden   = pkgerrs.New(pkgerrs.Forbidden, "no permission to share this document", nil)
+	ErrShareForbidden     = pkgerrs.New(pkgerrs.Forbidden, "no permission to operate on this share", nil)
+	ErrInvalidKind        = pkgerrs.NewParamErr("kind only supports article or template", nil)
+	ErrPasswordRequired   = pkgerrs.New(pkgerrs.Unauthorized, "this share requires a password", nil)
+	ErrInvalidPassword    = pkgerrs.New(pkgerrs.Unauthorized, "incorrect share password", nil)
+	ErrShareExpired       = pkgerrs.New(pkgerrs.Gone, "share has expired", nil)
+	ErrSnippetIDRequired  = pkgerrs.NewParamErr("snippet_id cannot be empty", nil)
+	ErrPasswordTooLong    = pkgerrs.NewParamErr("share password cannot exceed 72 characters", nil)
+	ErrInvalidExpiresAt   = pkgerrs.NewParamErr("invalid expires_at format, RFC3339 time required", nil)
+	ErrTokenGeneration    = pkgerrs.NewServerErr(errors.New("failed to generate share token"))
+	ErrShareAlreadyExists = pkgerrs.New(pkgerrs.ParamErr, "an active share already exists for this document", nil)
 )
 
-// Service 定义分享业务接口。
+// Service defines the share service interface.
 type Service interface {
 	Create(ctx context.Context, userID int64, cmd *contract.CreateShareCommand) (*contract.ShareResult, error)
 	ListMine(ctx context.Context, userID int64, query *contract.ListSharesQuery) ([]contract.ShareResult, error)
@@ -52,7 +52,7 @@ type shareService struct {
 	logger      *zap.Logger
 }
 
-// NewService 创建分享服务实例。
+// NewService creates a share service instance.
 func NewService(repo sharerepo.Repository, snippetRepo snippetrepo.Repository, idgenClient idgen.Client, logger *zap.Logger) Service {
 	return &shareService{
 		repo:        repo,
@@ -89,13 +89,13 @@ func (s *shareService) Create(ctx context.Context, userID int64, cmd *contract.C
 
 	id, err := s.idgen.NextID(ctx)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("生成分享 ID 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to generate share ID", zap.Error(err))
 		return nil, ErrIDGeneration
 	}
 
 	token, err := generateToken()
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("生成分享 token 失败", zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to generate share token", zap.Error(err))
 		return nil, ErrTokenGeneration
 	}
 
@@ -121,7 +121,7 @@ func (s *shareService) Create(ctx context.Context, userID int64, cmd *contract.C
 		}
 		hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
-			commonlogger.Ctx(ctx, s.logger).Error("加密分享密码失败", zap.Error(err))
+			commonlogger.Ctx(ctx, s.logger).Error("failed to hash share password", zap.Error(err))
 			return nil, pkgerrs.NewServerErr(err)
 		}
 		share.PasswordHash = string(hash)
@@ -129,7 +129,7 @@ func (s *shareService) Create(ctx context.Context, userID int64, cmd *contract.C
 
 	created, err := s.repo.Create(ctx, share)
 	if err != nil {
-		commonlogger.Ctx(ctx, s.logger).Error("创建分享失败", zap.Int64("snippet_id", cmd.SnippetID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Error("failed to create share", zap.Int64("snippet_id", cmd.SnippetID), zap.Error(err))
 		return nil, err
 	}
 
@@ -176,7 +176,7 @@ func (s *shareService) GetPublicByToken(ctx context.Context, token, password str
 	}
 
 	if err := s.repo.IncrementViewCount(ctx, source.Share.ID); err != nil {
-		commonlogger.Ctx(ctx, s.logger).Warn("递增分享浏览量失败", zap.Int64("share_id", source.Share.ID), zap.Error(err))
+		commonlogger.Ctx(ctx, s.logger).Warn("failed to increment share view count", zap.Int64("share_id", source.Share.ID), zap.Error(err))
 	} else {
 		source.Share.ViewCount++
 	}

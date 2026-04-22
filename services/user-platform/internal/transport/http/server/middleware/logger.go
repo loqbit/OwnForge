@@ -14,24 +14,24 @@ import (
 	"go.uber.org/zap"
 )
 
-// GinLogger 返回一个记录 HTTP 请求信息的 Gin 中间件。
+// GinLogger returns a Gin middleware that logs HTTP request details.
 func GinLogger(log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 将 logger 存入 context，供 response.Error 使用。
+		// Store the logger in the context so response.Error can reuse it.
 		c.Set("logger", log)
 
 		start := time.Now()
 		path := c.Request.URL.Path
 		query := c.Request.URL.RawQuery
 
-		c.Next() // 执行后续的逻辑
+		c.Next() // Run the remaining handlers.
 
-		// Docker 健康检查很频繁（每 10 秒一次），为了防止日志刷屏，这里直接过滤 /health 的日志记录。
+		// Docker health checks run frequently, so skip /health logs to avoid log spam.
 		if path == "/health" {
 			return
 		}
 
-		// 请求结束，记录日志
+		// Record the request once it completes.
 		cost := time.Since(start)
 		status := c.Writer.Status()
 		traceID := trace.FromContext(c.Request.Context())
@@ -51,21 +51,21 @@ func GinLogger(log *zap.Logger) gin.HandlerFunc {
 		}
 
 		if status >= 500 {
-			log.Error("服务器内部错误", fields...)
+			log.Error("internal server error", fields...)
 		} else if status >= 400 {
-			log.Warn("请求异常", fields...)
+			log.Warn("request error", fields...)
 		} else {
-			log.Info("请求", fields...)
+			log.Info("request", fields...)
 		}
 	}
 }
 
-// GinRecovery 捕获项目运行过程中可能出现的 panic，并使用 zap 记录相关日志。
+// GinRecovery catches panics during request handling and records them with zap.
 func GinRecovery(log *zap.Logger, stack bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				// 识别断开的连接，这类情况通常不需要打印完整的 panic 堆栈。
+				// Detect broken connections; they usually do not need a full panic stack trace.
 				var brokenPipe bool
 				if ne, ok := err.(*net.OpError); ok {
 					if se, ok := ne.Err.(*os.SyscallError); ok {
@@ -81,7 +81,7 @@ func GinRecovery(log *zap.Logger, stack bool) gin.HandlerFunc {
 						zap.Any("error", err),
 						zap.String("request", string(httpRequest)),
 					)
-					// 如果连接已经断开，就无法继续回写响应状态码。
+					// The response status cannot be written if the connection is already gone.
 					c.Error(err.(error)) // nolint: errcheck
 					c.Abort()
 					return

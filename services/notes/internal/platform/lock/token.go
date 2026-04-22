@@ -5,11 +5,11 @@ import (
 	"encoding/hex"
 )
 
-// randomToken 生成 16 字节随机 token，用于锁持有者身份标识。
+// randomToken generates a 16-byte random token that identifies the lock holder.
 func randomToken() string {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
-		// crypto/rand 失败极罕见；退化为空字符串时锁仍能被 TTL 释放
+		// Failures from crypto/rand are extremely rare; even with an empty string fallback, the lock will still expire by TTL.
 		return ""
 	}
 	return hex.EncodeToString(b)

@@ -18,25 +18,25 @@ func (UserAppAuthorization) Fields() []ent.Field {
 		field.Enum("status").
 			Values("active", "revoked", "banned").
 			Default("active").
-			Comment("授权状态"),
+			Comment("authorization status"),
 		field.JSON("scopes", []string{}).
 			Default([]string{}).
-			Comment("授权范围"),
+			Comment("authorization scopes"),
 		field.JSON("ext_profile", map[string]any{}).
 			Default(map[string]any{}).
-			Comment("应用级扩展资料"),
+			Comment("app-level metadata"),
 		field.Time("first_authorized_at").
 			Default(time.Now).
 			Immutable().
-			Comment("首次授权时间"),
+			Comment("first authorization time"),
 		field.Time("last_login_at").
 			Optional().
 			Nillable().
-			Comment("最近一次登录时间"),
+			Comment("last login time"),
 		field.Time("last_active_at").
 			Default(time.Now).
 			UpdateDefault(time.Now).
-			Comment("最近一次活跃时间"),
+			Comment("last active time"),
 	}
 }
 

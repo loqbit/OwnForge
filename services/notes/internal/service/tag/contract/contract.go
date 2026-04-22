@@ -1,18 +1,18 @@
 package contract
 
-// CreateTagCommand 创建 Tag 的服务层输入参数。
+// CreateTagCommand is the service-layer input for creating a tag.
 type CreateTagCommand struct {
 	Name  string
 	Color string
 }
 
-// UpdateTagCommand 更新 Tag 的服务层输入参数。
+// UpdateTagCommand is the service-layer input for updating a tag.
 type UpdateTagCommand struct {
 	Name  string
 	Color string
 }
 
-// TagResult 服务层输出的 Tag 数据结构。
+// TagResult is the tag shape returned by the service layer.
 type TagResult struct {
 	ID        int64
 	OwnerID   int64

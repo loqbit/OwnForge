@@ -1,5 +1,5 @@
-// Package transportgrpc 组装 gRPC 服务端，对标 HTTP 层的 router.go。
-// 职责：注册拦截器链 + 注册 Protobuf 服务。
+// Package transportgrpc wires up the gRPC server, mirroring the HTTP router layer.
+// It registers the interceptor chain and protobuf services.
 package transportgrpc
 
 import (
@@ -21,7 +21,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// ServerDependencies 描述 gRPC 服务端组装所需的依赖集合。
+// ServerDependencies groups the dependencies required to build the gRPC server.
 type ServerDependencies struct {
 	UserService    accountservice.UserService
 	ProfileService accountservice.ProfileService
@@ -30,23 +30,23 @@ type ServerDependencies struct {
 	Logger         *zap.Logger
 }
 
-// SetupServer 组装 gRPC 服务端。
+// SetupServer builds the gRPC server.
 func SetupServer(deps ServerDependencies) *grpc.Server {
 	s := grpc.NewServer(
 		// ── Keepalive ────────────────────────────────────────
-		// 放宽心跳限制，允许 API Gateway 以 10 秒间隔发送 ping。
+		// Relax keepalive limits so the API Gateway can send pings every 10 seconds.
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
-			MinTime:             5 * time.Second, // 允许客户端最小 5 秒 ping 一次
-			PermitWithoutStream: true,            // 允许无活跃流时的 ping
+			MinTime:             5 * time.Second, // Allow client pings as often as every 5 seconds.
+			PermitWithoutStream: true,            // Allow pings without active streams.
 		}),
 		grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionIdle:     5 * time.Minute,  // 空闲连接 5 分钟后关闭
-			MaxConnectionAge:      30 * time.Minute, // 连接最长存活 30 分钟，促进负载均衡
-			MaxConnectionAgeGrace: 10 * time.Second, // 关闭前给 10 秒完成正在执行的 RPC
-			Time:                  15 * time.Second, // 服务端每 15 秒向客户端发 ping
-			Timeout:               5 * time.Second,  // 5 秒没响应视为断连
+			MaxConnectionIdle:     5 * time.Minute,  // Close idle connections after 5 minutes.
+			MaxConnectionAge:      30 * time.Minute, // Cap connection lifetime at 30 minutes to help load balancing.
+			MaxConnectionAgeGrace: 10 * time.Second, // Give in-flight RPCs 10 seconds to finish before closing.
+			Time:                  15 * time.Second, // Send a server ping every 15 seconds.
+			Timeout:               5 * time.Second,  // Treat the connection as dead after 5 seconds without a response.
 		}),
-		// ── 可观测性 ───────────────────────────────────────────
+		// ── Observability ─────────────────────────────────────
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			metrics.GRPCMetricsInterceptor(),
@@ -56,7 +56,7 @@ func SetupServer(deps ServerDependencies) *grpc.Server {
 		),
 	)
 
-	// 注册 Protobuf 服务
+	// Register protobuf services.
 	user_pb.RegisterUserServiceServer(s, grpcserver.NewUserServer(grpcserver.UserServerDependencies{
 		UserService:    deps.UserService,
 		ProfileService: deps.ProfileService,
@@ -67,7 +67,7 @@ func SetupServer(deps ServerDependencies) *grpc.Server {
 		Logger:      deps.Logger,
 	}))
 
-	// 注册 gRPC 原生健康检查服务，供标准 Health/Check RPC 调用。
+	// Register the native gRPC health service for standard Health/Check RPCs.
 	healthgrpc.RegisterHealthServer(s, deps.HealthServer)
 
 	return s

@@ -16,33 +16,33 @@ import (
 type AIUsageDaily struct {
 	config `json:"-"`
 	// ID of the ent.
-	// 雪花 ID
+	// Snowflake ID
 	ID int64 `json:"id,omitempty"`
-	// 统计日期（仅 YYYY-MM-DD，UTC）
+	// Aggregation date in YYYY-MM-DD format, UTC only
 	Date time.Time `json:"date,omitempty"`
-	// 归属用户
+	// Owning user
 	OwnerID int64 `json:"owner_id,omitempty"`
-	// LLM 服务商
+	// LLM provider
 	Provider string `json:"provider,omitempty"`
-	// 模型 ID
+	// Model ID
 	Model string `json:"model,omitempty"`
-	// 技能名称
+	// Skill name
 	Skill string `json:"skill,omitempty"`
-	// 当日调用次数
+	// Number of calls for the day
 	CallCount int `json:"call_count,omitempty"`
-	// 成功次数
+	// Number of successful calls
 	SuccessCount int `json:"success_count,omitempty"`
-	// 失败次数
+	// Number of failed calls
 	ErrorCount int `json:"error_count,omitempty"`
-	// 输入 token 累计
+	// Total input tokens
 	InputTokens int64 `json:"input_tokens,omitempty"`
-	// 输出 token 累计
+	// Total output tokens
 	OutputTokens int64 `json:"output_tokens,omitempty"`
-	// prompt cache 命中 token 累计
+	// Total prompt-cache-hit tokens
 	CachedTokens int64 `json:"cached_tokens,omitempty"`
-	// 当日估算成本（美元）
+	// Estimated daily cost in USD
 	CostUsd float64 `json:"cost_usd,omitempty"`
-	// 聚合任务最后更新时间
+	// Last update time of the aggregation job
 	UpdatedAt    time.Time `json:"updated_at,omitempty"`
 	selectValues sql.SelectValues
 }

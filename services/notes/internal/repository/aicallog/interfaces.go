@@ -2,10 +2,10 @@ package aicallog
 
 import "context"
 
-// Repository 定义 AI 调用日志的数据访问接口。
+// Repository defines the data access interface for AI call logs.
 //
-// 设计原则：Insert 只追加、永不更新。查询主要用于账单、Dashboard、排障。
+// Design principle: Insert is append-only and never updates. Queries are mainly used for billing, dashboards, and troubleshooting.
 type Repository interface {
-	// Insert 落一条调用记录。Entry.ID 由调用方通过 id-generator 提供。
+	// Insert writes one call record. Entry.ID is provided by the caller through id-generator.
 	Insert(ctx context.Context, entry *Entry) error
 }

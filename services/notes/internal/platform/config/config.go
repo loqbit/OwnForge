@@ -7,10 +7,10 @@ import (
 	commonRedis "github.com/ownforge/ownforge/pkg/redis"
 )
 
-// MinIOConfig MinIO 连接配置。
+// MinIOConfig defines MinIO connection settings.
 type MinIOConfig struct {
-	Endpoint       string   `mapstructure:"endpoint"`        // 内网连接地址 (Docker: global-minio:9000)
-	PublicEndpoint string   `mapstructure:"public_endpoint"` // 浏览器可访问地址 (localhost:9000)
+	Endpoint       string   `mapstructure:"endpoint"`        // internal endpoint (Docker: global-minio:9000)
+	PublicEndpoint string   `mapstructure:"public_endpoint"` // browser-accessible endpoint (localhost:9000)
 	AccessKey      string   `mapstructure:"access_key"`
 	SecretKey      string   `mapstructure:"secret_key"`
 	Bucket         string   `mapstructure:"bucket"`
@@ -20,7 +20,7 @@ type MinIOConfig struct {
 	AllowedMIMEs   []string `mapstructure:"allowed_mime_types"`
 }
 
-// Config 全局配置
+// Config holds global configuration.
 type Config struct {
 	AppEnv      string             `mapstructure:"app_env"`
 	Server      conf.ServerConfig  `mapstructure:"server"`
@@ -34,16 +34,16 @@ type Config struct {
 	AI          AIConfig           `mapstructure:"ai"`
 }
 
-// AIConfig AI 服务配置。
+// AIConfig defines AI service settings.
 type AIConfig struct {
 	Provider      string `mapstructure:"provider"`        // "anthropic" | "openai" | "ollama" | "qwen"
-	BaseURL       string `mapstructure:"base_url"`         // LLM API 端点地址
-	APIKey        string `mapstructure:"api_key"`          // API Key
-	EnrichModel   string `mapstructure:"enrich_model"`     // 日常增值用的模型
-	ReportModel   string `mapstructure:"report_model"`     // 周报生成用的模型（留空则用 enrich_model）
-	MaxTokens     int    `mapstructure:"max_tokens"`       // 默认 1024
-	WorkerCount   int    `mapstructure:"worker_count"`     // Worker 并发数，默认 4
-	MinContentLen int    `mapstructure:"min_content_len"`  // 内容最小长度，默认 50
+	BaseURL       string `mapstructure:"base_url"`        // LLM API endpoint
+	APIKey        string `mapstructure:"api_key"`         // API Key
+	EnrichModel   string `mapstructure:"enrich_model"`    // model used for routine enrichment
+	ReportModel   string `mapstructure:"report_model"`    // model used for weekly report generation (falls back to enrich_model when empty)
+	MaxTokens     int    `mapstructure:"max_tokens"`      // defaults to 1024
+	WorkerCount   int    `mapstructure:"worker_count"`    // worker concurrency, default 4
+	MinContentLen int    `mapstructure:"min_content_len"` // minimum content length, default 50
 }
 
 type GRPCServerConfig struct {
@@ -58,7 +58,7 @@ type MetricsConfig struct {
 	Port string `mapstructure:"port"`
 }
 
-// LoadConfig 从 Viper 加载配置
+// LoadConfig loads configuration from Viper.
 func LoadConfig() *Config {
 	var cfg Config
 	conf.Load(&cfg)

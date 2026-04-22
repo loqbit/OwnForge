@@ -1,12 +1,12 @@
 package dto
 
-// SendPhoneCodeRequest 表示手机号验证码流程的 HTTP 请求体。
+// SendPhoneCodeRequest is the HTTP request body for the phone verification flow.
 type SendPhoneCodeRequest struct {
 	Phone string `json:"phone" binding:"required,min=6,max=20"`
 	Scene string `json:"scene" binding:"required"`
 }
 
-// SendPhoneCodeResponse 表示手机号验证码流程的 HTTP 响应体。
+// SendPhoneCodeResponse is the HTTP response body for the phone verification flow.
 type SendPhoneCodeResponse struct {
 	Action          string `json:"action"`
 	CooldownSeconds int    `json:"cooldown_seconds,omitempty"`
@@ -14,7 +14,7 @@ type SendPhoneCodeResponse struct {
 	DebugCode       string `json:"debug_code,omitempty"`
 }
 
-// PhoneAuthEntryRequest 表示手机号登录或注册一体化流程的 HTTP 请求体。
+// PhoneAuthEntryRequest is the HTTP request body for the combined phone login or signup flow.
 type PhoneAuthEntryRequest struct {
 	Phone            string `json:"phone" binding:"required,min=6,max=20"`
 	VerificationCode string `json:"verification_code" binding:"required"`
@@ -22,7 +22,7 @@ type PhoneAuthEntryRequest struct {
 	DeviceID         string `json:"device_id" binding:"required"`
 }
 
-// PhoneAuthEntryResponse 表示手机号登录或注册一体化流程的 HTTP 响应体。
+// PhoneAuthEntryResponse is the HTTP response body for the combined phone login or signup flow.
 type PhoneAuthEntryResponse struct {
 	Action          string `json:"action"`
 	AccessToken     string `json:"access_token,omitempty"`
@@ -35,7 +35,7 @@ type PhoneAuthEntryResponse struct {
 	Message         string `json:"message,omitempty"`
 }
 
-// PhonePasswordLoginRequest 表示手机号加密码登录的 HTTP 请求体。
+// PhonePasswordLoginRequest is the HTTP request body for phone-and-password login.
 type PhonePasswordLoginRequest struct {
 	Phone    string `json:"phone" binding:"required,min=6,max=20"`
 	Password string `json:"password" binding:"required,min=8"`
@@ -43,7 +43,7 @@ type PhonePasswordLoginRequest struct {
 	DeviceID string `json:"device_id" binding:"required"`
 }
 
-// PhonePasswordLoginResponse 表示手机号加密码登录的 HTTP 响应体。
+// PhonePasswordLoginResponse is the HTTP response body for phone-and-password login.
 type PhonePasswordLoginResponse struct {
 	AccessToken  string `json:"access_token,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`

@@ -1,7 +1,7 @@
 on:
   push:
     branches: [main]
-    tags: ['v*.*.*'] # 支持以 v 开头的 tag（如 v1.0.0）
+    tags: ['v*.*.*'] # supports tags prefixed with v (for example v1.0.0)
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -23,7 +23,7 @@ env:
   IMAGE_NAME: luckys-go-project/id-generator
 
 jobs:
-  # ============ 阶段 1：测试 ============
+  # ============ Stage 1: test ============
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -43,7 +43,7 @@ jobs:
       - name: Run vet
         run: go vet ./...
 
-  # ============ 阶段 2：构建 + 推送（测试通过后才执行）============
+  # ============ Stage 2: build + push (runs only after tests pass)============
   build:
     needs: test
     runs-on: ubuntu-latest
@@ -74,7 +74,7 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=,format=short
-            type=match,pattern=v(.*),group=1 # 解析 tag 版本号，如触发 v1.0.0，则镜像打标签为 1.0.0
+            type=match,pattern=v(.*),group=1 # parse the tag version; for example, if v1.0.0 triggers the workflow, the image is tagged 1.0.0
 
       - name: Build and Push
         uses: docker/build-push-action@v6

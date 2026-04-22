@@ -21,7 +21,7 @@ type Config struct {
 	Metrics     MetricsConfig          `mapstructure:"metrics"`
 }
 
-// === 以下为服务专有配置，不提取到 common ===
+// === Service-specific configuration below; do not extract into common. ===
 
 type MetricsConfig struct {
 	Port string `mapstructure:"port"`
@@ -40,7 +40,7 @@ type GRPCServerConfig struct {
 	Port string `mapstructure:"port"`
 }
 
-// SMSAuthConfig 定义手机号认证使用的阿里云短信验证码配置。
+// SMSAuthConfig defines the Aliyun SMS verification settings used for phone authentication.
 type SMSAuthConfig struct {
 	Enabled           bool   `mapstructure:"enabled"`
 	AccessKeyID       string `mapstructure:"access_key_id"`
@@ -60,7 +60,7 @@ type SMSAuthConfig struct {
 	AutoRetry         int64  `mapstructure:"auto_retry"`
 }
 
-// LoadConfig 从 Viper 加载配置（底层由 common/conf.Load 统一处理）
+// LoadConfig loads configuration from Viper, with common/conf.Load handling the shared low-level logic.
 func LoadConfig() *Config {
 	var cfg Config
 	conf.Load(&cfg)

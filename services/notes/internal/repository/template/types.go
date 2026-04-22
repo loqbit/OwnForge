@@ -2,7 +2,7 @@ package templaterepo
 
 import "time"
 
-// Template 是 template 的仓储层领域模型。
+// Template is the repository-layer domain model for template.
 type Template struct {
 	ID          int64
 	OwnerID     int64

@@ -2,7 +2,7 @@ package snippetrepo
 
 import "time"
 
-// Snippet 是 snippet 的仓储层领域模型。
+// Snippet is the repository-layer domain model for snippet.
 type Snippet struct {
 	ID         int64
 	OwnerID    int64
@@ -14,8 +14,8 @@ type Snippet struct {
 	MimeType   string
 	Language   string
 	GroupID    *int64
-	SortOrder  int        // 在所属分组内的排序权重
-	TagIDs     []int64    // 关联的标签 ID 列表
+	SortOrder  int     // Sort weight within the owning group.
+	TagIDs     []int64 // List of associated tag IDs.
 	IsFavorite bool
 	DeletedAt  *time.Time
 	CreatedAt  time.Time

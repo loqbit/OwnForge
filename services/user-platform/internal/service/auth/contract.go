@@ -1,6 +1,6 @@
 package authservice
 
-// LoginCommand 表示用户名密码登录时的输入参数。
+// LoginCommand contains the input parameters for username-and-password login.
 type LoginCommand struct {
 	Username string
 	Password string
@@ -8,14 +8,14 @@ type LoginCommand struct {
 	DeviceID string
 }
 
-// LogoutCommand 表示登出时的输入参数。
+// LogoutCommand contains the input parameters for logout.
 type LogoutCommand struct {
 	UserID   int64
 	AppCode  string
 	DeviceID string
 }
 
-// LoginResult 表示登录成功后的返回结果。
+// LoginResult is returned after a successful login.
 type LoginResult struct {
 	AccessToken  string
 	RefreshToken string
@@ -24,42 +24,42 @@ type LoginResult struct {
 	Username     string
 }
 
-// VerifyTokenCommand 表示访问令牌校验时的输入参数。
+// VerifyTokenCommand contains the input parameters for access-token verification.
 type VerifyTokenCommand struct {
 	Token string
 }
 
-// VerifyTokenResult 表示访问令牌校验后的结果。
+// VerifyTokenResult is returned after access-token verification.
 type VerifyTokenResult struct {
 	UserID   int64
 	Username string
 }
 
-// RefreshTokenCommand 表示刷新令牌时的输入参数。
+// RefreshTokenCommand contains the input parameters for refreshing a token.
 type RefreshTokenCommand struct {
 	Token string
 }
 
-// RefreshTokenResult 表示刷新令牌后的返回结果。
+// RefreshTokenResult is returned after refreshing a token.
 type RefreshTokenResult struct {
 	AccessToken  string
 	RefreshToken string
 }
 
-// ExchangeSSOCommand 表示通过 SSO Cookie 换取当前应用会话时的输入参数。
+// ExchangeSSOCommand contains the input parameters for exchanging an SSO cookie for the current app session.
 type ExchangeSSOCommand struct {
 	SSOToken string
 	AppCode  string
 	DeviceID string
 }
 
-// SendPhoneCodeCommand 表示发送手机验证码时的输入参数。
+// SendPhoneCodeCommand contains the input parameters for sending a phone verification code.
 type SendPhoneCodeCommand struct {
 	Phone string
 	Scene string
 }
 
-// SendPhoneCodeResult 表示发送手机验证码后的结果。
+// SendPhoneCodeResult is returned after sending a phone verification code.
 type SendPhoneCodeResult struct {
 	Action          string
 	CooldownSeconds int
@@ -67,7 +67,7 @@ type SendPhoneCodeResult struct {
 	DebugCode       string
 }
 
-// PhoneAuthEntryCommand 表示手机号验证码登录或注册一体化流程的输入参数。
+// PhoneAuthEntryCommand contains the input parameters for the combined phone-code login or signup flow.
 type PhoneAuthEntryCommand struct {
 	Phone            string
 	VerificationCode string
@@ -75,7 +75,7 @@ type PhoneAuthEntryCommand struct {
 	DeviceID         string
 }
 
-// PhoneAuthEntryResult 表示手机号验证码登录或注册一体化流程的结果。
+// PhoneAuthEntryResult is returned by the combined phone-code login or signup flow.
 type PhoneAuthEntryResult struct {
 	Action          string
 	AccessToken     string
@@ -89,7 +89,7 @@ type PhoneAuthEntryResult struct {
 	Message         string
 }
 
-// PhonePasswordLoginCommand 表示手机号密码登录时的输入参数。
+// PhonePasswordLoginCommand contains the input parameters for phone-and-password login.
 type PhonePasswordLoginCommand struct {
 	Phone    string
 	Password string
@@ -97,7 +97,7 @@ type PhonePasswordLoginCommand struct {
 	DeviceID string
 }
 
-// PhonePasswordLoginResult 表示手机号密码登录后的返回结果。
+// PhonePasswordLoginResult is returned after phone-and-password login.
 type PhonePasswordLoginResult struct {
 	AccessToken  string
 	RefreshToken string

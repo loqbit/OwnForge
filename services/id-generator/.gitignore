@@ -1,4 +1,4 @@
-# Go 核心忽略
+# Go core ignores
 *.exe
 *.exe~
 *.dll
@@ -8,17 +8,17 @@
 *.out
 go.work
 
-# 项目编译产物
+# build artifacts
 bin/
 
-# IDE 和操作系统缓存
+# IDE and OS caches
 .idea/
 .vscode/
 *.swp
 *.swo
 .DS_Store
 
-# 包含敏感信息的文件
+# files containing sensitive information
 .env
 .env.*
 !.env.example

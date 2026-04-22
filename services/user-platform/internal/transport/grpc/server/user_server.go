@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// UserServer 是用户服务的 gRPC 接口实现。
+// UserServer is the gRPC implementation of the user service.
 type UserServer struct {
 	pb.UnimplementedUserServiceServer
 	svc        accountservice.UserService
@@ -23,19 +23,19 @@ type UserServer struct {
 	logger     *zap.Logger
 }
 
-// UserServerDependencies 描述用户 gRPC Server 所需的依赖集合。
+// UserServerDependencies groups dependencies required by the user gRPC server.
 type UserServerDependencies struct {
 	UserService    accountservice.UserService
 	ProfileService accountservice.ProfileService
 	Logger         *zap.Logger
 }
 
-// NewUserServer 创建一个用户服务 gRPC Server。
+// NewUserServer creates a user service gRPC server.
 func NewUserServer(deps UserServerDependencies) *UserServer {
 	return &UserServer{svc: deps.UserService, profileSvc: deps.ProfileService, logger: deps.Logger}
 }
 
-// Register 处理用户注册的 gRPC 请求。
+// Register handles the user registration gRPC request.
 func (s *UserServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	if strings.TrimSpace(req.GetPhone()) == "" || strings.TrimSpace(req.GetEmail()) == "" || strings.TrimSpace(req.GetUsername()) == "" || strings.TrimSpace(req.GetPassword()) == "" {
 		return nil, status.Error(codes.InvalidArgument, "phone/email/username/password are required")
@@ -58,7 +58,7 @@ func (s *UserServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	}, nil
 }
 
-// ChangePassword 处理修改密码的 gRPC 请求。
+// ChangePassword handles the change-password gRPC request.
 func (s *UserServer) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ChangePasswordResponse, error) {
 	userID, err := grpcinterceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -83,7 +83,7 @@ func (s *UserServer) ChangePassword(ctx context.Context, req *pb.ChangePasswordR
 	}, nil
 }
 
-// LogoutAllSessions 处理退出全部设备的 gRPC 请求。
+// LogoutAllSessions handles the sign-out-all-devices gRPC request.
 func (s *UserServer) LogoutAllSessions(ctx context.Context, _ *pb.LogoutAllSessionsRequest) (*pb.LogoutAllSessionsResponse, error) {
 	userID, err := grpcinterceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -103,7 +103,7 @@ func (s *UserServer) LogoutAllSessions(ctx context.Context, _ *pb.LogoutAllSessi
 	}, nil
 }
 
-// BindEmail 处理绑定邮箱的 gRPC 请求。
+// BindEmail handles the bind-email gRPC request.
 func (s *UserServer) BindEmail(ctx context.Context, req *pb.BindEmailRequest) (*pb.BindEmailResponse, error) {
 	userID, err := grpcinterceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -128,7 +128,7 @@ func (s *UserServer) BindEmail(ctx context.Context, req *pb.BindEmailRequest) (*
 	}, nil
 }
 
-// SetPassword 处理设置密码的 gRPC 请求。
+// SetPassword handles the set-password gRPC request.
 func (s *UserServer) SetPassword(ctx context.Context, req *pb.SetPasswordRequest) (*pb.SetPasswordResponse, error) {
 	userID, err := grpcinterceptor.UserIDFromContext(ctx)
 	if err != nil {
@@ -152,7 +152,7 @@ func (s *UserServer) SetPassword(ctx context.Context, req *pb.SetPasswordRequest
 	}, nil
 }
 
-// GetProfile 处理获取用户资料的 gRPC 请求。
+// GetProfile handles the get-profile gRPC request.
 func (s *UserServer) GetProfile(ctx context.Context, req *pb.GetProfileRequest) (*pb.ProfileResponse, error) {
 	if req.GetUserId() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
@@ -175,7 +175,7 @@ func (s *UserServer) GetProfile(ctx context.Context, req *pb.GetProfileRequest) 
 	}, nil
 }
 
-// UpdateProfile 处理更新用户资料的 gRPC 请求。
+// UpdateProfile handles the update-profile gRPC request.
 func (s *UserServer) UpdateProfile(ctx context.Context, req *pb.UpdateProfileRequest) (*pb.ProfileResponse, error) {
 	if req.GetUserId() == 0 {
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")

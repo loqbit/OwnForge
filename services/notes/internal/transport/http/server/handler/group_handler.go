@@ -11,28 +11,28 @@ import (
 	"go.uber.org/zap"
 )
 
-// GroupHandler 处理分组相关的 HTTP 请求。
+// GroupHandler handles group-related HTTP requests.
 type GroupHandler struct {
 	svc    groupsvc.GroupService
 	logger *zap.Logger
 }
 
-// NewGroupHandler 创建 GroupHandler 实例。
+// NewGroupHandler creates a GroupHandler instance.
 func NewGroupHandler(svc groupsvc.GroupService, logger *zap.Logger) *GroupHandler {
 	return &GroupHandler{svc: svc, logger: logger}
 }
 
-// GetTree 获取当前用户的完整分组目录树。
+// GetTree returns the current user's full group tree.
 func (h *GroupHandler) GetTree(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		response.Unauthorized(c, "未登录")
+		response.Unauthorized(c, "not logged in")
 		return
 	}
 
 	tree, err := h.svc.GetTree(c.Request.Context(), userID)
 	if err != nil {
-		commonlogger.Ctx(c.Request.Context(), h.logger).Error("获取 group 目录树失败", zap.Error(err))
+		commonlogger.Ctx(c.Request.Context(), h.logger).Error("failed to fetch the group tree", zap.Error(err))
 		response.Error(c, httperrs.ConvertToCustomError(err))
 		return
 	}

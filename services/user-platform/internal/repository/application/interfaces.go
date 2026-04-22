@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// UserAppAuthorizationRepository 定义了用户应用授权的持久化接口。
+// UserAppAuthorizationRepository defines the persistence interface for user app authorization.
 type UserAppAuthorizationRepository interface {
 	Ensure(ctx context.Context, params EnsureUserAppAuthorizationParams) (*UserAppAuthorization, error)
 	GetByUserAndApp(ctx context.Context, userID int64, appCode string) (*UserAppAuthorization, error)

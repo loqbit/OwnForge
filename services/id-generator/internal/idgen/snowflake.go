@@ -13,7 +13,7 @@ var generator pkgid.Generator
 func Init(nodeID int64) error {
 	gen, err := pkgid.NewLocalSnowflake(nodeID)
 	if err != nil {
-		return fmt.Errorf("初始化雪花算法节点失败: %w", err)
+		return fmt.Errorf("failed to initialize the Snowflake node: %w", err)
 	}
 	generator = gen
 	return nil
@@ -22,7 +22,7 @@ func Init(nodeID int64) error {
 // NextID returns the next ID from the configured generator.
 func NextID(ctx context.Context) (int64, error) {
 	if generator == nil {
-		return 0, fmt.Errorf("雪花算法库未初始化，请先调用 Init(nodeID)")
+		return 0, fmt.Errorf("Snowflake library not initialized; call Init(nodeID) first")
 	}
 	return generator.NextID(ctx)
 }

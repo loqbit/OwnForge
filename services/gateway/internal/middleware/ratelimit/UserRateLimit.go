@@ -13,8 +13,8 @@ import (
 func UserRateLimit(limiter ratelimiter.Limiter, limit int, window time.Duration, log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userId, exists := c.Get("userID")
-		// 注意：这一层在 JWTAuth 后面才有 userID
-		// 如果没有 userID（未登录），直接放行（已经有 IP 层兜底）
+		// Note: this layer only has userID after JWTAuth has run
+		// If there is no userID (not signed in), allow the request directly because the IP layer already provides a fallback.
 		if !exists {
 			c.Next()
 			return
@@ -23,7 +23,7 @@ func UserRateLimit(limiter ratelimiter.Limiter, limit int, window time.Duration,
 		key := fmt.Sprintf("ratelimit:user:%d", userID)
 		err := limiter.Allow(c.Request.Context(), key, limit, window)
 		if err != nil {
-			log.Warn("触发网关用户限流", zap.Int64("userID", userID), zap.Error(err))
+			log.Warn("gateway user rate limit triggered", zap.Int64("userID", userID), zap.Error(err))
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": err.Error()})
 			return
 		}

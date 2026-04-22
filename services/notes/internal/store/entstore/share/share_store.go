@@ -12,17 +12,17 @@ import (
 	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
 )
 
-// Store 是 share Repository 的 Ent 实现。
+// Store is the Ent-backed implementation of the share repository.
 type Store struct {
 	client *ent.Client
 }
 
-// New 创建一个基于 Ent 的 share Repository。
+// New creates an Ent-backed share repository.
 func New(client *ent.Client) sharerepo.Repository {
 	return &Store{client: client}
 }
 
-// Create 创建一条分享记录。
+// Create inserts a share record.
 func (s *Store) Create(ctx context.Context, item *sharerepo.Share) (*sharerepo.Share, error) {
 	builder := s.client.Share.Create().
 		SetID(item.ID).

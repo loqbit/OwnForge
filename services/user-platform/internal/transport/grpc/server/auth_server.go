@@ -19,7 +19,7 @@ type AuthServer struct {
 	logger *zap.Logger
 }
 
-// AuthServerDependencies 描述认证 gRPC Server 所需的依赖集合。
+// AuthServerDependencies groups dependencies required by the auth gRPC server.
 type AuthServerDependencies struct {
 	AuthService authservice.AuthService
 	Logger      *zap.Logger
