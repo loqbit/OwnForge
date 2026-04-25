@@ -39,7 +39,7 @@ func (j *JWTManager) GenerateAccessToken(userID int64, username string) (string,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(AccessTokenDuration)),
-			Issuer:    "user-platform",
+			Issuer:    "identity",
 		},
 	}
 

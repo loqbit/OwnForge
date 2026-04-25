@@ -5,7 +5,7 @@ description: Scaffold a new Go backend service under `services/<name>/` followin
 
 # service-scaffold
 
-Create a new service that matches the shape of existing ones (`gateway`, `notes`, `user-platform`, `id-generator`). Before scaffolding, **read one existing service first** (prefer `notes` — it's the most complete reference) and mirror its structure.
+Create a new service that matches the shape of existing ones (`gateway`, `notes`, `identity`, `id-generator`). Before scaffolding, **read one existing service first** (prefer `notes` — it's the most complete reference) and mirror its structure.
 
 ## Intake
 

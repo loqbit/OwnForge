@@ -6,7 +6,7 @@ OwnForge is a monorepo with a layered "Core + Edge" architecture.
 
 ### Core (open source, shared across deployments)
 Services that run identically on laptop, NAS, VPS, or cloud.
-- `user-platform` — SSO and account management
+- `identity` — SSO and account management
 - `gateway` — HTTP/gRPC router with JWT auth
 - `notes-api`, `chat-api` — application services
 - `ai-worker` — AI abstraction bus (Ollama / OpenAI / Claude / ...)

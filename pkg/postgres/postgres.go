@@ -40,7 +40,7 @@ func DefaultPoolConfig() PoolConfig {
 // Init initializes a *sql.DB with OTel tracing and pool settings.
 //
 // Design decision: return an error instead of calling log.Fatal so the caller can decide whether to degrade or exit on connection failure.
-// For example, go-chat may fall back to in-memory storage when the DB is unavailable, while user-platform should exit directly.
+// For example, go-chat may fall back to in-memory storage when the DB is unavailable, while identity should exit directly.
 func Init(cfg Config, pool PoolConfig, log *zap.Logger) (*sql.DB, error) {
 	db, err := otelsql.Open(cfg.Driver, cfg.Source,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL),

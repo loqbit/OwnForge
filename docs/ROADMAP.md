@@ -7,7 +7,7 @@
 
 ## Phase 2 — Notes seed migration
 - Migrate existing `go-note` service with git history
-- Wire up user-platform + gateway + notes-api
+- Wire up identity + gateway + notes-api
 - End-to-end: login → create note → AI tagging
 
 ## Phase 3 — Suite rollout

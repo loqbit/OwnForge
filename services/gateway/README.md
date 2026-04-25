@@ -1,6 +1,6 @@
 # API Gateway
 
-`api-gateway` is the unified entrypoint for the microservice system. It handles authentication, rate limiting, observability, and request forwarding, exposing a stable HTTP API externally while connecting internally to services such as `user-platform` and `go-note`.
+`api-gateway` is the unified entrypoint for the microservice system. It handles authentication, rate limiting, observability, and request forwarding, exposing a stable HTTP API externally while connecting internally to services such as `identity` and `go-note`.
 
 ## Core Features
 

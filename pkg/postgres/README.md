@@ -17,7 +17,7 @@ db, err := postgres.Init(
 )
 if err != nil {
     // go-chat: degrade to in-memory storage
-    // user-platform: exit with log.Fatal
+    // identity: exit with log.Fatal
 }
 defer db.Close()
 ```

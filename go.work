@@ -3,7 +3,6 @@ go 1.25.5
 use (
 	./pkg
 	./services/gateway
-	./services/id-generator
 	./services/notes
-	./services/user-platform
+	./services/identity
 )

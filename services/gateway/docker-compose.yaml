@@ -13,8 +13,8 @@ services:
     environment:
       - APP_ENV=development
       # Override route addresses here with Docker-internal service names via environment variables.
-      - ROUTES_USER_PLATFORM=http://user-platform:8081
-      - ROUTES_USER_PLATFORM_GRPC=user-platform:9091
+      - ROUTES_IDENTITY=http://identity:8081
+      - ROUTES_IDENTITY_GRPC=identity:9091
       - ROUTES_GO_NOTE=http://go-note:8080
       - ROUTES_GO_NOTE_GRPC=go-note:9093
       # If rate limiting is enabled, also override the Redis address with the public or infra-network service name.

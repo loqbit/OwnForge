@@ -1,6 +1,6 @@
 # Top-level compose for OwnForge (Phase 2).
 # Spins up: infra (Postgres, Redis, Jaeger, MinIO) + core services
-# (notes, user-platform http+grpc, gateway). The AI worker is gated
+# (notes, identity http+grpc, gateway). The AI worker is gated
 # behind the "ai" profile since it requires an LLM API key.
 #
 # Usage:
@@ -68,10 +68,10 @@ services:
     networks: [ownforge]
 
   # ─── Core services ────────────────────────────────────────────────
-  user-platform:
+  identity:
     build:
       context: .
-      dockerfile: services/user-platform/Dockerfile
+      dockerfile: services/identity/Dockerfile
     environment:
       <<: *common-env
       SERVER_PORT: 8081
@@ -82,7 +82,7 @@ services:
       REDIS_ADDR: redis:6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?must set JWT_SECRET in .env}
-      OTEL_SERVICE_NAME: user-platform
+      OTEL_SERVICE_NAME: identity
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8081/readyz"]
       interval: 10s
@@ -108,7 +108,7 @@ services:
       DATABASE_AUTO_MIGRATE: "true"
       REDIS_ADDR: redis:6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      USER_PLATFORM_ADDR: user-platform:9091
+      IDENTITY_ADDR: identity:9091
       OTEL_SERVICE_NAME: notes
       MINIO_ENDPOINT: minio:9000
       MINIO_PUBLIC_ENDPOINT: localhost:${MINIO_API_PORT:-9100}
@@ -127,7 +127,7 @@ services:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
       minio: { condition: service_healthy }
-      user-platform: { condition: service_started }
+      identity: { condition: service_started }
     networks: [ownforge]
     restart: unless-stopped
 
@@ -140,8 +140,8 @@ services:
     environment:
       <<: *common-env
       SERVER_PORT: 8000
-      ROUTES_USER_PLATFORM: http://user-platform:8081
-      ROUTES_USER_PLATFORM_GRPC: user-platform:9091
+      ROUTES_IDENTITY: http://identity:8081
+      ROUTES_IDENTITY_GRPC: identity:9091
       ROUTES_GO_NOTE: http://notes:8080
       ROUTES_GO_NOTE_GRPC: notes:9093
       REDIS_ADDR: redis:6379
@@ -150,26 +150,11 @@ services:
       OTEL_SERVICE_NAME: api-gateway
       METRICS_PORT: 9090
     depends_on:
-      - user-platform
+      - identity
       - notes
     networks: [ownforge]
     restart: unless-stopped
 
-  # Snowflake ID generator. Single-node installs should stick with the
-  # in-process UUIDv7 generator in pkg/id — this service is only needed
-  # when running the cloud deployment profile, where multiple service
-  # replicas need coordinated IDs.
-  id-generator:
-    profiles: ["cloud"]
-    build:
-      context: .
-      dockerfile: services/id-generator/Dockerfile
-    environment:
-      <<: *common-env
-      SERVER_PORT: 50059
-      SNOWFLAKE_NODE_ID: ${SNOWFLAKE_NODE_ID:-1}
-    networks: [ownforge]
-    restart: unless-stopped
 
   ai-worker:
     profiles: ["ai"]

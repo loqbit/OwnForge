@@ -10,7 +10,7 @@ Create commits that conform to OwnForge's conventions. Non-negotiable:
 1. **Conventional Commits**: `<type>(<scope>): <subject>`
    - Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `perf`, `build`, `ci`
    - Scope is **required** and must match a real directory name:
-     - A service: `gateway`, `notes`, `user-platform`, `id-generator`
+     - A service: `gateway`, `notes`, `identity`, `id-generator`
      - A package: `pkg/mq`, `pkg/logger`, `pkg/otel`, etc. (use the leaf, e.g. `mq`, `logger`)
      - `proto` for changes under `pkg/proto/`
      - `deploy`, `docs`, `ci`, `deps` for cross-cutting changes

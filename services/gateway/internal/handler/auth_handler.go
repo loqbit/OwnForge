@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// AuthHandler handles authentication BFF routes and calls user-platform's AuthService over gRPC.
+// AuthHandler handles authentication BFF routes and calls identity's AuthService over gRPC.
 type AuthHandler struct {
 	authClient authpb.AuthServiceClient
 	ssoCookie  *ssoCookieManager

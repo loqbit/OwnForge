@@ -13,7 +13,7 @@ Internal services -> go-note gRPC Server -> query / modify note data
 - **Protocol**: A single process listens on both HTTP and gRPC; standard business HTTP is translated automatically through `grpc-gateway`
 - **Authentication**: The gateway forwards `X-User-Id` / gRPC metadata to go-note, and go-note does not validate JWT again
 - **Other dependencies**: ID generation is handled by calling the `id-generator` service over gRPC
-- **ORM**: Ent, consistent with `user-platform`
+- **ORM**: Ent, consistent with `identity`
 - **Configuration**: Viper + godotenv, with an environment-first approach
 - **Shared modules**: `github.com/luckysxx/common` (logger, errs, postgres, Redis pools, OTel, and related infrastructure)
 

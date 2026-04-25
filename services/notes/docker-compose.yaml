@@ -20,7 +20,7 @@ services:
       - DATABASE_AUTO_MIGRATE=true
       - REDIS_ADDR=global-redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - USER_PLATFORM_ADDR=user-platform:9091
+      - IDENTITY_ADDR=identity:9091
       - OTEL_JAEGER_ENDPOINT=global-jaeger:4318
       - OTEL_SERVICE_NAME=go-note
       - MINIO_ENDPOINT=global-minio:9000
