@@ -1,6 +1,6 @@
 package busmiddleware
 
-import "github.com/ownforge/ownforge/pkg/mq/bus"
+import "github.com/loqbit/ownforge/pkg/mq/bus"
 
 // Middleware lets generic processing logic wrap a bus.Handler.
 type Middleware func(next bus.Handler) bus.Handler

@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/useridentity"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/useridentity"
 )
 
 // UserIdentity is the model entity for the UserIdentity schema.

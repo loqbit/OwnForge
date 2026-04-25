@@ -1,8 +1,8 @@
-module github.com/ownforge/ownforge/services/notes
+module github.com/loqbit/ownforge/services/notes
 
 go 1.25.5
 
-replace github.com/ownforge/ownforge/pkg => ../../pkg
+replace github.com/loqbit/ownforge/pkg => ../../pkg
 
 require (
 	entgo.io/ent v0.14.6
@@ -10,7 +10,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.100
-	github.com/ownforge/ownforge/pkg v0.0.0
+	github.com/loqbit/ownforge/pkg v0.0.0
 	github.com/redis/go-redis/v9 v9.18.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.67.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.67.0

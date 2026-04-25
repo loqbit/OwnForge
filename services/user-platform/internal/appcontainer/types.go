@@ -1,16 +1,16 @@
 package appcontainer
 
 import (
-	"github.com/ownforge/ownforge/pkg/ratelimiter"
-	"github.com/ownforge/ownforge/services/user-platform/internal/auth"
-	"github.com/ownforge/ownforge/services/user-platform/internal/platform/smsauth"
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
-	applicationrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/application"
-	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
-	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
-	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
-	authservice "github.com/ownforge/ownforge/services/user-platform/internal/service/auth"
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/handler"
+	"github.com/loqbit/ownforge/pkg/ratelimiter"
+	"github.com/loqbit/ownforge/services/user-platform/internal/auth"
+	"github.com/loqbit/ownforge/services/user-platform/internal/platform/smsauth"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
+	applicationrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/application"
+	infrarepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/infra"
+	sessionrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/session"
+	accountservice "github.com/loqbit/ownforge/services/user-platform/internal/service/account"
+	authservice "github.com/loqbit/ownforge/services/user-platform/internal/service/auth"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/http/server/handler"
 )
 
 // Container holds the core services and transport adapters required to run the application.

@@ -1,10 +1,10 @@
 package router
 
 import (
-	"github.com/ownforge/ownforge/pkg/logger"
-	"github.com/ownforge/ownforge/services/user-platform/internal/auth"
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/handler"
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/middleware"
+	"github.com/loqbit/ownforge/pkg/logger"
+	"github.com/loqbit/ownforge/services/user-platform/internal/auth"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/http/server/handler"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/http/server/middleware"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"

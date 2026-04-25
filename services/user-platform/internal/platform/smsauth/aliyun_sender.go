@@ -10,7 +10,7 @@ import (
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	dypnsclient "github.com/alibabacloud-go/dypnsapi-20170525/v3/client"
 	"github.com/alibabacloud-go/tea/dara"
-	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"
+	"github.com/loqbit/ownforge/services/user-platform/internal/platform/config"
 	"go.uber.org/zap"
 )
 

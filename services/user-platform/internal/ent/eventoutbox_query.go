@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/eventoutbox"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/eventoutbox"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/predicate"
 )
 
 // EventOutboxQuery is the builder for querying EventOutbox entities.

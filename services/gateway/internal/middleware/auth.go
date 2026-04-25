@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/ownforge/ownforge/services/gateway/internal/auth"
+	"github.com/loqbit/ownforge/services/gateway/internal/auth"
 )
 
 var publicRouteWhitelist = map[string]struct{}{

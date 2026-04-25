@@ -3,7 +3,7 @@ package grpcclient
 import (
 	"google.golang.org/grpc"
 
-	authpb "github.com/ownforge/ownforge/pkg/proto/auth"
+	authpb "github.com/loqbit/ownforge/pkg/proto/auth"
 )
 
 func NewAuthClient(userPlatformAddr string) (authpb.AuthServiceClient, error) {

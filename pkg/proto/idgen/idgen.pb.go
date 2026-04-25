@@ -110,7 +110,7 @@ const file_idgen_idgen_proto_rawDesc = "" +
 	"\x0eNextIDResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id2F\n" +
 	"\vIDGenerator\x127\n" +
-	"\x06NextID\x12\x14.idgen.NextIDRequest\x1a\x15.idgen.NextIDResponse\"\x00B.Z,github.com/ownforge/ownforge/pkg/proto/idgenb\x06proto3"
+	"\x06NextID\x12\x14.idgen.NextIDRequest\x1a\x15.idgen.NextIDResponse\"\x00B.Z,github.com/loqbit/ownforge/pkg/proto/idgenb\x06proto3"
 
 var (
 	file_idgen_idgen_proto_rawDescOnce sync.Once

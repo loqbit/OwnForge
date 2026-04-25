@@ -3,7 +3,7 @@ package snippetrepo
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/service/snippet/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/service/snippet/contract"
 )
 
 // Repository defines the snippet data access interface.

@@ -10,9 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/session"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/userappauthorization"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/session"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/userappauthorization"
 )
 
 // AppCreate is the builder for creating a App entity.

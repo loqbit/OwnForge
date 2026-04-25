@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/ownforge/ownforge/pkg/errs"
+	"github.com/loqbit/ownforge/pkg/errs"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

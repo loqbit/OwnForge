@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ownforge/ownforge/pkg/errs"
+	"github.com/loqbit/ownforge/pkg/errs"
 )
 
 // responseRecorder intercepts gRPC-Gateway HTTP responses so they can be wrapped in an envelope.

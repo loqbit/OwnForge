@@ -1,17 +1,18 @@
 services:
-  user-http:
-    container_name: user-http
+  user-platform:
+    container_name: user-platform
     build:
       context: .
-      dockerfile: Dockerfile.http
+      dockerfile: Dockerfile
     # Do not expose ports to the host; access only through the gateway (network isolation)
     env_file:
       - .env
     environment:
       APP_ENV: ${APP_ENV:-development}
       SERVER_PORT: ${SERVER_PORT:-8081}
+      GRPC_SERVER_PORT: ${GRPC_SERVER_PORT:-9091}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-postgres}
-      DATABASE_AUTO_MIGRATE: ${DATABASE_AUTO_MIGRATE_HTTP:-true}
+      DATABASE_AUTO_MIGRATE: ${DATABASE_AUTO_MIGRATE:-true}
       DATABASE_SOURCE: ${DATABASE_SOURCE}
       REDIS_ADDR: ${REDIS_ADDR:-global-redis:6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -37,58 +38,13 @@ services:
       KAFKA_TOPIC_USER_REGISTERED: ${KAFKA_TOPIC_USER_REGISTERED:-user.registered}
       ID_GENERATOR_ADDR: ${ID_GENERATOR_ADDR:-id-generator:50059}
       OTEL_JAEGER_ENDPOINT: ${OTEL_JAEGER_ENDPOINT:-global-jaeger:4318}
-      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME_HTTP:-user-platform-http}
-      METRICS_PORT: ${METRICS_PORT:-9092}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-user-platform}
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8081/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8081/readyz"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
-    networks:
-      - go-net
-    restart: unless-stopped
-
-  user-grpc:
-    container_name: user-grpc
-    build:
-      context: .
-      dockerfile: Dockerfile.grpc
-    # Do not expose ports to the host; internal network access only
-    env_file:
-      - .env
-    environment:
-      APP_ENV: ${APP_ENV:-development}
-      GRPC_SERVER_PORT: ${GRPC_SERVER_PORT:-9091}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-postgres}
-      DATABASE_AUTO_MIGRATE: ${DATABASE_AUTO_MIGRATE_GRPC:-false}
-      DATABASE_SOURCE: ${DATABASE_SOURCE}
-      REDIS_ADDR: ${REDIS_ADDR:-global-redis:6379}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_DB: ${REDIS_DB:-0}
-      JWT_SECRET: ${JWT_SECRET}
-      SMS_AUTH_ENABLED: ${SMS_AUTH_ENABLED:-true}
-      SMS_AUTH_ACCESS_KEY_ID: ${SMS_AUTH_ACCESS_KEY_ID:-}
-      SMS_AUTH_ACCESS_KEY_SECRET: ${SMS_AUTH_ACCESS_KEY_SECRET:-}
-      SMS_AUTH_REGION: ${SMS_AUTH_REGION:-cn-hangzhou}
-      SMS_AUTH_DEBUG_MODE: ${SMS_AUTH_DEBUG_MODE:-true}
-      SMS_AUTH_SIGN_NAME: ${SMS_AUTH_SIGN_NAME:-}
-      SMS_AUTH_TEMPLATE_CODE: ${SMS_AUTH_TEMPLATE_CODE:-}
-      SMS_AUTH_SCHEME_NAME: ${SMS_AUTH_SCHEME_NAME:-phoneLogin}
-      SMS_AUTH_COUNTRY_CODE: ${SMS_AUTH_COUNTRY_CODE:-86}
-      SMS_AUTH_TEMPLATE_PARAM_JSON: ${SMS_AUTH_TEMPLATE_PARAM_JSON:-{"code":"##code##","min":"5"}}
-      SMS_AUTH_CODE_LENGTH: ${SMS_AUTH_CODE_LENGTH:-6}
-      SMS_AUTH_INTERVAL_SECONDS: ${SMS_AUTH_INTERVAL_SECONDS:-60}
-      SMS_AUTH_VALID_TIME_SECONDS: ${SMS_AUTH_VALID_TIME_SECONDS:-300}
-      SMS_AUTH_CODE_TYPE: ${SMS_AUTH_CODE_TYPE:-1}
-      SMS_AUTH_DUPLICATE_POLICY: ${SMS_AUTH_DUPLICATE_POLICY:-1}
-      SMS_AUTH_AUTO_RETRY: ${SMS_AUTH_AUTO_RETRY:-1}
-      KAFKA_BROKERS: ${KAFKA_BROKERS:-global-kafka:9092}
-      KAFKA_TOPIC_USER_REGISTERED: ${KAFKA_TOPIC_USER_REGISTERED:-user.registered}
-      ID_GENERATOR_ADDR: ${ID_GENERATOR_ADDR:-id-generator:50059}
-      OTEL_JAEGER_ENDPOINT: ${OTEL_JAEGER_ENDPOINT:-global-jaeger:4318}
-      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME_GRPC:-user-platform-grpc}
-      METRICS_PORT: ${METRICS_PORT:-9092}
     networks:
       - go-net
     restart: unless-stopped

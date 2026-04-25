@@ -5,7 +5,7 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
-	"github.com/ownforge/ownforge/pkg/mq/bus"
+	"github.com/loqbit/ownforge/pkg/mq/bus"
 )
 
 // JSPublisher is the JetStream implementation of bus.Publisher.

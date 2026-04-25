@@ -10,20 +10,20 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/migrate"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/eventoutbox"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/profile"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/session"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/ssosession"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/userappauthorization"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/useridentity"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/eventoutbox"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/profile"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/session"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/ssosession"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/userappauthorization"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/useridentity"
 )
 
 // Client is the client that holds all ent builders.

@@ -4,9 +4,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ownforge/ownforge/pkg/conf"
-	commonOtel "github.com/ownforge/ownforge/pkg/otel"
-	commonRedis "github.com/ownforge/ownforge/pkg/redis"
+	"github.com/loqbit/ownforge/pkg/conf"
+	commonOtel "github.com/loqbit/ownforge/pkg/otel"
+	commonRedis "github.com/loqbit/ownforge/pkg/redis"
 )
 
 // Config defines the full configuration structure for the API Gateway.

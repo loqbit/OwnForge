@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	"github.com/ownforge/ownforge/services/notes/internal/event"
-	"github.com/ownforge/ownforge/services/notes/internal/platform/idgen"
-	snippetrepo "github.com/ownforge/ownforge/services/notes/internal/repository/snippet"
-	tagrepo "github.com/ownforge/ownforge/services/notes/internal/repository/tag"
-	"github.com/ownforge/ownforge/services/notes/internal/service/snippet/contract"
+	pkgerrs "github.com/loqbit/ownforge/pkg/errs"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	"github.com/loqbit/ownforge/services/notes/internal/event"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/idgen"
+	snippetrepo "github.com/loqbit/ownforge/services/notes/internal/repository/snippet"
+	tagrepo "github.com/loqbit/ownforge/services/notes/internal/repository/tag"
+	"github.com/loqbit/ownforge/services/notes/internal/service/snippet/contract"
 
 	"go.uber.org/zap"
 )

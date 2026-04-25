@@ -26,3 +26,8 @@ build/
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Private plan books (not for public repo)
+docs/private/
+Atlas.md
+docs/design.md

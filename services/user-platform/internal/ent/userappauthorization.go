@@ -10,10 +10,10 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/userappauthorization"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/useridentity"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/userappauthorization"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/useridentity"
 )
 
 // UserAppAuthorization is the model entity for the UserAppAuthorization schema.

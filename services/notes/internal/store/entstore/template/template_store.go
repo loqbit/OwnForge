@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	enttemplate "github.com/ownforge/ownforge/services/notes/internal/ent/template"
-	templaterepo "github.com/ownforge/ownforge/services/notes/internal/repository/template"
-	"github.com/ownforge/ownforge/services/notes/internal/service/template/contract"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	enttemplate "github.com/loqbit/ownforge/services/notes/internal/ent/template"
+	templaterepo "github.com/loqbit/ownforge/services/notes/internal/repository/template"
+	"github.com/loqbit/ownforge/services/notes/internal/service/template/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 // Store is the Ent-backed implementation of the template repository.

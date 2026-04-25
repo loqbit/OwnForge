@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	mqevents "github.com/ownforge/ownforge/pkg/mq/events"
-	mqtopics "github.com/ownforge/ownforge/pkg/mq/topics"
-	"github.com/ownforge/ownforge/pkg/trace"
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
-	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
+	mqevents "github.com/loqbit/ownforge/pkg/mq/events"
+	mqtopics "github.com/loqbit/ownforge/pkg/mq/topics"
+	"github.com/loqbit/ownforge/pkg/trace"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
+	infrarepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/infra"
 )
 
 // RegistrationDeps groups dependencies used during registration.

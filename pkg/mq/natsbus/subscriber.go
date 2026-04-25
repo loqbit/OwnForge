@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/nats-io/nats.go"
-	"github.com/ownforge/ownforge/pkg/mq/bus"
+	"github.com/loqbit/ownforge/pkg/mq/bus"
 )
 
 // Subscriber is the Core NATS implementation of bus.Subscriber.

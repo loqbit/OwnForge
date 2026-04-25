@@ -11,7 +11,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/eventoutbox"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/eventoutbox"
 )
 
 // EventOutboxCreate is the builder for creating a EventOutbox entity.

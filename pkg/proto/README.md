@@ -36,7 +36,7 @@ proto/
 ## Usage
 
 ```go
-import pb "github.com/ownforge/ownforge/pkg/proto/idgen"
+import pb "github.com/loqbit/ownforge/pkg/proto/idgen"
 
 // Client Call
 resp, err := client.NextID(ctx, &pb.NextIDRequest{})

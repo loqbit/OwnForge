@@ -3,7 +3,7 @@ package accountservice
 import (
 	"context"
 
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
 	"go.uber.org/zap"
 )
 

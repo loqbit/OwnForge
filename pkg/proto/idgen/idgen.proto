@@ -3,7 +3,7 @@ syntax = "proto3";
 package idgen;
 
 // Use the shared common module package path
-option go_package = "github.com/ownforge/ownforge/pkg/proto/idgen";
+option go_package = "github.com/loqbit/ownforge/pkg/proto/idgen";
 
 service IDGenerator {
     rpc NextID(NextIDRequest) returns (NextIDResponse) {}

@@ -10,7 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetaimetadata"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetaimetadata"
 )
 
 // SnippetAIMetadata is the model entity for the SnippetAIMetadata schema.

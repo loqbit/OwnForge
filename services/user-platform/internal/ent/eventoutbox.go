@@ -10,7 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/eventoutbox"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/eventoutbox"
 )
 
 // EventOutbox is the model entity for the EventOutbox schema.

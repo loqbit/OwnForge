@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetlineage"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetlineage"
 )
 
 // SnippetLineageDelete is the builder for deleting a SnippetLineage entity.

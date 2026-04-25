@@ -27,8 +27,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ownforge/ownforge/pkg/health"
-	"github.com/ownforge/ownforge/pkg/metrics"
+	"github.com/loqbit/ownforge/pkg/health"
+	"github.com/loqbit/ownforge/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"

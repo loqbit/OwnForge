@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/ownforge/ownforge/pkg/proto/auth";
+option go_package = "github.com/loqbit/ownforge/pkg/proto/auth";
 
 package user;
 

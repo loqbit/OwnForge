@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	entshare "github.com/ownforge/ownforge/services/notes/internal/ent/share"
-	sharerepo "github.com/ownforge/ownforge/services/notes/internal/repository/share"
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	entshare "github.com/loqbit/ownforge/services/notes/internal/ent/share"
+	sharerepo "github.com/loqbit/ownforge/services/notes/internal/repository/share"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 // Store is the Ent-backed implementation of the share repository.

@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/profile"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/profile"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
 )
 
 // Profile is the model entity for the Profile schema.

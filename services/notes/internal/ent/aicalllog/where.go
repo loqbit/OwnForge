@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

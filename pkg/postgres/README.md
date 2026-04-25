@@ -5,7 +5,7 @@ Initialize `*sql.DB` with OTel tracing and connection pooling.
 ## Usage
 
 ```go
-import "github.com/ownforge/ownforge/pkg/postgres"
+import "github.com/loqbit/ownforge/pkg/postgres"
 
 db, err := postgres.Init(
     postgres.Config{

@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/session"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
-	sharedrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/shared"
-	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/session"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	sessionrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/session"
+	sharedrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
 type AppSessionStore struct {

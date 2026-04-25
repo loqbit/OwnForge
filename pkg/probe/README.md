@@ -7,7 +7,7 @@ Register with one line of code `/healthz`、`/readyz`、`/metrics`，remove boil
 ### Mode 1: Mount on a Gin Engine (HTTP Services)
 
 ```go
-import "github.com/ownforge/ownforge/pkg/probe"
+import "github.com/loqbit/ownforge/pkg/probe"
 
 r := gin.New()
 probe.Register(r, log,

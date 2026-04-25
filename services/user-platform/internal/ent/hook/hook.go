@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
 )
 
 // The AppFunc type is an adapter to allow the use of ordinary

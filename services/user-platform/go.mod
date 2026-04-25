@@ -1,4 +1,4 @@
-module github.com/ownforge/ownforge/services/user-platform
+module github.com/loqbit/ownforge/services/user-platform
 
 go 1.25.5
 
@@ -8,7 +8,7 @@ go 1.25.5
 // genproto/googleapis/{rpc,api} modules used by modern grpc/grpc-gateway.
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20260420184626-e10c466a9529
 
-replace github.com/ownforge/ownforge/pkg => ../../pkg
+replace github.com/loqbit/ownforge/pkg => ../../pkg
 
 require (
 	entgo.io/ent v0.14.6
@@ -19,7 +19,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/ownforge/ownforge/pkg v0.0.0
+	github.com/loqbit/ownforge/pkg v0.0.0
 	github.com/redis/go-redis/v9 v9.18.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.67.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.67.0

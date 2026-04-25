@@ -7,7 +7,7 @@ A unified logging library based on Uber Zap with automatic OpenTelemetry TraceID
 ### Create a Logger
 
 ```go
-import "github.com/ownforge/ownforge/pkg/logger"
+import "github.com/loqbit/ownforge/pkg/logger"
 
 log := logger.NewLogger("my-service")
 defer log.Sync()

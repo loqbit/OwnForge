@@ -1,6 +1,6 @@
 package cdc
 
-import "github.com/ownforge/ownforge/pkg/mq/outbox"
+import "github.com/loqbit/ownforge/pkg/mq/outbox"
 
 const (
 	// DefaultConnectorClass is the class name of the Postgres Debezium connector.

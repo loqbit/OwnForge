@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aicalllog"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aicalllog"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
 )
 
 // AICallLogDelete is the builder for deleting a AICallLog entity.

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
-	sharedrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/shared"
+	sessionrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/session"
+	sharedrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/shared"
 	"github.com/redis/go-redis/v9"
 )
 

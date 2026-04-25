@@ -1,9 +1,9 @@
 package appcontainer
 
 import (
-	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"
-	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
-	authservice "github.com/ownforge/ownforge/services/user-platform/internal/service/auth"
+	"github.com/loqbit/ownforge/services/user-platform/internal/platform/config"
+	accountservice "github.com/loqbit/ownforge/services/user-platform/internal/service/account"
+	authservice "github.com/loqbit/ownforge/services/user-platform/internal/service/auth"
 	"go.uber.org/zap"
 )
 

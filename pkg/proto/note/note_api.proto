@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/ownforge/ownforge/pkg/proto/note";
+option go_package = "github.com/loqbit/ownforge/pkg/proto/note";
 
 package note;
 

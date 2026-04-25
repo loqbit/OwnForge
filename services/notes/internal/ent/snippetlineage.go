@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetlineage"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetlineage"
 )
 
 // SnippetLineage is the model entity for the SnippetLineage schema.

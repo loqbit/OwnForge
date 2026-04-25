@@ -16,7 +16,7 @@ Provides layered custom error types that distinguish between the **Msg shown to 
 ## Usage
 
 ```go
-import "github.com/ownforge/ownforge/pkg/errs"
+import "github.com/loqbit/ownforge/pkg/errs"
 
 // Parameter error (passed through to the frontend)
 return errs.NewParamErr("password length must be at least 6 characters", err)

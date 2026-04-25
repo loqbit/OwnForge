@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ownforge/ownforge/services/gateway/internal/config"
+	"github.com/loqbit/ownforge/services/gateway/internal/config"
 
 	"github.com/gin-gonic/gin"
 )

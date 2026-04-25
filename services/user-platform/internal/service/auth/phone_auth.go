@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ownforge/ownforge/pkg/crypto"
-	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
-	"github.com/ownforge/ownforge/pkg/ratelimiter"
-	"github.com/ownforge/ownforge/services/user-platform/internal/platform/smsauth"
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
-	sharedrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/shared"
-	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
+	"github.com/loqbit/ownforge/pkg/crypto"
+	pkgerrs "github.com/loqbit/ownforge/pkg/errs"
+	"github.com/loqbit/ownforge/pkg/ratelimiter"
+	"github.com/loqbit/ownforge/services/user-platform/internal/platform/smsauth"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
+	sharedrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/shared"
+	accountservice "github.com/loqbit/ownforge/services/user-platform/internal/service/account"
 	"go.uber.org/zap"
 )
 

@@ -3,7 +3,7 @@ package prompt
 import (
 	"fmt"
 
-	"github.com/ownforge/ownforge/services/notes/internal/platform/llm"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/llm"
 )
 
 // PromptVersionEnrich is the current version of the enrich prompt.

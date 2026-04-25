@@ -12,11 +12,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/predicate"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/session"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/ssosession"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/useridentity"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/session"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/ssosession"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/useridentity"
 )
 
 // SsoSessionUpdate is the builder for updating SsoSession entities.

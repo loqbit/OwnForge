@@ -24,11 +24,11 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/ownforge/ownforge/services/notes/internal/platform/config"
-	"github.com/ownforge/ownforge/services/notes/internal/platform/llm"
-	ai "github.com/ownforge/ownforge/services/notes/internal/service/ai"
-	"github.com/ownforge/ownforge/services/notes/internal/service/ai/contract"
-	"github.com/ownforge/ownforge/services/notes/internal/service/ai/prompt"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/config"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/llm"
+	ai "github.com/loqbit/ownforge/services/notes/internal/service/ai"
+	"github.com/loqbit/ownforge/services/notes/internal/service/ai/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/service/ai/prompt"
 )
 
 // ── Case definitions ──────────────────────────────────────────────────

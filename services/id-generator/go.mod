@@ -1,12 +1,12 @@
-module github.com/ownforge/ownforge/services/id-generator
+module github.com/loqbit/ownforge/services/id-generator
 
 go 1.25.5
 
-replace github.com/ownforge/ownforge/pkg => ../../pkg
+replace github.com/loqbit/ownforge/pkg => ../../pkg
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/ownforge/ownforge/pkg v0.0.0
+	github.com/loqbit/ownforge/pkg v0.0.0
 	github.com/spf13/viper v1.21.0
 	go.uber.org/zap v1.27.1
 	google.golang.org/grpc v1.79.3

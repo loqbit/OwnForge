@@ -6,15 +6,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/eventoutbox"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/profile"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/schema"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/session"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/ssosession"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/userappauthorization"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/useridentity"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/eventoutbox"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/profile"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/schema"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/session"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/ssosession"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/userappauthorization"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/useridentity"
 )
 
 // The init function reads all schema descriptors with runtime code

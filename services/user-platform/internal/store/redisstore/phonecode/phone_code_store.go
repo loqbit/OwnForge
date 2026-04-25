@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
+	sessionrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/session"
 	"github.com/redis/go-redis/v9"
 )
 

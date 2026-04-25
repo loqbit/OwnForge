@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/eventoutbox"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/eventoutbox"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/predicate"
 )
 
 // EventOutboxUpdate is the builder for updating EventOutbox entities.

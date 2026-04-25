@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
 	// required by schema hooks.
-	_ "github.com/ownforge/ownforge/services/notes/internal/ent/runtime"
+	_ "github.com/loqbit/ownforge/services/notes/internal/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/migrate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/migrate"
 )
 
 type (

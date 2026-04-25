@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/group"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippet"
-	grouprepo "github.com/ownforge/ownforge/services/notes/internal/repository/group"
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
-	"github.com/ownforge/ownforge/services/notes/internal/service/group/contract"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/group"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippet"
+	grouprepo "github.com/loqbit/ownforge/services/notes/internal/repository/group"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/service/group/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 // Store is the Ent-backed implementation of the group repository.

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ownforge/ownforge/pkg/crypto"
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
-	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
-	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
+	"github.com/loqbit/ownforge/pkg/crypto"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
+	infrarepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/infra"
+	sessionrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/session"
 
 	"go.uber.org/zap"
 )

@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/ownforge/ownforge/pkg/ratelimiter"
+	"github.com/loqbit/ownforge/pkg/ratelimiter"
 )
 
 func BBRMiddleware(limiter *ratelimiter.BBRLimiter, log *zap.Logger) gin.HandlerFunc {

@@ -1,10 +1,10 @@
 package config
 
 import (
-	"github.com/ownforge/ownforge/pkg/conf"
-	commonOtel "github.com/ownforge/ownforge/pkg/otel"
-	"github.com/ownforge/ownforge/pkg/postgres"
-	commonRedis "github.com/ownforge/ownforge/pkg/redis"
+	"github.com/loqbit/ownforge/pkg/conf"
+	commonOtel "github.com/loqbit/ownforge/pkg/otel"
+	"github.com/loqbit/ownforge/pkg/postgres"
+	commonRedis "github.com/loqbit/ownforge/pkg/redis"
 )
 
 // MinIOConfig defines MinIO connection settings.

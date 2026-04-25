@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/ownforge/ownforge/services/notes/internal/platform/llm"
-	"github.com/ownforge/ownforge/services/notes/internal/service/ai/contract"
-	"github.com/ownforge/ownforge/services/notes/internal/service/ai/prompt"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/llm"
+	"github.com/loqbit/ownforge/services/notes/internal/service/ai/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/service/ai/prompt"
 )
 
 // EnrichStats holds observability data for one enrich call and is used by the evaluation harness.

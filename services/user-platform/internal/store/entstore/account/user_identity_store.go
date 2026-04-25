@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/useridentity"
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
-	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/useridentity"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
+	"github.com/loqbit/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
 type UserIdentityStore struct {

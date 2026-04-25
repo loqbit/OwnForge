@@ -5,16 +5,16 @@ package ent
 import (
 	"time"
 
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aicalllog"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aiusagedaily"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/group"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/schema"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/share"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippet"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetaimetadata"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetlineage"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/tag"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/template"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aicalllog"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aiusagedaily"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/group"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/schema"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/share"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippet"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetaimetadata"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetlineage"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/tag"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/template"
 )
 
 // The init function reads all schema descriptors with runtime code

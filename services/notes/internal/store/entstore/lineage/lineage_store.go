@@ -3,10 +3,10 @@ package lineagestore
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	entsnippetlineage "github.com/ownforge/ownforge/services/notes/internal/ent/snippetlineage"
-	lineagerepo "github.com/ownforge/ownforge/services/notes/internal/repository/lineage"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	entsnippetlineage "github.com/loqbit/ownforge/services/notes/internal/ent/snippetlineage"
+	lineagerepo "github.com/loqbit/ownforge/services/notes/internal/repository/lineage"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 type Store struct {

@@ -3,10 +3,10 @@ package aimetadata
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetaimetadata"
-	aimetadatarepo "github.com/ownforge/ownforge/services/notes/internal/repository/aimetadata"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetaimetadata"
+	aimetadatarepo "github.com/loqbit/ownforge/services/notes/internal/repository/aimetadata"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 // Store is the Ent-backed implementation of the AI metadata repository.

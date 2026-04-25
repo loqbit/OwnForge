@@ -5,7 +5,7 @@ Wraps common gRPC client initialization and currently provides an ID Generator c
 ## ID Generator Client
 
 ```go
-import "github.com/ownforge/ownforge/pkg/rpc"
+import "github.com/loqbit/ownforge/pkg/rpc"
 
 // Initialize the global client, typically once in main
 if err := rpc.InitIDGenClient("id-generator:50052"); err != nil {

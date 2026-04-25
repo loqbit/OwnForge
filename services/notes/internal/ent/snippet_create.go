@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/group"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/share"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippet"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/tag"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/group"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/share"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippet"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/tag"
 )
 
 // SnippetCreate is the builder for creating a Snippet entity.

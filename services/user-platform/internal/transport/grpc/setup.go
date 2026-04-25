@@ -5,14 +5,14 @@ package transportgrpc
 import (
 	"time"
 
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	"github.com/ownforge/ownforge/pkg/metrics"
-	auth_pb "github.com/ownforge/ownforge/pkg/proto/auth"
-	user_pb "github.com/ownforge/ownforge/pkg/proto/user"
-	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
-	authservice "github.com/ownforge/ownforge/services/user-platform/internal/service/auth"
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc/interceptor"
-	grpcserver "github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc/server"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	"github.com/loqbit/ownforge/pkg/metrics"
+	auth_pb "github.com/loqbit/ownforge/pkg/proto/auth"
+	user_pb "github.com/loqbit/ownforge/pkg/proto/user"
+	accountservice "github.com/loqbit/ownforge/services/user-platform/internal/service/account"
+	authservice "github.com/loqbit/ownforge/services/user-platform/internal/service/auth"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/grpc/interceptor"
+	grpcserver "github.com/loqbit/ownforge/services/user-platform/internal/transport/grpc/server"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"

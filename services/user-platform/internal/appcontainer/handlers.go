@@ -1,7 +1,7 @@
 package appcontainer
 
 import (
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/handler"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/http/server/handler"
 	"go.uber.org/zap"
 )
 

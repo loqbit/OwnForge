@@ -3,8 +3,8 @@ package shared
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
 )
 
 // EntClientFromCtx centralizes the logic for choosing tx inside a transaction and client outside one.

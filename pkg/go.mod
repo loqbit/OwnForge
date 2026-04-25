@@ -1,4 +1,4 @@
-module github.com/ownforge/ownforge/pkg
+module github.com/loqbit/ownforge/pkg
 
 go 1.25.5
 

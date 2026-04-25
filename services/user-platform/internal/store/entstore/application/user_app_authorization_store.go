@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/userappauthorization"
-	applicationrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/application"
-	sharedrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/shared"
-	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/userappauthorization"
+	applicationrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/application"
+	sharedrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
 type UserAppAuthorizationStore struct {

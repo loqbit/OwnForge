@@ -23,7 +23,7 @@ type Limiter interface {
 ## UsageExample
 
 ```go
-import "github.com/ownforge/ownforge/pkg/ratelimiter"
+import "github.com/loqbit/ownforge/pkg/ratelimiter"
 
 // Create a rate limiter
 ipLimiter := ratelimiter.NewSlidingWindowLimiter(redisClient, log)

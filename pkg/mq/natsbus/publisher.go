@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/nats-io/nats.go"
-	"github.com/ownforge/ownforge/pkg/mq/bus"
+	"github.com/loqbit/ownforge/pkg/mq/bus"
 )
 
 // Publisher is the Core NATS implementation of bus.Publisher.

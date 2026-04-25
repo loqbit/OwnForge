@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	pkgid "github.com/ownforge/ownforge/pkg/id"
+	pkgid "github.com/loqbit/ownforge/pkg/id"
 )
 
 var generator pkgid.Generator

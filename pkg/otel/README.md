@@ -5,7 +5,7 @@ Initialize OpenTelemetry distributed tracing in one line and export it to Jaeger
 ## Usage
 
 ```go
-import "github.com/ownforge/ownforge/pkg/otel"
+import "github.com/loqbit/ownforge/pkg/otel"
 
 shutdown, err := otel.InitTracer("api-gateway", "localhost:4318")
 if err != nil {

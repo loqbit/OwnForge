@@ -1,11 +1,11 @@
 package handler
 
 import (
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	groupsvc "github.com/ownforge/ownforge/services/notes/internal/service/group"
-	httperrs "github.com/ownforge/ownforge/services/notes/internal/transport/http/codec/errs"
-	"github.com/ownforge/ownforge/services/notes/internal/transport/http/codec/response"
-	"github.com/ownforge/ownforge/services/notes/internal/transport/http/server/middleware"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	groupsvc "github.com/loqbit/ownforge/services/notes/internal/service/group"
+	httperrs "github.com/loqbit/ownforge/services/notes/internal/transport/http/codec/errs"
+	"github.com/loqbit/ownforge/services/notes/internal/transport/http/codec/response"
+	"github.com/loqbit/ownforge/services/notes/internal/transport/http/server/middleware"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

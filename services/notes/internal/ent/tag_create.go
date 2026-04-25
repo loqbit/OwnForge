@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippet"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/tag"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippet"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/tag"
 )
 
 // TagCreate is the builder for creating a Tag entity.

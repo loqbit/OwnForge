@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/ownforge/ownforge/pkg/mq/bus"
-	commontrace "github.com/ownforge/ownforge/pkg/trace"
+	"github.com/loqbit/ownforge/pkg/mq/bus"
+	commontrace "github.com/loqbit/ownforge/pkg/trace"
 )
 
 const defaultOutboxHeadersKey = "x-outbox-headers"

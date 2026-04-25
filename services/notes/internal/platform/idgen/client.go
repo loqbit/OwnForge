@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	pkgid "github.com/ownforge/ownforge/pkg/id"
-	idgenpb "github.com/ownforge/ownforge/pkg/proto/idgen"
+	pkgid "github.com/loqbit/ownforge/pkg/id"
+	idgenpb "github.com/loqbit/ownforge/pkg/proto/idgen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"

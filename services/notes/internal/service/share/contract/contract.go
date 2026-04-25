@@ -1,6 +1,6 @@
 package contract
 
-import snippetcontract "github.com/ownforge/ownforge/services/notes/internal/service/snippet/contract"
+import snippetcontract "github.com/loqbit/ownforge/services/notes/internal/service/snippet/contract"
 
 // CreateShareCommand is the input for creating a share.
 type CreateShareCommand struct {

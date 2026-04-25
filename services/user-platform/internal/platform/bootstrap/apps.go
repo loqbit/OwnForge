@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/app"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/app"
 	"go.uber.org/zap"
 )
 

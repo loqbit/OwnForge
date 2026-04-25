@@ -5,12 +5,12 @@ import (
 	"sort"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/tag"
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
-	tagrepo "github.com/ownforge/ownforge/services/notes/internal/repository/tag"
-	"github.com/ownforge/ownforge/services/notes/internal/service/tag/contract"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/tag"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
+	tagrepo "github.com/loqbit/ownforge/services/notes/internal/repository/tag"
+	"github.com/loqbit/ownforge/services/notes/internal/service/tag/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 // Store is the Ent-backed implementation of the tag repository.

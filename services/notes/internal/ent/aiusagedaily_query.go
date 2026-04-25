@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aiusagedaily"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aiusagedaily"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
 )
 
 // AIUsageDailyQuery is the builder for querying AIUsageDaily entities.

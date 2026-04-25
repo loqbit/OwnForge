@@ -40,7 +40,7 @@ type Handler interface {
 ## Kafka Usage
 
 ```go
-import "github.com/ownforge/ownforge/pkg/mq/kafkabus"
+import "github.com/loqbit/ownforge/pkg/mq/kafkabus"
 
 // Publish
 pub := kafkabus.NewPublisher([]string{"kafka:9092"})
@@ -58,7 +58,7 @@ sub.Start(ctx, bus.HandlerFunc(func(ctx context.Context, msg *bus.Message) error
 ## NATS JetStream Usage
 
 ```go
-import "github.com/ownforge/ownforge/pkg/mq/natsbus"
+import "github.com/loqbit/ownforge/pkg/mq/natsbus"
 
 pub := natsbus.NewJSPublisher(js)
 sub := natsbus.NewJSSubscriber(js, "STREAM", "subject.>")
@@ -67,7 +67,7 @@ sub := natsbus.NewJSSubscriber(js, "STREAM", "subject.>")
 ## Outbox Pattern
 
 ```go
-import "github.com/ownforge/ownforge/pkg/mq/outbox"
+import "github.com/loqbit/ownforge/pkg/mq/outbox"
 
 // Write the Outbox record within the database transaction to guarantee atomicity
 record, _ := outbox.NewJSONRecord(id, "User", userID, "UserRegistered", payload, nil)

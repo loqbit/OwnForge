@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/ownforge/ownforge/pkg/errs"
+	"github.com/loqbit/ownforge/pkg/errs"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

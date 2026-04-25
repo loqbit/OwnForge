@@ -1,10 +1,10 @@
 package handler
 
 import (
-	uploadsvc "github.com/ownforge/ownforge/services/notes/internal/service/upload"
-	"github.com/ownforge/ownforge/services/notes/internal/service/upload/contract"
-	"github.com/ownforge/ownforge/services/notes/internal/transport/http/codec/response"
-	"github.com/ownforge/ownforge/services/notes/internal/transport/http/server/middleware"
+	uploadsvc "github.com/loqbit/ownforge/services/notes/internal/service/upload"
+	"github.com/loqbit/ownforge/services/notes/internal/service/upload/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/transport/http/codec/response"
+	"github.com/loqbit/ownforge/services/notes/internal/transport/http/server/middleware"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ownforge/ownforge/pkg/errs"
+	"github.com/loqbit/ownforge/pkg/errs"
 )
 
 type responseRecorder struct {

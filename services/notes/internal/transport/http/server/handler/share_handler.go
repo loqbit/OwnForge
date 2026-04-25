@@ -4,11 +4,11 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
-	sharesvc "github.com/ownforge/ownforge/services/notes/internal/service/share"
-	httperrs "github.com/ownforge/ownforge/services/notes/internal/transport/http/codec/errs"
-	"github.com/ownforge/ownforge/services/notes/internal/transport/http/codec/response"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
+	sharesvc "github.com/loqbit/ownforge/services/notes/internal/service/share"
+	httperrs "github.com/loqbit/ownforge/services/notes/internal/transport/http/codec/errs"
+	"github.com/loqbit/ownforge/services/notes/internal/transport/http/codec/response"
 	"go.uber.org/zap"
 )
 

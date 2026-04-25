@@ -3,7 +3,7 @@ package templaterepo
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/service/template/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/service/template/contract"
 )
 
 // Repository defines the template data access interface.

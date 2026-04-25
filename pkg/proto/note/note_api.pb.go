@@ -27,7 +27,7 @@ type CreateSnippetRequest struct {
 	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
 	Language      string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`
-	GroupId       *int64                 `protobuf:"varint,4,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"` // 可选的所属分组
+	GroupId       *int64                 `protobuf:"varint,4,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"` // optional owning group
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -180,15 +180,15 @@ func (x *GetSnippetAIMetadataRequest) GetSnippetId() int64 {
 
 type ListSnippetsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	GroupId       *int64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"`             // 按分组筛选
-	TagId         *int64                 `protobuf:"varint,2,opt,name=tag_id,json=tagId,proto3,oneof" json:"tag_id,omitempty"`                   // 按标签筛选
-	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`                                   // 模糊搜索标题
-	Limit         int32                  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`                                      // 每页条数，默认 20，最大 100
-	Cursor        string                 `protobuf:"bytes,5,opt,name=cursor,proto3" json:"cursor,omitempty"`                                     // 游标分页（上一页返回的 next_cursor）
-	SortBy        string                 `protobuf:"bytes,6,opt,name=sort_by,json=sortBy,proto3" json:"sort_by,omitempty"`                       // "updated_at" | "created_at" | "title" | "manual"，默认 "updated_at"
-	Type          string                 `protobuf:"bytes,7,opt,name=type,proto3" json:"type,omitempty"`                                         // 按类型筛选：code / note / file / ""(全部)
-	Status        string                 `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`                                     // 状态筛选：""(默认，只看 active), "active", "trashed"
-	OnlyFavorites bool                   `protobuf:"varint,9,opt,name=only_favorites,json=onlyFavorites,proto3" json:"only_favorites,omitempty"` // 是否仅显示收藏的
+	GroupId       *int64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"`             // filter by groups
+	TagId         *int64                 `protobuf:"varint,2,opt,name=tag_id,json=tagId,proto3,oneof" json:"tag_id,omitempty"`                   // filter by tags
+	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`                                   // fuzzy-search title
+	Limit         int32                  `protobuf:"varint,4,opt,name=limit,proto3" json:"limit,omitempty"`                                      // page size, default 20, maximum 100
+	Cursor        string                 `protobuf:"bytes,5,opt,name=cursor,proto3" json:"cursor,omitempty"`                                     // cursor pagination (next_cursor returned by the previous page)
+	SortBy        string                 `protobuf:"bytes,6,opt,name=sort_by,json=sortBy,proto3" json:"sort_by,omitempty"`                       // "updated_at" | "created_at" | "title" | "manual", defaults to "updated_at"
+	Type          string                 `protobuf:"bytes,7,opt,name=type,proto3" json:"type,omitempty"`                                         // filter by type: code / note / file / "" (all)
+	Status        string                 `protobuf:"bytes,8,opt,name=status,proto3" json:"status,omitempty"`                                     // status filter: "" (default, active only), "active", "trashed"
+	OnlyFavorites bool                   `protobuf:"varint,9,opt,name=only_favorites,json=onlyFavorites,proto3" json:"only_favorites,omitempty"` // whether to show only favorites
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -369,7 +369,7 @@ type SnippetResponse struct {
 	CreatedAt     string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	TagIds        []int64                `protobuf:"varint,13,rep,packed,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
-	SortOrder     int32                  `protobuf:"varint,14,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"` // 在所属分组内的排序权重，值越小越靠前
+	SortOrder     int32                  `protobuf:"varint,14,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"` // sort order within the owning group; smaller values appear first
 	IsFavorite    bool                   `protobuf:"varint,15,opt,name=is_favorite,json=isFavorite,proto3" json:"is_favorite,omitempty"`
 	DeletedAt     string                 `protobuf:"bytes,16,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -521,7 +521,7 @@ func (x *SnippetResponse) GetDeletedAt() string {
 type ListSnippetsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Snippets      []*SnippetResponse     `protobuf:"bytes,1,rep,name=snippets,proto3" json:"snippets,omitempty"`
-	NextCursor    string                 `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"` // 空字符串 = 没有下一页
+	NextCursor    string                 `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"` // empty string means there is no next page
 	HasMore       bool                   `protobuf:"varint,3,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -842,9 +842,9 @@ func (*SetSnippetTagsResponse) Descriptor() ([]byte, []int) {
 	return file_note_note_api_proto_rawDescGZIP(), []int{12}
 }
 
-// MoveSnippetRequest 移动片段到指定分组并可选地设置排序权重。
-// group_id 不传表示移动到收集箱（未分组）。
-// sort_order 不传表示追加到目标分组末尾（由服务端计算 max+1）。
+// MoveSnippetRequest Move a snippet to a target group and optionally set its sort order.
+// Omitting group_id moves the snippet to the inbox (ungrouped).
+// Omitting sort_order appends the snippet to the end of the target group (computed by the server as max+1).
 type MoveSnippetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SnippetId     int64                  `protobuf:"varint,1,opt,name=snippet_id,json=snippetId,proto3" json:"snippet_id,omitempty"`
@@ -905,7 +905,7 @@ func (x *MoveSnippetRequest) GetSortOrder() int32 {
 	return 0
 }
 
-// SearchSnippetsRequest 结构化搜索请求（重设计）
+// SearchSnippetsRequest structured search request (redesigned)
 type SearchSnippetsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
@@ -2363,7 +2363,7 @@ func (x *TemplateResponse) GetUpdatedAt() string {
 
 type ListTemplatesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Category      string                 `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"` // 按分类过滤，空字符串 = 全部
+	Category      string                 `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"` // filter by category; an empty string means all
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3560,9 +3560,9 @@ type UploadFileResponse struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
 	Size          int64                  `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
-	Url           string                 `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`                                       // 文件访问 URL
-	MimeType      string                 `protobuf:"bytes,5,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`             // MIME 类型
-	ThumbnailUrl  string                 `protobuf:"bytes,6,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"` // 缩略图 URL（图片类型）
+	Url           string                 `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`                                       // file access URL
+	MimeType      string                 `protobuf:"bytes,5,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`             // MIME type
+	ThumbnailUrl  string                 `protobuf:"bytes,6,opt,name=thumbnail_url,json=thumbnailUrl,proto3" json:"thumbnail_url,omitempty"` // thumbnail URL (for image types)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3992,7 +3992,7 @@ const file_note_note_api_proto_rawDesc = "" +
 	"\rPresignUpload\x12\x1a.note.PresignUploadRequest\x1a\x1b.note.PresignUploadResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/notes/uploads/presign\x12v\n" +
 	"\x0eCompleteUpload\x12\x1b.note.CompleteUploadRequest\x1a\x1c.note.CompleteUploadResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/notes/uploads/complete\x12?\n" +
 	"\n" +
-	"UploadFile\x12\x17.note.UploadFileRequest\x1a\x18.note.UploadFileResponseB'Z%github.com/ownforge/ownforge/pkg/proto/noteb\x06proto3"
+	"UploadFile\x12\x17.note.UploadFileRequest\x1a\x18.note.UploadFileResponseB-Z+github.com/loqbit/ownforge/pkg/proto/noteb\x06proto3"
 
 var (
 	file_note_note_api_proto_rawDescOnce sync.Once

@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetlineage"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetlineage"
 )
 
 // SnippetLineageUpdate is the builder for updating SnippetLineage entities.

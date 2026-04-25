@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/share"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/share"
 )
 
 // ShareDelete is the builder for deleting a Share entity.

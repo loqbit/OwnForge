@@ -3,7 +3,7 @@ package grouprepo
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/service/group/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/service/group/contract"
 )
 
 // Repository defines the group data access interface.

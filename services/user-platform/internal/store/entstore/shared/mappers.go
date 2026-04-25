@@ -2,10 +2,10 @@ package shared
 
 import (
 	"github.com/google/uuid"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
-	applicationrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/application"
-	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
+	applicationrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/application"
+	sessionrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/session"
 )
 
 // MapUser maps an Ent User into the repository-layer user model.

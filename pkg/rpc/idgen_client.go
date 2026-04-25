@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	pb "github.com/ownforge/ownforge/pkg/proto/idgen"
+	pb "github.com/loqbit/ownforge/pkg/proto/idgen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

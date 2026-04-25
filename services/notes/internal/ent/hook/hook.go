@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
 )
 
 // The AICallLogFunc type is an adapter to allow the use of ordinary

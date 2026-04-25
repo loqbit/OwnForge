@@ -1,15 +1,15 @@
 package handler
 
 import (
-	"github.com/ownforge/ownforge/services/gateway/internal/config"
-	"github.com/ownforge/ownforge/services/gateway/internal/grpcclient"
-	"github.com/ownforge/ownforge/services/gateway/internal/handler/dto"
-	"github.com/ownforge/ownforge/services/gateway/internal/handler/response"
-	"github.com/ownforge/ownforge/services/gateway/internal/handler/validator"
+	"github.com/loqbit/ownforge/services/gateway/internal/config"
+	"github.com/loqbit/ownforge/services/gateway/internal/grpcclient"
+	"github.com/loqbit/ownforge/services/gateway/internal/handler/dto"
+	"github.com/loqbit/ownforge/services/gateway/internal/handler/response"
+	"github.com/loqbit/ownforge/services/gateway/internal/handler/validator"
 
 	"github.com/gin-gonic/gin"
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	userpb "github.com/ownforge/ownforge/pkg/proto/user"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	userpb "github.com/loqbit/ownforge/pkg/proto/user"
 
 	"go.uber.org/zap"
 )

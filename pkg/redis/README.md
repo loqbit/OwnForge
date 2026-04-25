@@ -5,7 +5,7 @@ Unified Redis client creation with a built-in connection pool and logging.
 ## Usage
 
 ```go
-import commonRedis "github.com/ownforge/ownforge/pkg/redis"
+import commonRedis "github.com/loqbit/ownforge/pkg/redis"
 
 redisClient := commonRedis.Init(commonRedis.Config{
     Addr:     "localhost:6379",

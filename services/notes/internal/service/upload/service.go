@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
-	"github.com/ownforge/ownforge/services/notes/internal/platform/storage"
-	"github.com/ownforge/ownforge/services/notes/internal/service/upload/contract"
+	pkgerrs "github.com/loqbit/ownforge/pkg/errs"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/storage"
+	"github.com/loqbit/ownforge/services/notes/internal/service/upload/contract"
 	"go.uber.org/zap"
 )
 

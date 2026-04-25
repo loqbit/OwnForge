@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	"github.com/ownforge/ownforge/services/notes/internal/platform/idgen"
-	templaterepo "github.com/ownforge/ownforge/services/notes/internal/repository/template"
-	"github.com/ownforge/ownforge/services/notes/internal/service/template/contract"
+	pkgerrs "github.com/loqbit/ownforge/pkg/errs"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/idgen"
+	templaterepo "github.com/loqbit/ownforge/services/notes/internal/repository/template"
+	"github.com/loqbit/ownforge/services/notes/internal/service/template/contract"
 
 	"go.uber.org/zap"
 )

@@ -3,9 +3,9 @@ package appcontainer
 import (
 	"github.com/redis/go-redis/v9"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/platform/config"
-	platformidgen "github.com/ownforge/ownforge/services/user-platform/internal/platform/idgen"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/platform/config"
+	platformidgen "github.com/loqbit/ownforge/services/user-platform/internal/platform/idgen"
 	"go.uber.org/zap"
 )
 

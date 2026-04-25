@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ownforge/ownforge/pkg/mq/bus"
+	"github.com/loqbit/ownforge/pkg/mq/bus"
 	"github.com/segmentio/kafka-go"
 )
 

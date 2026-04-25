@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/ownforge/ownforge/pkg/trace"
+	"github.com/loqbit/ownforge/pkg/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

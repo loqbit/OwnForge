@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippet"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/tag"
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
-	snippetrepo "github.com/ownforge/ownforge/services/notes/internal/repository/snippet"
-	"github.com/ownforge/ownforge/services/notes/internal/service/snippet/contract"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippet"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/tag"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
+	snippetrepo "github.com/loqbit/ownforge/services/notes/internal/repository/snippet"
+	"github.com/loqbit/ownforge/services/notes/internal/service/snippet/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 // Store is the Ent-backed implementation of the snippet repository.

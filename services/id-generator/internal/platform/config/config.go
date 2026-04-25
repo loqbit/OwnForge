@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	commonconf "github.com/ownforge/ownforge/pkg/conf"
+	commonconf "github.com/loqbit/ownforge/pkg/conf"
 	"github.com/spf13/viper"
 )
 

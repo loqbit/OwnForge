@@ -7,7 +7,7 @@ A lightweight tool for TraceID generation and context propagation.
 ## Usage
 
 ```go
-import "github.com/ownforge/ownforge/pkg/trace"
+import "github.com/loqbit/ownforge/pkg/trace"
 
 // Generate a new TraceID
 traceID := trace.NewTraceID()

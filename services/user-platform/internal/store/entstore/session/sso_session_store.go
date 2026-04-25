@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/ssosession"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	sessionrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/session"
-	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/ssosession"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	sessionrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/session"
+	"github.com/loqbit/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
 type SsoSessionStore struct {

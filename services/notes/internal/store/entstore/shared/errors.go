@@ -3,8 +3,8 @@ package shared
 import (
 	"strings"
 
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
 )
 
 // ParseEntError converts Ent errors into repository-layer sentinel errors.

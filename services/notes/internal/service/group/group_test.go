@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	grouprepo "github.com/ownforge/ownforge/services/notes/internal/repository/group"
-	"github.com/ownforge/ownforge/services/notes/internal/service/group/contract"
+	grouprepo "github.com/loqbit/ownforge/services/notes/internal/repository/group"
+	"github.com/loqbit/ownforge/services/notes/internal/service/group/contract"
 	"go.uber.org/zap"
 )
 

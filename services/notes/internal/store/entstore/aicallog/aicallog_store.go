@@ -3,10 +3,10 @@ package aicallog
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/ent"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aicalllog"
-	aicallogrepo "github.com/ownforge/ownforge/services/notes/internal/repository/aicallog"
-	"github.com/ownforge/ownforge/services/notes/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/ent"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aicalllog"
+	aicallogrepo "github.com/loqbit/ownforge/services/notes/internal/repository/aicallog"
+	"github.com/loqbit/ownforge/services/notes/internal/store/entstore/shared"
 )
 
 // Store is the Ent-backed implementation of the aicallog repository.

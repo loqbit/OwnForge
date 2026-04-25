@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/nats-io/nats.go/jetstream"
-	"github.com/ownforge/ownforge/pkg/mq/bus"
+	"github.com/loqbit/ownforge/pkg/mq/bus"
 )
 
 // JSSubscriber is the JetStream-based implementation of bus.Subscriber.

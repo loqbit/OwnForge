@@ -1,0 +1,49 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Editor / IDE
+.vscode
+.idea
+.claude
+*.swp
+*.swo
+
+# Secrets & local env (never ship into images)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Docs (not needed for builds; docs/private is private anyway)
+docs
+*.md
+!pkg/**/*.md
+!services/**/*.md
+
+# Node / frontend artifacts (future apps/web, packages/ui)
+node_modules
+dist
+build
+.next
+.turbo
+.pnpm-store
+
+# Go build artifacts
+**/*.test
+**/*.out
+coverage.*
+**/bin/
+**/tmp/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docker / compose itself
+Dockerfile*
+!services/**/Dockerfile*
+docker-compose*.yml

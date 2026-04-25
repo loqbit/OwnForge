@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	infrarepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/infra"
 )
 
 type transactionManager struct {

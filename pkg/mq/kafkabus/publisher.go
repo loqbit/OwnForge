@@ -3,7 +3,7 @@ package kafkabus
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/pkg/mq/bus"
+	"github.com/loqbit/ownforge/pkg/mq/bus"
 	"github.com/segmentio/kafka-go"
 )
 

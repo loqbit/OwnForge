@@ -3,7 +3,7 @@ package tagrepo
 import (
 	"context"
 
-	"github.com/ownforge/ownforge/services/notes/internal/service/tag/contract"
+	"github.com/loqbit/ownforge/services/notes/internal/service/tag/contract"
 )
 
 // Repository defines the tag data access interface.

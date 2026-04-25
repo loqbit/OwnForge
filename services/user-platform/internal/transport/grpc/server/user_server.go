@@ -4,13 +4,13 @@ import (
 	"context"
 	"strings"
 
-	grpcerrs "github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc/codec/errs"
-	grpcinterceptor "github.com/ownforge/ownforge/services/user-platform/internal/transport/grpc/interceptor"
+	grpcerrs "github.com/loqbit/ownforge/services/user-platform/internal/transport/grpc/codec/errs"
+	grpcinterceptor "github.com/loqbit/ownforge/services/user-platform/internal/transport/grpc/interceptor"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/ownforge/ownforge/pkg/proto/user"
-	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
+	pb "github.com/loqbit/ownforge/pkg/proto/user"
+	accountservice "github.com/loqbit/ownforge/services/user-platform/internal/service/account"
 
 	"go.uber.org/zap"
 )

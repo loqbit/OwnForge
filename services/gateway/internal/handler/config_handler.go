@@ -3,8 +3,8 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/ownforge/ownforge/services/gateway/internal/config"
-	"github.com/ownforge/ownforge/services/gateway/internal/handler/response"
+	"github.com/loqbit/ownforge/services/gateway/internal/config"
+	"github.com/loqbit/ownforge/services/gateway/internal/handler/response"
 )
 
 // ConfigHandler handles frontend runtime-config requests.

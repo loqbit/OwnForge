@@ -11,16 +11,16 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aicalllog"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aiusagedaily"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/group"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/share"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippet"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetaimetadata"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetlineage"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/tag"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/template"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aicalllog"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aiusagedaily"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/group"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/share"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippet"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetaimetadata"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetlineage"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/tag"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/template"
 )
 
 const (

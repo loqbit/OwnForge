@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/user"
-	platformidgen "github.com/ownforge/ownforge/services/user-platform/internal/platform/idgen"
-	accountrepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/account"
-	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/user"
+	platformidgen "github.com/loqbit/ownforge/services/user-platform/internal/platform/idgen"
+	accountrepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/account"
+	"github.com/loqbit/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
 // UserStore is the Ent-backed implementation of UserRepository.

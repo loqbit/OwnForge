@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	infrarepo "github.com/ownforge/ownforge/services/user-platform/internal/repository/infra"
-	"github.com/ownforge/ownforge/services/user-platform/internal/store/entstore/shared"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	infrarepo "github.com/loqbit/ownforge/services/user-platform/internal/repository/infra"
+	"github.com/loqbit/ownforge/services/user-platform/internal/store/entstore/shared"
 )
 
 // EventOutboxStore is the Ent-backed implementation of EventOutboxWriter.

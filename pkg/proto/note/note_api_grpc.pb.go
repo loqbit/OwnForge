@@ -72,11 +72,11 @@ type NoteServiceClient interface {
 	DeleteSnippet(ctx context.Context, in *DeleteSnippetRequest, opts ...grpc.CallOption) (*DeleteSnippetResponse, error)
 	RestoreSnippet(ctx context.Context, in *RestoreSnippetRequest, opts ...grpc.CallOption) (*RestoreSnippetResponse, error)
 	SetSnippetTags(ctx context.Context, in *SetSnippetTagsRequest, opts ...grpc.CallOption) (*SetSnippetTagsResponse, error)
-	// MoveSnippet 将片段移动到目标分组并设置排序权重。
-	// group_id 省略时表示收集箱（未分组）；sort_order 省略时服务端自动追加到目标分组末尾。
+	// MoveSnippet Move the snippet to the target group and set the sort order.
+	// If group_id is omitted, the snippet is moved to the inbox (ungrouped); if sort_order is omitted, the server appends it to the end of the target group.
 	MoveSnippet(ctx context.Context, in *MoveSnippetRequest, opts ...grpc.CallOption) (*SnippetResponse, error)
 	SearchSnippets(ctx context.Context, in *SearchSnippetsRequest, opts ...grpc.CallOption) (*ListSnippetsResponse, error)
-	// 公开片段 — 不加 http 注解，保留手写 handler（无需鉴权）
+	// Public snippets - no http annotation; keep a handwritten handler (no auth required)
 	GetPublicSnippet(ctx context.Context, in *GetPublicSnippetRequest, opts ...grpc.CallOption) (*SnippetResponse, error)
 	FavoriteSnippet(ctx context.Context, in *FavoriteSnippetRequest, opts ...grpc.CallOption) (*FavoriteSnippetResponse, error)
 	UnfavoriteSnippet(ctx context.Context, in *UnfavoriteSnippetRequest, opts ...grpc.CallOption) (*FavoriteSnippetResponse, error)
@@ -102,11 +102,11 @@ type NoteServiceClient interface {
 	CreateShare(ctx context.Context, in *CreateShareRequest, opts ...grpc.CallOption) (*ShareResponse, error)
 	ListMyShares(ctx context.Context, in *ListMySharesRequest, opts ...grpc.CallOption) (*ListSharesResponse, error)
 	DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...grpc.CallOption) (*DeleteShareResponse, error)
-	// 公开分享 — 不加 http 注解，保留手写 handler（无需鉴权）
+	// Public shares - no http annotation; keep a handwritten handler (no auth required)
 	GetPublicShareByToken(ctx context.Context, in *GetPublicShareByTokenRequest, opts ...grpc.CallOption) (*PublicShareResponse, error)
 	PresignUpload(ctx context.Context, in *PresignUploadRequest, opts ...grpc.CallOption) (*PresignUploadResponse, error)
 	CompleteUpload(ctx context.Context, in *CompleteUploadRequest, opts ...grpc.CallOption) (*CompleteUploadResponse, error)
-	// 文件上传（兼容旧链路）— 不加 http 注解，保留手写 handler（二进制流）
+	// File upload (legacy-compatible) - no http annotation; keep a handwritten handler (binary stream)
 	UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
 }
 
@@ -520,11 +520,11 @@ type NoteServiceServer interface {
 	DeleteSnippet(context.Context, *DeleteSnippetRequest) (*DeleteSnippetResponse, error)
 	RestoreSnippet(context.Context, *RestoreSnippetRequest) (*RestoreSnippetResponse, error)
 	SetSnippetTags(context.Context, *SetSnippetTagsRequest) (*SetSnippetTagsResponse, error)
-	// MoveSnippet 将片段移动到目标分组并设置排序权重。
-	// group_id 省略时表示收集箱（未分组）；sort_order 省略时服务端自动追加到目标分组末尾。
+	// MoveSnippet Move the snippet to the target group and set the sort order.
+	// If group_id is omitted, the snippet is moved to the inbox (ungrouped); if sort_order is omitted, the server appends it to the end of the target group.
 	MoveSnippet(context.Context, *MoveSnippetRequest) (*SnippetResponse, error)
 	SearchSnippets(context.Context, *SearchSnippetsRequest) (*ListSnippetsResponse, error)
-	// 公开片段 — 不加 http 注解，保留手写 handler（无需鉴权）
+	// Public snippets - no http annotation; keep a handwritten handler (no auth required)
 	GetPublicSnippet(context.Context, *GetPublicSnippetRequest) (*SnippetResponse, error)
 	FavoriteSnippet(context.Context, *FavoriteSnippetRequest) (*FavoriteSnippetResponse, error)
 	UnfavoriteSnippet(context.Context, *UnfavoriteSnippetRequest) (*FavoriteSnippetResponse, error)
@@ -550,11 +550,11 @@ type NoteServiceServer interface {
 	CreateShare(context.Context, *CreateShareRequest) (*ShareResponse, error)
 	ListMyShares(context.Context, *ListMySharesRequest) (*ListSharesResponse, error)
 	DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error)
-	// 公开分享 — 不加 http 注解，保留手写 handler（无需鉴权）
+	// Public shares - no http annotation; keep a handwritten handler (no auth required)
 	GetPublicShareByToken(context.Context, *GetPublicShareByTokenRequest) (*PublicShareResponse, error)
 	PresignUpload(context.Context, *PresignUploadRequest) (*PresignUploadResponse, error)
 	CompleteUpload(context.Context, *CompleteUploadRequest) (*CompleteUploadResponse, error)
-	// 文件上传（兼容旧链路）— 不加 http 注解，保留手写 handler（二进制流）
+	// File upload (legacy-compatible) - no http annotation; keep a handwritten handler (binary stream)
 	UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
 	mustEmbedUnimplementedNoteServiceServer()
 }

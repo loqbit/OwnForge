@@ -5,9 +5,9 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 
-	commonPG "github.com/ownforge/ownforge/pkg/postgres"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent"
-	"github.com/ownforge/ownforge/services/user-platform/internal/ent/migrate"
+	commonPG "github.com/loqbit/ownforge/pkg/postgres"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent"
+	"github.com/loqbit/ownforge/services/user-platform/internal/ent/migrate"
 
 	"go.uber.org/zap"
 )

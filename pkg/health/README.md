@@ -12,7 +12,7 @@ Provides `/healthz` (liveness) and `/readyz` (readiness) following K8s probe con
 ## Direct Use (Low-Level API)
 
 ```go
-import "github.com/ownforge/ownforge/pkg/health"
+import "github.com/loqbit/ownforge/pkg/health"
 
 checker := health.NewChecker()
 checker.AddCheck("postgres", func(ctx context.Context) error {

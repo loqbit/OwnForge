@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
-	snippetrepo "github.com/ownforge/ownforge/services/notes/internal/repository/snippet"
-	tagrepo "github.com/ownforge/ownforge/services/notes/internal/repository/tag"
-	"github.com/ownforge/ownforge/services/notes/internal/service/snippet/contract"
-	tagcontract "github.com/ownforge/ownforge/services/notes/internal/service/tag/contract"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
+	snippetrepo "github.com/loqbit/ownforge/services/notes/internal/repository/snippet"
+	tagrepo "github.com/loqbit/ownforge/services/notes/internal/repository/tag"
+	"github.com/loqbit/ownforge/services/notes/internal/service/snippet/contract"
+	tagcontract "github.com/loqbit/ownforge/services/notes/internal/service/tag/contract"
 	"go.uber.org/zap"
 )
 

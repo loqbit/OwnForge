@@ -5,12 +5,12 @@ import (
 	"errors"
 	"strings"
 
-	pkgerrs "github.com/ownforge/ownforge/pkg/errs"
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	"github.com/ownforge/ownforge/services/notes/internal/platform/idgen"
-	lineagerepo "github.com/ownforge/ownforge/services/notes/internal/repository/lineage"
-	sharedrepo "github.com/ownforge/ownforge/services/notes/internal/repository/shared"
-	"github.com/ownforge/ownforge/services/notes/internal/service/lineage/contract"
+	pkgerrs "github.com/loqbit/ownforge/pkg/errs"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	"github.com/loqbit/ownforge/services/notes/internal/platform/idgen"
+	lineagerepo "github.com/loqbit/ownforge/services/notes/internal/repository/lineage"
+	sharedrepo "github.com/loqbit/ownforge/services/notes/internal/repository/shared"
+	"github.com/loqbit/ownforge/services/notes/internal/service/lineage/contract"
 	"go.uber.org/zap"
 )
 

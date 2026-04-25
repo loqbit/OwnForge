@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/aicalllog"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/aicalllog"
 )
 
 // AICallLog is the model entity for the AICallLog schema.

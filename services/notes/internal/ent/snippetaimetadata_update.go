@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/predicate"
-	"github.com/ownforge/ownforge/services/notes/internal/ent/snippetaimetadata"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/predicate"
+	"github.com/loqbit/ownforge/services/notes/internal/ent/snippetaimetadata"
 )
 
 // SnippetAIMetadataUpdate is the builder for updating SnippetAIMetadata entities.

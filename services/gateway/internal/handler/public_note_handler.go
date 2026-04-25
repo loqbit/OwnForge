@@ -4,13 +4,13 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/ownforge/ownforge/services/gateway/internal/grpcclient"
-	"github.com/ownforge/ownforge/services/gateway/internal/handler/response"
-	"github.com/ownforge/ownforge/services/gateway/internal/handler/validator"
+	"github.com/loqbit/ownforge/services/gateway/internal/grpcclient"
+	"github.com/loqbit/ownforge/services/gateway/internal/handler/response"
+	"github.com/loqbit/ownforge/services/gateway/internal/handler/validator"
 
 	"github.com/gin-gonic/gin"
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	notepb "github.com/ownforge/ownforge/pkg/proto/note"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	notepb "github.com/loqbit/ownforge/pkg/proto/note"
 	"go.uber.org/zap"
 )
 

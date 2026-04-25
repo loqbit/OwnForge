@@ -1,14 +1,14 @@
 package handler
 
 import (
-	commonlogger "github.com/ownforge/ownforge/pkg/logger"
-	accountservice "github.com/ownforge/ownforge/services/user-platform/internal/service/account"
-	authservice "github.com/ownforge/ownforge/services/user-platform/internal/service/auth"
-	httpdto "github.com/ownforge/ownforge/services/user-platform/internal/transport/http/codec/dto"
-	httperrs "github.com/ownforge/ownforge/services/user-platform/internal/transport/http/codec/errs"
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/codec/response"
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/codec/validator"
-	"github.com/ownforge/ownforge/services/user-platform/internal/transport/http/server/middleware"
+	commonlogger "github.com/loqbit/ownforge/pkg/logger"
+	accountservice "github.com/loqbit/ownforge/services/user-platform/internal/service/account"
+	authservice "github.com/loqbit/ownforge/services/user-platform/internal/service/auth"
+	httpdto "github.com/loqbit/ownforge/services/user-platform/internal/transport/http/codec/dto"
+	httperrs "github.com/loqbit/ownforge/services/user-platform/internal/transport/http/codec/errs"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/http/codec/response"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/http/codec/validator"
+	"github.com/loqbit/ownforge/services/user-platform/internal/transport/http/server/middleware"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
